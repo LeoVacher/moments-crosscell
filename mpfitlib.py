@@ -118,16 +118,16 @@ def Fitdcordre2(p,fjac=None, x=None, y=None, err=None):
     model = np.zeros(ncross)
     for i in range(nnus):
         for j in range(i,nnus):
-                ampl = (func.mbb(nu[i],p[0],p[9])*func.mbb(nu[j],p[0],p[9])/(func.mbb(nuref,p[0],p[9])**2.)*psm.convert_units('MJysr','uK_CMB',nu[i])*psm.convert_units('MJysr','uK_CMB',nu[j])/psm.convert_units('MJysr','uK_CMB',nuref)**2)
+                ampl = (func.mbb(nu[i],p[1],p[2])*func.mbb(nu[j],p[1],p[2])/(func.mbb(nuref,p[1],p[2])**2.)*psm.convert_units('MJysr','uK_CMB',nu[i])*psm.convert_units('MJysr','uK_CMB',nu[j])/psm.convert_units('MJysr','uK_CMB',nuref)**2)
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)
                 lognui2 = np.log(nui)**2
                 lognuj = np.log(nuj)
                 lognuj2 = np.log(nuj)**2
-                temp = ampl * (p[1]+ (lognui+lognuj) * p[2]+ lognui*lognuj * p[3])
-                temp2=ampl*(0.5*(lognui2+lognuj2) *p[4] +0.5 * (lognui2*lognuj+lognui*lognuj2) * p[5]+0.25* (lognui2*lognuj2) * p[6])
-                model[icross] = temp + temp2 + DL_lensbin[int(p[8])] + p[7]*DL_tens[int(p[8])]
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
+                temp2=ampl*(0.5*(lognui2+lognuj2) *p[5] +0.5 * (lognui2*lognuj+lognui*lognuj2) * p[6]+0.25* (lognui2*lognuj2) * p[7])
+                model[icross] = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[9])]
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])

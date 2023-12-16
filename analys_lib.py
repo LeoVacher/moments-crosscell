@@ -60,7 +60,7 @@ def fitmbb(nucross,DL,Linv,p0):
             m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
             paramiterl[L,n]= m2.params
             chi2l[L,n]=m2.fnorm/m2.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'r' : paramiterl[:,:,3], 'X2red': chi2l[L,n]}
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'r' : paramiterl[:,:,3], 'X2red': chi2l}
     return results
 
 
@@ -93,7 +93,7 @@ def fito1_b(nucross,DL,Linv,resultsmbb,iter=0):
             m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
             paramiterl[L,n]= m2.params
             chi2l[L,n]=m2.fnorm/m2.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4], 'r' : paramiterl[:,:,5], 'X2red': chi2l[L,n]}
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4], 'r' : paramiterl[:,:,5], 'X2red': chi2l}
     return results
 
 
@@ -125,7 +125,7 @@ def fito1_bT(nucross,DL,Linv,resultsmbb,iter=0):
             m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
             paramiterl[L,n]= m2.params
             chi2l[L,n]=m2.fnorm/m2.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw1t' : paramiterl[:,:,5],'w1bw1t' : paramiterl[:,:,6],'w1tw1t' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l[L,n]}
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw1t' : paramiterl[:,:,5],'w1bw1t' : paramiterl[:,:,6],'w1tw1t' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l}
     return results
 
 def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
@@ -156,7 +156,7 @@ def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
             m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
             paramiterl[L,n]= m2.params
             chi2l[L,n]=m2.fnorm/m2.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw2b' : paramiterl[:,:,5],'w1bw2b' : paramiterl[:,:,6],'w2bw2b' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l[L,n]}
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw2b' : paramiterl[:,:,5],'w1bw2b' : paramiterl[:,:,6],'w2bw2b' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l}
     return results
 
 #PLOT FUNCTIONS ##################################################################################################################
