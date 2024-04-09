@@ -24,8 +24,8 @@ Pr = '/Users/leovacher/Documents/ProjetsRecherche/'
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
 
-DL_lensbin = b.bin_cell(np.load(Pr+"Moments/CLsimus/DLth_CAMBparamPlanck2018_ajust.npy")[2,0:lmax+1])[0:ELLBOUND]
-DL_tens = b.bin_cell(np.load(Pr+"/Moments/CLsimus/DLtensor_CAMBparamPlanck2018_r=1.npy")[2,0:lmax+1])[0:ELLBOUND]
+DL_lensbin = b.bin_cell(np.load(Pr+"Moments/CLsimus/Vacher2022/DLth_CAMBparamPlanck2018_ajust.npy")[2,0:lmax+1])[0:ELLBOUND]
+DL_tens = b.bin_cell(np.load(Pr+"/Moments/CLsimus//Vacher2022/DLtensor_CAMBparamPlanck2018_r=1.npy")[2,0:lmax+1])[0:ELLBOUND]
  
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
     model = func.Gaussian(x,p[0],p[1])

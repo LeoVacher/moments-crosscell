@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./lib")
+
 import pymaster as nmt 
 import pysm3
 import time
@@ -16,8 +19,9 @@ import analys_lib as an
 
 #load dictionnaries:
 
-resultsmbb =np.load('Best-fits/resultsmbb.npy',allow_pickle=True).item()
-resultso1b =np.load('Best-fits/resultso1b.npy',allow_pickle=True).item()
-resultso1bt =np.load('Best-fits/resultso1bt.npy',allow_pickle=True).item()
-resultso2b =np.load('Best-fits/resultso2b.npy',allow_pickle=True).item()
+resultsmbb =np.load('Best-fits/resultsmbb_d%sc.npy'%dusttype,allow_pickle=True).item()
+resultso1b =np.load('Best-fits/resultso1b_d%sc.npy'%dusttype,allow_pickle=True).item()
+resultso1bt =np.load('Best-fits/resultso1bt_d%sc.npy'%dusttype,allow_pickle=True).item()
+resultso2b =np.load('Best-fits/resultso2b_d%sc.npy'%dusttype,allow_pickle=True).item()
+
 

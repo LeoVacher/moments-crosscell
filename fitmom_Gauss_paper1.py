@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./lib")
+
 import pymaster as nmt 
 import pysm3
 import time
@@ -6,14 +9,12 @@ import mpfitlib as mpl
 import scipy
 #from Nearest_Positive_Definite import *
 from matplotlib.backends.backend_pdf import PdfPages
-import datetime
 import matplotlib.patheffects as path_effects
 import scipy.stats as st
 import basicfunc as func
 from fgbuster import get_instrument, get_sky, get_observation  # Predefined instrumental and sky-creation configurations
 import analys_lib as an
 
-nobeam = 1
 r=0.
 nside = 256
 lmax = nside*3-1
@@ -29,13 +30,7 @@ Pathload='./'
 
 # Call Cell of simulation
 
-if nobeam == 1:
-    if r ==0:
-        DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_nobeam%s.npy"%(nside,fsky,scale,Nlbin,dusttype,kwsim))
-    else :
-        DLdc = np.load(Pathload+"/CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_nobeam%s.npy"%(r,nside,fsky,scale,Nlbin,dusttype,kwsim))
-else :
-   DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
+DLdc = np.load(Pathload+"/CLsimus/Vacher2022/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_nobeam%s.npy"%(nside,fsky,scale,Nlbin,dusttype,kwsim))
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
@@ -46,8 +41,9 @@ Nell = len(l)
 
 #instrument informations:
 
-instrument=get_instrument("LiteBIRD")
-freq=np.array(instrument.frequency)
+instr_name='LiteBIRD_reduced'
+instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
+freq = instr['frequencies']
 freq = freq[6:]
 nf = len(freq)
 Ncross = int(nf*(nf+1)/2)
@@ -73,7 +69,7 @@ Linvdc=an.getLinvdiag(DLdc)
 p0=[5e2, 1.54, 20, 0] #first guess for mbb A, beta, T, r
 
 resultsmbb = an.fitmbb(nucross,DLdc,Linvdc,p0)
-np.save('Best-fits/resultsmbb.npy',resultsmbb)
+np.save('Best-fits/resultsmbb_d%sc.npy'%dusttype,resultsmbb)
 
 # plot Gaussian likelihood for r
 
@@ -83,7 +79,7 @@ plt.show()
 # fit order 1 moments in beta around mbb pivot, get results and save
 
 resultso1b = an.fito1_b(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso1b.npy',resultsmbb,allow_pickle=True)
+np.save('Best-fits/resultso1b_d%sc.npy'%dusttype,resultsmbb,allow_pickle=True)
 
 # plot Gaussian likelihood for r
 
@@ -93,7 +89,7 @@ plt.show()
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 resultso1bt = an.fito1_bT(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso1bt.npy',resultsmbb)
+np.save('Best-fits/resultso1bt_d%sc.npy'%dusttype,resultsmbb)
 
 # plot Gaussian likelihood for r
 
@@ -101,7 +97,7 @@ an.plotr_gaussproduct(resultso1bt)
 plt.show()
 
 resultso2b = an.fito2_b(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso2b.npy',resultsmbb)
+np.save('Best-fits/resultso2b_d%sc.npy'%dusttype,resultsmbb)
 
 # plot Gaussian likelihood for r
 

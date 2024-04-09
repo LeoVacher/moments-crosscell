@@ -10,7 +10,7 @@ def B(nu, T):
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
-    :param T: temperature of black body.
+    :param T: temperature of black body in Kelvins.
     :type T: float.
     :return: float -- black body brightness.
 
@@ -19,6 +19,17 @@ def B(nu, T):
     return 2.*constants.h *(nu *1.e9)**3/ constants.c**2/np.expm1(x)
 
 def mbb(nu,beta,T):
+    """Modified black body.
+
+    :param nu: frequency in GHz at which to evaluate planck function.
+    :type nu: float.
+    :param beta: spectral index of the emissivity
+    :type beta: float    
+    :param T: temperature of black body in Kelvins.
+    :type T: float.
+    :return: float -- modified black body brightness.
+
+    """    
     return B(nu,T)*(1e9*nu)**beta
 
 def dmbbT(nu,T):
@@ -200,15 +211,6 @@ def binning(ell,arr,bintab):
     # ellbin = np.array([ell[ind == i].mean() for i in range(1, len(bintab))])
 
     return arrbin
-
-def modL(P):
-    return np.sqrt(P.real**2 + P.imag**2)
-
-def gamma(P):
-    return 0.5*np.arctan2(P.imag,P.real) #0.5*np.arctan2(-U,Q)
-
-def gamma_HP(P):
-    return 0.5*np.arctan2(-P.imag,P.real) #0.5*np.arctan2(-U,Q)
 
 
 #Downgrade from dodo
