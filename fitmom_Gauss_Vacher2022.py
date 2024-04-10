@@ -30,7 +30,7 @@ Pathload='./'
 
 # Call Cell of simulation
 
-DLdc = np.load(Pathload+"/CLsimus/Vacher2022/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_nobeam%s.npy"%(nside,fsky,scale,Nlbin,dusttype,kwsim))
+DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_nobeam%s.npy"%(nside,fsky,scale,Nlbin,dusttype,kwsim))
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
@@ -56,7 +56,7 @@ for i in range(0,nf):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
-N =len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
+N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 
 DLdc=DLdc[:N,:,:Nell]
 
@@ -74,33 +74,29 @@ np.save('Best-fits/resultsmbb_d%sc.npy'%dusttype,resultsmbb)
 # plot Gaussian likelihood for r
 
 an.plotr_gaussproduct(resultsmbb)
-plt.show()
 
 # fit order 1 moments in beta around mbb pivot, get results and save
 
 resultso1b = an.fito1_b(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso1b_d%sc.npy'%dusttype,resultsmbb,allow_pickle=True)
+np.save('Best-fits/resultso1b_d%sc.npy'%dusttype,resultso1b,allow_pickle=True)
 
 # plot Gaussian likelihood for r
 
 an.plotr_gaussproduct(resultso1b)
-plt.show()
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 resultso1bt = an.fito1_bT(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso1bt_d%sc.npy'%dusttype,resultsmbb)
+np.save('Best-fits/resultso1bt_d%sc.npy'%dusttype,resultso1bt)
 
 # plot Gaussian likelihood for r
 
 an.plotr_gaussproduct(resultso1bt)
-plt.show()
 
 resultso2b = an.fito2_b(nucross,DLdc,Linvdc,resultsmbb)
-np.save('Best-fits/resultso2b_d%sc.npy'%dusttype,resultsmbb)
+np.save('Best-fits/resultso2b_d%sc.npy'%dusttype,resultso2b)
 
 # plot Gaussian likelihood for r
 
 an.plotr_gaussproduct(resultso2b)
-plt.show()
 

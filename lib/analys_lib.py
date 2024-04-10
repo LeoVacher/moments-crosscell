@@ -9,7 +9,7 @@ import basicfunc as func
 
 #GENERAL #######################################################################################################################
 
-def getLinvdiag(DL,printdiag=False):
+def getLinvdiag(DL,printdiag=False,offset=0):
     """
     Compute inverse of the covariance matrix used for the fit assuming it is block-diagonal in ell. 
     :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
@@ -21,7 +21,7 @@ def getLinvdiag(DL,printdiag=False):
     DLtempo = np.swapaxes(DL,0,1)
     for L in range(Nell):
         cov = np.cov(DLtempo[:,:,L])
-        invcov = np.linalg.inv(cov)
+        invcov = np.linalg.inv(cov+offset*np.identity(len(cov)))
         if printdiag=='True':
             print(np.diag(np.dot(cov,invcov)))
         Linvdc.append(np.linalg.cholesky(invcov))
@@ -47,19 +47,14 @@ def fitmbb(nucross,DL,Linv,p0):
         print("%s%%"%(L*100/Nell))
         pl0 = np.append(p0,L)
         parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #dust params
-        parinfopl.append({'value':pl0[nparam-1], 'fixed':1}) #add r    
+        parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
         parinfopl.append({'value':pl0[nparam],'fixed':1}) #and L 
         for n in range(N):
             # first mbb fit, dust free, r fixed
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
-            # second mbb fit, dust fixed, r free
-            parinfopl2 = [{'value':m.params[i], 'fixed':1} for i in range(nparam-1)] #dust params
-            parinfopl2.append({'value':m.params[nparam-1], 'fixed':0}) #add r a  
-            parinfopl2.append({'value':m.params[nparam],'fixed':1}) #and L
-            m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
-            paramiterl[L,n]= m2.params
-            chi2l[L,n]=m2.fnorm/m2.dof            
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'r' : paramiterl[:,:,3], 'X2red': chi2l}
     return results
 
@@ -83,19 +78,13 @@ def fito1_b(nucross,DL,Linv,resultsmbb,iter=0):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':1},{'value':L, 'fixed':1}] #dust params
+            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
-            # second o1 fit, dust fixed, mom fixed, r free
-            parinfopl2 = [{'value':m.params[i], 'fixed':1} for i in range(len(parinfopl)-2)] #dust params
-            parinfopl2.append({'value':m.params[nparam-1], 'fixed':0}) #add r a  
-            parinfopl2.append({'value':m.params[nparam],'fixed':1}) #and L
-            m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
-            paramiterl[L,n]= m2.params
-            chi2l[L,n]=m2.fnorm/m2.dof            
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4], 'r' : paramiterl[:,:,5], 'X2red': chi2l}
     return results
-
 
 def fito1_bT(nucross,DL,Linv,resultsmbb,iter=0):
     """
@@ -115,16 +104,11 @@ def fito1_bT(nucross,DL,Linv,resultsmbb,iter=0):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':1},{'value':L, 'fixed':1}] #dust params
+            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
-            # second o1 fit, dust fixed, mom fixed, r free
-            parinfopl2 = [{'value':m.params[i], 'fixed':1} for i in range(len(parinfopl)-2)] #dust params
-            parinfopl2.append({'value':m.params[nparam-1], 'fixed':0}) #add r a  
-            parinfopl2.append({'value':m.params[nparam],'fixed':1}) #and L
-            m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
-            paramiterl[L,n]= m2.params
-            chi2l[L,n]=m2.fnorm/m2.dof            
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw1t' : paramiterl[:,:,5],'w1bw1t' : paramiterl[:,:,6],'w1tw1t' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l}
     return results
 
@@ -146,27 +130,23 @@ def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':1},{'value':L, 'fixed':1}] #dust params
+            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
-            # second o1 fit, dust fixed, mom fixed, r free
-            parinfopl2 = [{'value':m.params[i], 'fixed':1} for i in range(len(parinfopl)-2)] #dust params
-            parinfopl2.append({'value':m.params[nparam-1], 'fixed':0}) #add r a  
-            parinfopl2.append({'value':m.params[nparam],'fixed':1}) #and L
-            m2 = mpfit(funcfit,parinfo= parinfopl2 ,functkw=fa,quiet=True)
-            paramiterl[L,n]= m2.params
-            chi2l[L,n]=m2.fnorm/m2.dof            
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw2b' : paramiterl[:,:,5],'w1bw2b' : paramiterl[:,:,6],'w2bw2b' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l}
     return results
 
 #PLOT FUNCTIONS ##################################################################################################################
 
-def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB'):
+def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',debug=False):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result
     :param results: output of moment fitting
     :Nmin: minimal bin of ell in which to fit the Gaussians
     :Nmax: maximal bin of ell in which to fit the Gaussians
+    :debug: plot the gaussian fit in each ell to ensure its working well, default: False
     :label: label for the plot
     """
     rl = results['r']
@@ -184,8 +164,10 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB'):
         parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
         fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 100000/(np.sqrt(y1_cond)*ysum_cond)}
         m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)
-        #plt.plot(x1_cond,y1_cond)
-        plt.show()
+        if debug==True:
+            plt.plot(x1_cond,y1_cond/ysum_cond)
+            plt.plot(x1_cond,func.Gaussian(x1_cond,m.params[0],m.params[1]))
+            plt.show()
         moytemp.append(m.params[0])
         sigtemp.append(m.params[1])
     moy = np.array(moytemp)
@@ -217,5 +199,5 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB'):
     plt.axvline(0, 0, 1, color = 'red', linestyle = "--")
     plt.xlabel("r",fontsize=40)
     plt.legend()
-
+    plt.show()
 
