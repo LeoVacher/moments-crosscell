@@ -1,3 +1,5 @@
+#create simulation for full litebird channels : preliminary
+
 import sys
 sys.path.append("./lib")
 
