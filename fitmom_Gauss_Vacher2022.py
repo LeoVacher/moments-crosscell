@@ -1,3 +1,5 @@
+#reproduce results of Vacher 2022
+
 import sys
 sys.path.append("./lib")
 
@@ -14,6 +16,8 @@ import scipy.stats as st
 import basicfunc as func
 from fgbuster import get_instrument, get_sky, get_observation  # Predefined instrumental and sky-creation configurations
 import analys_lib as an
+
+#define parameters
 
 r=0.
 nside = 256
