@@ -22,7 +22,7 @@ def getLinvdiag(DL,printdiag=False,offset=0):
     for L in range(Nell):
         cov = np.cov(DLtempo[:,:,L])
         invcov = np.linalg.inv(cov+offset*np.identity(len(cov)))
-        if printdiag=='True':
+        if printdiag==True:
             print(np.diag(np.dot(cov,invcov)))
         Linvdc.append(np.linalg.cholesky(invcov))
     Linvdc = np.array(Linvdc)
