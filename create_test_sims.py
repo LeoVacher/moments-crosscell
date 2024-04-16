@@ -1,5 +1,3 @@
-#create simulation for full litebird channels : preliminary
-
 import sys
 sys.path.append("./lib")
 
@@ -29,7 +27,7 @@ scale = 5
 Nlbin = 10
 fsky = 0.7
 dusttype = 0
-syncrotype = 0
+syncrotype = None
 mascut=0
 kw = ''
 
@@ -107,9 +105,9 @@ for k in range(0,N):
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
             if i != j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc1[i],purify_e=True, purify_b=True), nmt.NmtField(mask, maptotaldc1[j],purify_e=True, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, maptotaldc1[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             if i==j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc21[i],purify_e=True, purify_b=True), nmt.NmtField(mask, maptotaldc22[j],purify_e=True, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             z = z +1  
     if syncrotype==None:
     	if r ==0:
