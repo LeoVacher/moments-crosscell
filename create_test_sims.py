@@ -73,9 +73,9 @@ for i in range(0,N_freqs):
     for j in range(i,N_freqs):
         w_dc = nmt.NmtWorkspace()
         if i != j :
-            w_dc.compute_coupling_matrix(nmt.NmtField(mask, mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, mapfg[j],purify_e=False, purify_b=True), b)
+            w_dc.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask,1*mapfg[j],purify_e=False, purify_b=True), b)
         if i==j :
-            w_dc.compute_coupling_matrix(nmt.NmtField(mask, mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, mapfg[j],purify_e=False, purify_b=True), b)
+            w_dc.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*mapfg[j],purify_e=False, purify_b=True), b)
         wsp_dc.append(w_dc)
  
 wsp_dc=np.array(wsp_dc)
@@ -105,9 +105,9 @@ for k in range(0,N):
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
             if i != j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, maptotaldc1[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc1[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             if i==j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             z = z +1  
     if syncrotype==None:
     	if r ==0:
