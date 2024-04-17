@@ -40,22 +40,9 @@ resultso1b =np.load('Best-fits/resultso1b_d%sc.npy'%dusttype,allow_pickle=True).
 resultso1bt =np.load('Best-fits/resultso1bt_d%sc.npy'%dusttype,allow_pickle=True).item()
 resultso2b =np.load('Best-fits/resultso2b_d%sc.npy'%dusttype,allow_pickle=True).item()
 
-# plot chi^2
+# plot results for mbb:
 
-plt.scatter(ell,np.median(resultsmbb['X2red'],axis=1),label="mbb")
-plt.scatter(ell,np.median(resultso1b['X2red'],axis=1),label="o1b")
-plt.scatter(ell,np.median(resultso1bt['X2red'],axis=1),label="o1bt")
-plt.scatter(ell,np.median(resultso2b['X2red'],axis=1),label="o2b")
-plt.ylabel(r"$\chi^2$")
-plt.xlabel(r"$\ell$")
-plt.legend()
-plt.show()
-
-# plot moment
-
-plt.scatter(ell,np.median(resultso1bt['w1bw1b'],axis=1),label="o1bt")
-plt.ylabel(r"$w1bw1b$")
-plt.xlabel(r"$\ell$")
-plt.legend()
-plt.show()
-
+an.plotmed(ell,'X2red',resultsmbb)
+an.plotmed(ell,'beta',resultsmbb)
+an.plotmed(ell,'temp',resultsmbb)
+an.plotmed(ell,'r',resultsmbb)

@@ -201,3 +201,12 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',debug=False):
     plt.legend()
     plt.show()
 
+# Plot results
+
+
+def plotmed(ell,label,res,color='darkblue',marker="D"):
+    if color=='darkblue':
+        edgecolor="#80AAF3"
+    plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='')
+    plt.scatter(ell,np.median(res[label],axis=1),s=175,c=color,marker=marker,edgecolor=edgecolor)
+    plt.show()
