@@ -46,3 +46,5 @@ an.plotmed(ell,'X2red',resultsmbb)
 an.plotmed(ell,'beta',resultsmbb)
 an.plotmed(ell,'temp',resultsmbb)
 an.plotmed(ell,'r',resultsmbb)
+
+an.plotr_gaussproduct(resultsmbb)

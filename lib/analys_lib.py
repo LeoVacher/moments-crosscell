@@ -140,7 +140,7 @@ def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
 
 #PLOT FUNCTIONS ##################################################################################################################
 
-def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',debug=False):
+def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result
     :param results: output of moment fitting
@@ -174,10 +174,8 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',debug=False):
     sig = np.array(sigtemp)
 
     x = np.linspace(-1,1,10000)
-
-    moyfin=[]
-    sigfin=[]
-    plt.figure(figsize=(30,15))
+    intervall = 0.014
+    fig,ax = plt.subplots(1,1, figsize=(10,7))
     gausstot = 1
     for i in range(Nmin,Nmax):
         gausstot = gausstot*func.Gaussian(x,moy[i],sig[i])
@@ -186,23 +184,26 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',debug=False):
     pl0=[np.mean(gausstot/Norm/coeffunit),np.std(gausstot/Norm/coeffunit)]
     parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
     fa = {'x':x, 'y':gausstot/Norm/coeffunit, 'err': 1000/(np.sqrt(gausstot/Norm))}
-    m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa)        
+    m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)        
     if m.params[1]>0.01:
-        fa = {'x':x, 'y':gausstot/Norm, 'err': 0.0001/(np.sqrt(gausstot/Norm))}
-        m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa)        
-
-    plt.xlim([-0.015,0.015])
-    plt.plot(x,gausstot/Norm/coeffunit,label=r"%s $\mu =%s$ $\sigma = %s$"%(label,np.round(m.params[0],6),np.round(m.params[1],6)),linewidth=1.5,color="blue")
-    plt.axvline( m.params[0],0, 1, color = 'blue', linestyle = "-.",alpha=0.7)
-    plt.axvline( m.params[0]+m.params[1],0, 1, color = 'blue', linestyle = "-.",alpha=0.7)
-    plt.axvline( m.params[0]-m.params[1],0, 1, color = 'blue', linestyle = "-.",alpha=0.7)
-    plt.axvline(0, 0, 1, color = 'red', linestyle = "--")
-    plt.xlabel("r",fontsize=40)
-    plt.legend()
+                fa = {'x':x, 'y':gausstot/Norm, 'err': 0.0001/(np.sqrt(gausstot/Norm))}
+                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)        
+    if m.params[1]>0.01:
+                fa = {'x':x, 'y':gausstot/Norm, 'err': 1000/(np.sqrt(gausstot/Norm))}
+                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)            
+    ax.plot(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(m.params[0],5),np.round(m.params[1],5)))
+    ax.fill_between(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),color=color,alpha=0.2,linewidth=5)
+    ax.fill_between(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),facecolor="none",edgecolor=color,linewidth=5)
+    #ax.errorbar(x1_cond,y1_cond/ysum_cond/coeffunit,xerr=0,yerr=1/(np.sqrt(y1_cond)*ysum_cond)/coeffunit,fmt='^',color=c[i],ecolor=c[i],zorder=300001,label='$%s \\pm %s$'%(m.params[0],m.params[1]))
+    ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
+    ax.plot(x, np.zeros(len(x)), color = 'black', linewidth=5,linestyle='--',zorder=10000000)
+    ax.set_xlim([r-intervall,r+intervall])
+    ax.legend()
+    ax.set_xlabel(r"$\hat{r}$")
+    ax.set_ylim([0,1.03])
     plt.show()
 
 # Plot results
-
 
 def plotmed(ell,label,res,color='darkblue',marker="D"):
     if color=='darkblue':
