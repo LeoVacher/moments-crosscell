@@ -206,8 +206,11 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
 # Plot results
 
 def plotmed(ell,label,res,color='darkblue',marker="D"):
+    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
     if color=='darkblue':
         edgecolor="#80AAF3"
     plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='')
     plt.scatter(ell,np.median(res[label],axis=1),s=175,c=color,marker=marker,edgecolor=edgecolor)
+    plt.ylabel(name[label],fontsize=20)
+    plt.xlabel(r"$\ell$",fontsize=20)
     plt.show()
