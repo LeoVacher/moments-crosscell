@@ -11,11 +11,8 @@ import basicfunc as func
 #contains all the functions to be fitted by mpfit 
 
 nside = 256
-Npix = hp.nside2npix(nside)
-N=1000 
 lmax = nside*3-1
 #lmax=850
-scale = 5
 Nlbin = 10 
 ELLBOUND = 20
 
@@ -33,7 +30,6 @@ def Gaussian(p,fjac=None, x=None, y=None, err=None):
 def Fitdcordre0(p,fjac=None, x=None, y=None, err=None):
     ncross = len(x)
     nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    coefflens = 0
     posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
     nu = x[posauto]
     nuref=353.
@@ -49,7 +45,6 @@ def Fitdcordre0(p,fjac=None, x=None, y=None, err=None):
 def Fitdcordre0_func(x,p):
     ncross = len(x)
     nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    coefflens = 0
     posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
     nu = x[posauto]
     nuref=353.
@@ -789,7 +784,7 @@ def FitdcbetaT(p,fjac=None, x=None, y=None, err=None):
     return([status, np.dot(np.transpose(y-model), err)])
 
 
-def FitdcbetaTs(p,fjac=None, x=None, y=None, err=None):
+def FitdcbetaT_simplesync(p,fjac=None, x=None, y=None, err=None):
     nuref  = 353
     ncross = len(x)
     nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
@@ -932,7 +927,7 @@ def Fitdcbeta2T(p,fjac=None, x=None, y=None, err=None):
 
 # def Fitd_QB_ordre0(p,fjac=None, x=None, y=None, err=None,Nf):
 #     Ncross = int(Nf*(Nf+1)/2)
-#     coefflens = 0
+#
 #     posauto = [int(Nf*i - i*(i+1)/2 + i) for i in range(Nf)]
 #     nu = x[posauto]
 #     nuref=353.
