@@ -31,7 +31,6 @@ Nlbin = 10 #binning scheme for bandpowers
 fsky = 0.7 #sky fraction
 dusttype = 0 #dust model
 syncrotype = None #syncrotron model
-kw = '' #additional keyword for the simu
 
 # instrumental parameters
 

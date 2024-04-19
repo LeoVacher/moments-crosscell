@@ -1,5 +1,5 @@
 #reproduce results of Vacher 2022
-
+#fit moment expansion and tensor-to-scalar ratio ell per ell
 import sys
 sys.path.append("./lib")
 
@@ -22,14 +22,11 @@ import analys_lib as an
 r=0.
 nside = 256
 lmax = nside*3-1
-#lmax=850
 scale = 5
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 20
 dusttype = 1
-kw=''
-kwsim=''
 Pathload='./'
 
 # Call Cell of simulation
