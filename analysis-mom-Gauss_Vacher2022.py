@@ -1,4 +1,5 @@
 #reproduce results of Vacher 2022
+#run to plot and analyse the results
 
 import sys
 sys.path.append("./lib")

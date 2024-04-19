@@ -1,3 +1,5 @@
+#create simulations for testing purposes
+
 import sys
 sys.path.append("./lib")
 
@@ -17,23 +19,23 @@ import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
 
-r = 0
-nside = 64
-Npix = hp.nside2npix(nside)
-N=500 
-lmax = nside*3-1
-#lmax=850
-scale = 5
-Nlbin = 10
-fsky = 0.7
-dusttype = 0
-syncrotype = None
-mascut=0
-kw = ''
+#general parameters
 
-# instr param
+r = 0 # input tensor to scalar ratio
+nside = 64 #nside
+Npix = hp.nside2npix(nside) #number of pixels
+N=500 #number of simulations
+lmax = nside*3-1 #maximal bandpower
+scale = 10 #apodisation scale (degrees)
+Nlbin = 10 #binning scheme for bandpowers
+fsky = 0.7 #sky fraction
+dusttype = 0 #dust model
+syncrotype = None #syncrotron model
+kw = '' #additional keyword for the simu
 
-instr_name='LiteBIRD_full'
+# instrumental parameters
+
+instr_name='LiteBIRD_full' #instrument
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq= instr['frequencies']
 N_freqs =len(freq)
@@ -80,6 +82,8 @@ for i in range(0,N_freqs):
  
 wsp_dc=np.array(wsp_dc)
 
+#compute cross-frequency power spectra
+
 CLcross=np.zeros((N,Ncross,len(leff)))
 for k in range(0,N):
     print('k=',k)
@@ -94,12 +98,11 @@ for k in range(0,N):
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
     mapcmb = mapcmb[:,1:]
 
-    #addition du bruit aux cartes
+    #three maps: dc1: auto, dc21 and dc22 are two halves missions
+
     maptotaldc1 = mapfg  + noisemaps[0] + mapcmb
     maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
-
-    #gérer list et concatenate
 
     z=0
     for i in range(0,N_freqs):
@@ -109,6 +112,8 @@ for k in range(0,N):
             if i==j :
                 CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             z = z +1  
+    
+    #save cross-spectra:
     if syncrotype==None:
     	if r ==0:
     		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
