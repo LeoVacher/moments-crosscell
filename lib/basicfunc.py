@@ -2,6 +2,7 @@ import scipy.constants as constants
 import numpy as np
 import healpy as hp
 import pysm3.units as u
+import pysm_common as psm 
 
 #FONCTIONS
 
@@ -31,6 +32,36 @@ def mbb(nu,beta,T):
 
     """    
     return B(nu,T)*(1e9*nu)**beta
+
+
+def mbb_uK(nu,beta,T):
+    """Modified black body in mu_K CMB.
+
+    :param nu: frequency in GHz at which to evaluate planck function.
+    :type nu: float.
+    :param beta: spectral index of the emissivity
+    :type beta: float    
+    :param T: temperature of black body in Kelvins.
+    :type T: float.
+    :return: float -- modified black body brightness.
+
+    """    
+    return mbb(nu,beta,T)*psm.convert_units('MJysr','uK_CMB',nu)
+
+def PL_uK(nu,beta):
+    """Power law in muK_CMB.
+
+    :param nu: frequency in GHz at which to evaluate planck function.
+    :type nu: float.
+    :param beta: spectral index of the emissivity
+    :type beta: float    
+    :param T: temperature of black body in Kelvins.
+    :type T: float.
+    :return: float -- modified black body brightness.
+
+    """    
+    return psm.convert_units('uK_RJ','uK_CMB',nu)*(nu)**beta
+
 
 def dmbbT(nu,T):
     x = constants.h*nu*1.e9/constants.k/T
@@ -255,6 +286,13 @@ def MBBpysm(freq,A,beta,T,nu0):
     #A in muKCMB
     factor= u.K_RJ.to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq*u.GHz))/u.K_RJ.to(u.uK_CMB, equivalencies=u.cmb_equivalencies(nu0*u.GHz))
     mapd=np.array([A*mbb(freq[f],beta-2,T)/mbb(nu0,beta-2,T)*factor[f] for f in range(len(freq))])
+    return mapd
+
+def MBB_fit(freq,beta,T):
+    #A in muKCMB
+    nu0=353
+    factor= u.K_RJ.to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq*u.GHz))
+    mapd=mbb(freq,beta-2,T)*factor
     return mapd
     
 def dBnu_dT(nu,T):

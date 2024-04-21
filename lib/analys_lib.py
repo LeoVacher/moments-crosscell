@@ -50,7 +50,6 @@ def fitmbb(nucross,DL,Linv,p0):
         parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
         parinfopl.append({'value':pl0[nparam],'fixed':1}) #and L 
         for n in range(N):
-            # first mbb fit, dust free, r fixed
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
             paramiterl[L,n]= m.params
@@ -129,13 +128,67 @@ def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
     for L in range(0,Nell):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
-            # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
             paramiterl[L,n]= m.params
             chi2l[L,n]=m.fnorm/m.dof            
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw2b' : paramiterl[:,:,5],'w1bw2b' : paramiterl[:,:,6],'w2bw2b' : paramiterl[:,:,7], 'r' : paramiterl[:,:,8], 'X2red': chi2l}
+    return results
+
+# add syncrotron
+
+def fitmbb_PL(nucross,DL,Linv,p0):
+    """
+    Fit a mbb, power law, dust-sync correlation and r on a DL
+    :param: nucross, array of the cross-frequencies
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param Linv: inverse of the Cholesky matrix
+    :return results: dictionnary containing A, beta, temp, A_s, beta_s, r and X2red for each (ell,n)
+    """
+    N,_,Nell=DL.shape
+    nparam = len(p0)
+    paramiterl=np.zeros((Nell,N,nparam+1))
+    chi2l=np.zeros((Nell,N))
+    funcfit=mpl.Fitdscordre0
+    for L in range(0,Nell):
+        print("%s%%"%(L*100/Nell))
+        pl0 = np.append(p0,L)
+        parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
+        parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
+        parinfopl.append({'value':pl0[nparam],'fixed':1}) #and L 
+        for n in range(N):
+            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
+            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
+    return results
+
+def fito1_bT_PL(nucross,DL,Linv,resultsmbb,iter=0):
+    """
+    Fit using a first order moment expansion in both beta and T for dust and PL for syncrothron on a DL
+    :param: nucross, array of the cross-frequencies
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param Linv: inverse of the Cholesky matrix
+    :param resultsmbb: must be input mbb best fit in the format of fitmbb()
+    :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
+    """
+    N,_,Nell=DL.shape
+    nparam=12
+    paramiterl=np.zeros((Nell,N,nparam+1))
+    chi2l=np.zeros((Nell,N))
+    funcfit=mpl.FitdcbetaT
+    for L in range(0,Nell):
+        print("%s%%"%(L*100/Nell))
+        for n in range(N):
+            # first o1 fit, dust fixed, mom free, r fixed
+            parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
+            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
+            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'Aw1b' : paramiterl[:,:,3], 'w1bw1b' : paramiterl[:,:,4],'Aw1t' : paramiterl[:,:,5],'w1bw1t' : paramiterl[:,:,6],'w1tw1t' : paramiterl[:,:,7], 'A_s':paramiterl[:,:,8] , 'beta_s':paramiterl[:,:,9], 'A_sd':paramiterl[:,:,10],'r' : paramiterl[:,:,11], 'X2red': chi2l}
     return results
 
 #PLOT FUNCTIONS ##################################################################################################################
@@ -154,7 +207,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
     K_r = int(2*N**(0.33))
     moytemp=[]
     sigtemp=[]
-    for ell in range(Nell):
+    for ell in range(Nmin,Nmax):
         y1_cond , bins_cond = np.histogram(rl[ell,:],K_r)
         x1_cond = [.5*(b1+b2) for b1,b2 in zip(bins_cond[:-1],bins_cond[1:])] # Milieu du bin
         ysum_cond = scipy.integrate.simps(y1_cond,x1_cond)
@@ -162,8 +215,15 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
 
         pl0=[np.mean(y1_cond),np.std(y1_cond)]
         parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
-        fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 100000/(np.sqrt(y1_cond)*ysum_cond)}
+        fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1/(np.sqrt(y1_cond)*ysum_cond)}
         m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)
+        if m.params[1]>0.01:
+            fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1000/(np.sqrt(y1_cond)*ysum_cond)}
+            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)        
+        if m.params[1]>0.01:
+            fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 0.0001/(np.sqrt(y1_cond)*ysum_cond)}
+            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=True)            
+        
         if debug==True:
             plt.plot(x1_cond,y1_cond/ysum_cond)
             plt.plot(x1_cond,func.Gaussian(x1_cond,m.params[0],m.params[1]))
@@ -206,7 +266,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
 # Plot results
 
 def plotmed(ell,label,res,color='darkblue',marker="D"):
-    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
+    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
     if color=='darkblue':
         edgecolor="#80AAF3"
     plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='')
