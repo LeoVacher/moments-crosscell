@@ -21,6 +21,7 @@ l = b.get_effective_ells()
 DL_lensbin = b.bin_cell(np.load("./CLsimus/DLth_CAMBparamPlanck2018_ajust.npy")[2,0:lmax+1])[0:ELLBOUND]
 DL_tens = b.bin_cell(np.load("./CLsimus/DLtensor_CAMBparamPlanck2018_r=1.npy")[2,0:lmax+1])[0:ELLBOUND]
  
+
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
     model = func.Gaussian(x,p[0],p[1])
     status = 0
@@ -814,6 +815,8 @@ def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
     for i in range(nnus):
         for j in range(i,nnus):
                 ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
+                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)
@@ -821,37 +824,9 @@ def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
                 dx0 = func.dmbbT(nuref,p[2])
                 dx1 = func.dmbbT(nu[i],p[2])
                 dx2 = func.dmbbT(nu[j],p[2])
-                temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[5]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[6]+(dx1-dx0)*(dx2-dx0)*p[7])
-                sync= p[8]*(func.PL_uK(nu[i],p[9])*func.PL_uK(nu[j],p[9])/(func.PL_uK(nurefs,p[9])**2))
-                crossdustsync= p[10]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[9])+ func.PL_uK(nu[i],p[9])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[9])*func.mbb_uK(nuref,p[1],p[2]))
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
+                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
                 model[icross] = temp + temp2 + sync+ crossdustsync+ DL_lensbin[int(p[12])] + p[11]*DL_tens[int(p[12])]
-                icross = icross + 1
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
-def FitdcbetaTs(p,fjac=None, x=None, y=None, err=None):
-    nuref  = 353
-    ncross = len(x)
-    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
-    nu = x[0:ncross]
-    nu = nu[posauto]
-    icross = 0
-    model = np.zeros(ncross)
-    for i in range(nnus):
-        for j in range(i,nnus):
-                ampl = (func.mbb(nu[i],p[0],p[9])*func.mbb(nu[j],p[0],p[9])/(func.mbb(nuref,p[0],p[9])**2.)*psm.convert_units('MJysr','uK_CMB',nu[i])*psm.convert_units('MJysr','uK_CMB',nu[j])/psm.convert_units('MJysr','uK_CMB',nuref)**2)
-                nui = nu[i]/nuref
-                nuj = nu[j]/nuref
-                lognui = np.log(nui)
-                lognuj = np.log(nuj)
-                dx0 = func.dmbbT(nuref,p[9])
-                dx1 = func.dmbbT(nu[i],p[9])
-                dx2 = func.dmbbT(nu[j],p[9])
-                temp = ampl*(p[1]+ (lognui+lognuj) * p[2]+ lognui*lognuj * p[3])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[4]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5]+(dx1-dx0)*(dx2-dx0)*p[6])
-                model[icross] = temp + temp2 + DL_lensbin[int(p[8])] + p[7]*DL_tens[int(p[8])] + p[10]*(nu[i]*nu[j]/nuref)**-3
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
