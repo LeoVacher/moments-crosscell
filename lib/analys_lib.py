@@ -140,7 +140,7 @@ def fito2_b(nucross,DL,Linv,resultsmbb,iter=0):
 
 def fitmbb_PL(nucross,DL,Linv,p0):
     """
-    Fit a mbb, power law, dust-sync correlation and r on a DL
+    Fit a mbb, pl and r on a DL
     :param: nucross, array of the cross-frequencies
     :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
     :param Linv: inverse of the Cholesky matrix
@@ -263,7 +263,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
     intervall = 0.014
     fig,ax = plt.subplots(1,1, figsize=(10,7))
     gausstot = 1
-    for i in range(Nmin,Nmax):
+    for i in range(Nmax-Nmin):
         gausstot = gausstot*func.Gaussian(x,moy[i],sig[i])
     Norm = scipy.integrate.simps(gausstot,x)
     coeffunit = gausstot[np.argmax(gausstot)]/Norm
@@ -288,15 +288,15 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
     ax.set_xlabel(r"$\hat{r}$")
     ax.set_ylim([0,1.03])
     plt.show()
-
+ 
 # Plot results
 
-def plotmed(ell,label,res,color='darkblue',marker="D"):
-    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
-    if color=='darkblue':
-        edgecolor="#80AAF3"
+def plotmed(ell,label,res,color='darkblue',marker="D",show=True):
+    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^T\times\omega_1^T}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^T}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$'}
+    edgecolor="#80AAF3"
     plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='')
     plt.scatter(ell,np.median(res[label],axis=1),s=175,c=color,marker=marker,edgecolor=edgecolor)
     plt.ylabel(name[label],fontsize=20)
     plt.xlabel(r"$\ell$",fontsize=20)
-    plt.show()
+    if show==True:
+        plt.show()
