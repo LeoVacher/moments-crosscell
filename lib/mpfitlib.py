@@ -66,28 +66,6 @@ def Fitdcordre0_func(x,p):
             icross = icross + 1
     return(model)
 
-def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
-    """
-    Modified black body and power law (ell by ell fit)
-    """
-    ncross = len(x)
-    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
-    nu = x[posauto]
-    nuref=353.
-    nurefs=23.
-    icross = 0
-    model = np.zeros(ncross)
-    for i in range(0,nnus):
-        for j in range(i,nnus):
-            mbb =  p[0]*(func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.)) 
-            sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-            crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
-            model[icross]=mbb+ sync + crossdustsync + DL_lensbin[int(p[7])]+ p[6]*DL_tens[int(p[7])]
-            icross = icross + 1
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
 def Fitdcordre1(p,fjac=None, x=None, y=None, err=None):
     """
     Moment expansion order 1 in beta dust only (ell by ell fit)
@@ -137,6 +115,35 @@ def Fitdcordre1_func(x,p):
                 icross = icross + 1
     status = 0
     return(model)
+
+def FitdcbetaT(p,fjac=None, x=None, y=None, err=None):
+    """
+    Moment expansion order 1 in beta and T dust (ell by ell fit)
+    """
+    nuref  = 353
+    ncross = len(x)
+    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
+    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
+    nu = x[0:ncross]
+    nu = nu[posauto]
+    icross = 0
+    model = np.zeros(ncross)
+    for i in range(nnus):
+        for j in range(i,nnus):
+                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
+                nui = nu[i]/nuref
+                nuj = nu[j]/nuref
+                lognui = np.log(nui)
+                lognuj = np.log(nuj)
+                dx0 = func.dmbbT(nuref,p[2])
+                dx1 = func.dmbbT(nu[i],p[2])
+                dx2 = func.dmbbT(nu[j],p[2])
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
+                temp2=ampl*((dx1+dx2-2*dx0)*p[5]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[6]+(dx1-dx0)*(dx2-dx0)*p[7])
+                model[icross] = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[9])]
+                icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
 
 def Fitdcordre2(p,fjac=None, x=None, y=None, err=None):
     """
@@ -322,6 +329,99 @@ def Fitdcordre4_func(p,x):
                 model[icross] = temp + temp2+temp3 + temp4 + DL_lensbin[int(p[17])] + p[16]*DL_tens[int(p[17])]
                 icross = icross + 1
     return(model)
+
+#Fits including synchrotron:
+
+def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
+    """
+    Modified black body and power law (ell by ell fit)
+    """
+    ncross = len(x)
+    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
+    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
+    nu = x[posauto]
+    nuref=353.
+    nurefs=23.
+    icross = 0
+    model = np.zeros(ncross)
+    for i in range(0,nnus):
+        for j in range(i,nnus):
+            mbb =  p[0]*(func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.)) 
+            sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
+            crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+            model[icross]=mbb+ sync + crossdustsync + DL_lensbin[int(p[7])]+ p[6]*DL_tens[int(p[7])]
+            icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
+
+def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
+    """
+    Moment expansion at order one in beta and T and power law (ell by ell fit)
+    """
+    nuref  = 353
+    nurefs=23.
+    ncross = len(x)
+    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
+    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
+    nu = x[0:ncross]
+    nu = nu[posauto]
+    icross = 0
+    model = np.zeros(ncross)
+    for i in range(nnus):
+        for j in range(i,nnus):
+                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
+                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                nui = nu[i]/nuref
+                nuj = nu[j]/nuref
+                lognui = np.log(nui)
+                lognuj = np.log(nuj)
+                dx0 = func.dmbbT(nuref,p[2])
+                dx1 = func.dmbbT(nu[i],p[2])
+                dx2 = func.dmbbT(nu[j],p[2])
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
+                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
+                model[icross] = temp + temp2 + sync+ crossdustsync+ DL_lensbin[int(p[12])] + p[11]*DL_tens[int(p[12])]
+                icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
+
+def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
+    """
+    Moment expansion at order one in beta, T and beta_s  (ell by ell fit)
+    """
+    nuref  = 353
+    nurefs=23.
+    ncross = len(x)
+    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
+    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
+    nu = x[0:ncross]
+    nu = nu[posauto]
+    icross = 0
+    model = np.zeros(ncross)
+    for i in range(nnus):
+        for j in range(i,nnus):
+                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
+                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
+                crossdustsync= (func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                nui = nu[i]/nuref
+                nuj = nu[j]/nuref
+                lognui = np.log(nui)
+                lognuj = np.log(nuj)
+                nuis = nu[i]/nurefs
+                nujs = nu[j]/nurefs
+                lognuis = np.log(nuis)
+                lognujs = np.log(nujs)
+                dx0 = func.dmbbT(nuref,p[2])
+                dx1 = func.dmbbT(nu[i],p[2])
+                dx2 = func.dmbbT(nu[j],p[2])
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
+                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
+                syncmom = sync * (p[5]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
+                model[icross] = temp + temp2 + sync+ syncmom+crossdustsync+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
+                icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
 
 
 #SLD = fit all the ell at once
@@ -730,95 +830,6 @@ def FitdSLDordre2(p,fjac=None, x=None, y=None, err=None):
     status = 0
     #return([status, (y-model)/err])
     return([status,np.dot(np.transpose(y-model), err) ])
-
-def FitdcbetaT(p,fjac=None, x=None, y=None, err=None):
-    nuref  = 353
-    ncross = len(x)
-    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
-    nu = x[0:ncross]
-    nu = nu[posauto]
-    icross = 0
-    model = np.zeros(ncross)
-    for i in range(nnus):
-        for j in range(i,nnus):
-                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
-                nui = nu[i]/nuref
-                nuj = nu[j]/nuref
-                lognui = np.log(nui)
-                lognuj = np.log(nuj)
-                dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
-                temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[5]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[6]+(dx1-dx0)*(dx2-dx0)*p[7])
-                model[icross] = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[9])]
-                icross = icross + 1
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
-def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
-    nuref  = 353
-    nurefs=23.
-    ncross = len(x)
-    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
-    nu = x[0:ncross]
-    nu = nu[posauto]
-    icross = 0
-    model = np.zeros(ncross)
-    for i in range(nnus):
-        for j in range(i,nnus):
-                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
-                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
-                nui = nu[i]/nuref
-                nuj = nu[j]/nuref
-                lognui = np.log(nui)
-                lognuj = np.log(nuj)
-                dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
-                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
-                model[icross] = temp + temp2 + sync+ crossdustsync+ DL_lensbin[int(p[12])] + p[11]*DL_tens[int(p[12])]
-                icross = icross + 1
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
-def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
-    nuref  = 353
-    nurefs=23.
-    ncross = len(x)
-    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
-    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
-    nu = x[0:ncross]
-    nu = nu[posauto]
-    icross = 0
-    model = np.zeros(ncross)
-    for i in range(nnus):
-        for j in range(i,nnus):
-                ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
-                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= (func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
-                nui = nu[i]/nuref
-                nuj = nu[j]/nuref
-                lognui = np.log(nui)
-                lognuj = np.log(nuj)
-                nuis = nu[i]/nurefs
-                nujs = nu[j]/nurefs
-                lognuis = np.log(nuis)
-                lognujs = np.log(nujs)
-                dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
-                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
-                syncmom = sync * (p[5]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
-                model[icross] = temp + temp2 + sync+ syncmom+crossdustsync+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
-                icross = icross + 1
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
 
 def FitdbetaT(p,fjac=None, x=None, y=None, err=None):
     nuref  = 353
