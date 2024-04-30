@@ -10,19 +10,20 @@ import basicfunc as func
 
 #contains all the functions to be fitted by mpfit 
 
-##load here lensing and tensor modes for the fit (have to be fixed and removed somehow)
-nside = 256
+nside = 64
 lmax = nside*3-1
 Nlbin = 10 
-ELLBOUND = 20
+ELLBOUND = 19
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
 
-DL_lensbin = b.bin_cell(np.load("./CLsimus/DLth_CAMBparamPlanck2018_ajust.npy")[2,0:lmax+1])[0:ELLBOUND]
-DL_tens = b.bin_cell(np.load("./CLsimus/DLtensor_CAMBparamPlanck2018_r=1.npy")[2,0:lmax+1])[0:ELLBOUND]
+CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
+CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
 
-
+DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
+DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
+ 
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
     model = func.Gaussian(x,p[0],p[1])
     status = 0
@@ -861,7 +862,7 @@ def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
                 temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
                 temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
                 syncmom = sync * (p[5]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
-                model[icross] = temp + temp2 + sync+ syncmom+crossdustsync+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
+                model[icross] = temp + temp2 + syncmom+crossdustsync+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
@@ -902,7 +903,7 @@ def Fitscordre1(p,fjac=None, x=None, y=None, err=None):
                 lognujs = np.log(nujs)
                 sync= (func.PL_uK(nu[i],p[1])*func.PL_uK(nu[j],p[1])/(func.PL_uK(nurefs,p[1])**2))
                 syncmom = sync * (p[0]+ (lognuis+lognujs) * p[2]+ lognuis*lognujs * p[3])
-                model[icross] = sync+ syncmom+ DL_lensbin[int(p[5])] + p[4]*DL_tens[int(p[5])]
+                model[icross] = syncmom+ DL_lensbin[int(p[5])] + p[4]*DL_tens[int(p[5])]
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
