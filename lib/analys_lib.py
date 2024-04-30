@@ -165,6 +165,57 @@ def fitmbb_PL(nucross,DL,Linv,p0):
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
     return results
 
+def fit_PL(nucross,DL,Linv,p0):
+    """
+    Fit a pl and r on a DL
+    :param: nucross, array of the cross-frequencies
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param Linv: inverse of the Cholesky matrix
+    :return results: dictionnary containing A, beta, temp, A_s, beta_s, r and X2red for each (ell,n)
+    """
+    N,_,Nell=DL.shape
+    nparam = len(p0)
+    paramiterl=np.zeros((Nell,N,nparam+1))
+    chi2l=np.zeros((Nell,N))
+    funcfit=mpl.Fitsc
+    for L in range(0,Nell):
+        print("%s%%"%(L*100/Nell))
+        pl0 = np.append(p0,L)
+        parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
+        parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
+        parinfopl.append({'value':pl0[nparam],'fixed':1}) #and L 
+        for n in range(N):
+            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
+            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
+    results={'A_s' : paramiterl[:,:,0], 'beta_s' : paramiterl[:,:,1], 'r' : paramiterl[:,:,2], 'X2red': chi2l}
+    return results
+
+def fito1_bs(nucross,DL,Linv,results_PL):
+    """
+    Fit a pl, first order moment expansion in beta_s and r on a DL
+    :param: nucross, array of the cross-frequencies
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param Linv: inverse of the Cholesky matrix
+    :return results: dictionnary containing A, beta, temp, A_s, beta_s, r and X2red for each (ell,n)
+    """
+    N,_,Nell=DL.shape
+    nparam = 5
+    paramiterl=np.zeros((Nell,N,nparam+1))
+    chi2l=np.zeros((Nell,N))
+    funcfit=mpl.Fitscordre1
+    for L in range(0,Nell):
+        print("%s%%"%(L*100/Nell))
+        for n in range(N):
+            parinfopl = [{'value':results_PL['A_s'][L,n], 'fixed':1},{'value':results_PL['beta_s'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #sync params
+            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
+            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=True)
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
+    results={'A_s' : paramiterl[:,:,0], 'beta_s' : paramiterl[:,:,1],'Asw1bs' : paramiterl[:,:,2],'w1bsw1bs' : paramiterl[:,:,3], 'r' : paramiterl[:,:,4], 'X2red': chi2l}
+    return results
+
 def fito1_bT_PL(nucross,DL,Linv,resultsmbb_PL,iter=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
@@ -291,12 +342,13 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
  
 # Plot results
 
-def plotmed(ell,label,res,color='darkblue',marker="D",show=True):
+def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
     name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^T\times\omega_1^T}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^T}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$'}
     edgecolor="#80AAF3"
-    plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='')
+    plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='',label=legend)
     plt.scatter(ell,np.median(res[label],axis=1),s=175,c=color,marker=marker,edgecolor=edgecolor)
     plt.ylabel(name[label],fontsize=20)
     plt.xlabel(r"$\ell$",fontsize=20)
+    plt.legend()
     if show==True:
         plt.show()
