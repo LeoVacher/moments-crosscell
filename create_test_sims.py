@@ -26,8 +26,8 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = None
-syncrotype = 1
+dusttype = 1
+syncrotype = 0
 mascut=0
 kw = ''
 
@@ -56,7 +56,7 @@ if dusttype==None:
     sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
 if syncrotype==None:
     sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
-else:
+if syncrotype!=None and dusttype!=None:
     sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
 
 mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
@@ -65,7 +65,6 @@ mapfg=mapfg[:,1:]
 # call cmb
 
 CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
-CLcmb_bin= b.bin_cell(CLcmb_or[:,2:lmax+3])
 
 #Initialise workspaces :
 
@@ -82,14 +81,14 @@ for i in range(0,N_freqs):
 wsp_dc=np.array(wsp_dc)
 
 CLcross=np.zeros((N,Ncross,len(leff)))
-for k in range(0,N):
+for k in range(0,100):
     print('k=',k)
     noisemaps= np.zeros((3,N_freqs,2,Npix))
 
     for p in range(3):
         for i in range(N_freqs):
-            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix)
-            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix)
+            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix) #noise Q
+            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix) #noise U
     
     mapcmb0= hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
@@ -120,7 +119,7 @@ for k in range(0,N):
             np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
         else :
             np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
-    else: 
+    if syncrotype!=None and dusttype!=None:
         if r ==0:
             np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
         else :
