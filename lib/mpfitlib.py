@@ -10,7 +10,7 @@ import basicfunc as func
 
 #contains all the functions to be fitted by mpfit 
 
-nside = 64
+nside = 256
 lmax = nside*3-1
 Nlbin = 10 
 ELLBOUND = 19
@@ -795,10 +795,10 @@ def FitdcbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
+                dxi = func.dmbbT(nu[i],p[2])
+                dxj = func.dmbbT(nu[j],p[2])
                 temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[5]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[6]+(dx1-dx0)*(dx2-dx0)*p[7])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[5]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[6]+(dxi-dx0)*(dxj-dx0)*p[7])
                 model[icross] = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[9])]
                 icross = icross + 1
     status = 0
@@ -824,11 +824,13 @@ def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
+                dxi = func.dmbbT(nu[i],p[2])
+                dxj = func.dmbbT(nu[j],p[2])
                 temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
-                model[icross] = temp + temp2 + sync+ crossdustsync+ DL_lensbin[int(p[12])] + p[11]*DL_tens[int(p[12])]
+                temp2=ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
+                crossdustsync2 = p[11]*(func.mbb_uK(nu[i],p[1],p[2])*lognui*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*lognuj)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync3 = p[12]*(func.mbb_uK(nu[i],p[1],p[2])*(dxi-dx0)*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                model[icross] = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
@@ -857,10 +859,10 @@ def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
                 lognuis = np.log(nuis)
                 lognujs = np.log(nujs)
                 dx0 = func.dmbbT(nuref,p[2])
-                dx1 = func.dmbbT(nu[i],p[2])
-                dx2 = func.dmbbT(nu[j],p[2])
+                dxi = func.dmbbT(nu[i],p[2])
+                dxj = func.dmbbT(nu[j],p[2])
                 temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[8]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[9]+(dx1-dx0)*(dx2-dx0)*p[10])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
                 syncmom = sync * (p[5]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
                 model[icross] = temp + temp2 + syncmom+crossdustsync+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
                 icross = icross + 1
@@ -925,10 +927,10 @@ def FitdbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[9])
-                dx1 = func.dmbbT(nu[i],p[9])
-                dx2 = func.dmbbT(nu[j],p[9])
+                dxi = func.dmbbT(nu[i],p[9])
+                dxj = func.dmbbT(nu[j],p[9])
                 temp = ampl * (p[1]+ (lognui+lognuj) * p[2]+ lognui*lognuj * p[3])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[4]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5]+(dx1-dx0)*(dx2-dx0)*p[6])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[4]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[5]+(dxi-dx0)*(dxj-dx0)*p[6])
                 model[icross] = temp + temp2 + p[7]*DL_tens[int(p[8])]
                 icross = icross + 1
     status = 0
@@ -953,10 +955,10 @@ def FitdcSLDbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[7*Nell+ell])
-                dx1 = func.dmbbT(nu[i],p[7*Nell+ell])
-                dx2 = func.dmbbT(nu[j],p[7*Nell+ell])
+                dxi = func.dmbbT(nu[i],p[7*Nell+ell])
+                dxj = func.dmbbT(nu[j],p[7*Nell+ell])
                 temp = ampl * (p[ell]+ (lognui+lognuj) * p[2*Nell+ell]+ lognui*lognuj * p[3*Nell+ell])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[4*Nell+ell]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5*Nell+ell]+(dx1-dx0)*(dx2-dx0)*p[6*Nell+ell])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[4*Nell+ell]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[5*Nell+ell]+(dxi-dx0)*(dxj-dx0)*p[6*Nell+ell])
                 model[ell*Ncross+icross] = temp + temp2 + DL_lensbin[ell+l0] + p[8*Nell]*DL_tens[ell+l0]
                 icross = icross + 1
     status = 0
@@ -982,10 +984,10 @@ def FitdSLDbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[7*Nell+ell])
-                dx1 = func.dmbbT(nu[i],p[7*Nell+ell])
-                dx2 = func.dmbbT(nu[j],p[7*Nell+ell])
+                dxi = func.dmbbT(nu[i],p[7*Nell+ell])
+                dxj = func.dmbbT(nu[j],p[7*Nell+ell])
                 temp = ampl * (p[ell]+ (lognui+lognuj) * p[2*Nell+ell]+ lognui*lognuj * p[3*Nell+ell])
-                temp2=ampl*((dx1+dx2-2*dx0)*p[4*Nell+ell]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5*Nell+ell]+(dx1-dx0)*(dx2-dx0)*p[6*Nell+ell])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[4*Nell+ell]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[5*Nell+ell]+(dxi-dx0)*(dxj-dx0)*p[6*Nell+ell])
                 model[ell*Ncross+icross] = temp + temp2 + p[8*Nell]*DL_tens[ell+l0]
                 icross = icross + 1
     status = 0
@@ -1012,10 +1014,10 @@ def Fitdcbeta2T(p,fjac=None, x=None, y=None, err=None):
                 lognuj = np.log(nuj)
                 lognuj2 = np.log(nuj)**2
                 dx0 = func.dmbbT(nuref,p[12])
-                dx1 = func.dmbbT(nu[i],p[12])
-                dx2 = func.dmbbT(nu[j],p[12])
+                dxi = func.dmbbT(nu[i],p[12])
+                dxj = func.dmbbT(nu[j],p[12])
                 temp = ampl * (p[1]+ (lognui+lognuj) * p[2]+ lognui*lognuj * p[3])
-                tempt=ampl*((dx1+dx2-2*dx0)*p[4]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5]+(dx1-dx0)*(dx2-dx0)*p[6])
+                tempt=ampl*((dxi+dxj-2*dx0)*p[4]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[5]+(dxi-dx0)*(dxj-dx0)*p[6])
                 temp2=ampl*(0.5*(lognui2+lognuj2) *p[7] +0.5 * (lognui2*lognuj+lognui*lognuj2) * p[8]+0.25* (lognui2*lognuj2) * p[9])
                 model[icross] = temp + tempt +temp2 + DL_lensbin[int(p[11])] + p[10]*DL_tens[int(p[11])]
                 icross = icross + 1
@@ -1157,11 +1159,11 @@ def FitdscSLDbetaT(p,fjac=None, x=None, y=None, err=None):
                 lognui = np.log(nui)
                 lognuj = np.log(nuj)
                 dx0 = func.dmbbT(nuref,p[7*Nell+ell])
-                dx1 = func.dmbbT(nu[i],p[7*Nell+ell])
-                dx2 = func.dmbbT(nu[j],p[7*Nell+ell])
+                dxi = func.dmbbT(nu[i],p[7*Nell+ell])
+                dxj = func.dmbbT(nu[j],p[7*Nell+ell])
                 temp = ampl * (p[ell]+ (lognui+lognuj) * p[2*Nell+ell]+ lognui*lognuj * p[3*Nell+ell])
                 sync=  p[8*Nell]*((nu[i]*nu[j]/nurefs/nurefs)**p[8*Nell+1])*(l[ell]**p[8*Nell+2])*psm.convert_units('uK_RJ','uK_CMB',nu[i])*psm.convert_units('uK_RJ','uK_CMB',nu[j])/psm.convert_units('uK_RJ','uK_CMB',nurefs)**2 
-                temp2=ampl*((dx1+dx2-2*dx0)*p[4*Nell+ell]+(lognuj*(dx1-dx0)+lognui*(dx2-dx0))*p[5*Nell+ell]+(dx1-dx0)*(dx2-dx0)*p[6*Nell+ell])
+                temp2=ampl*((dxi+dxj-2*dx0)*p[4*Nell+ell]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[5*Nell+ell]+(dxi-dx0)*(dxj-dx0)*p[6*Nell+ell])
                 model[ell*Ncross+icross] = temp + temp2 + sync+ DL_lensbin[ell+l0] + p[8*Nell+3]*DL_tens[ell+l0] 
                 icross = icross + 1
     status = 0
