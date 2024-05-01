@@ -226,7 +226,7 @@ def fito1_bT_PL(nucross,DL,Linv,resultsmbb_PL,quiet=True):
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
-    nparam=12
+    nparam=15
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT
@@ -234,12 +234,12 @@ def fito1_bT_PL(nucross,DL,Linv,resultsmbb_PL,quiet=True):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':1},{'value':resultsmbb_PL['beta'][L,n], 'fixed':1},{'value':resultsmbb_PL['temp'][L,n], 'fixed':1},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':1},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':1},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
+            parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':1},{'value':resultsmbb_PL['beta'][L,n], 'fixed':1},{'value':resultsmbb_PL['temp'][L,n], 'fixed':1},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':1},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':1},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiterl[L,n]= m.params
             chi2l[L,n]=m.fnorm/m.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'r' : paramiterl[:,:,11], 'X2red': chi2l}
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,12],'Asw1t' : paramiterl[:,:,13],'r' : paramiterl[:,:,14], 'X2red': chi2l}
     return results
 
 def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True):
