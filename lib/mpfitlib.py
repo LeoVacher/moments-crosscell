@@ -10,7 +10,7 @@ import basicfunc as func
 
 #contains all the functions to be fitted by mpfit 
 
-nside = 256
+nside = 64
 lmax = nside*3-1
 Nlbin = 10 
 ELLBOUND = 19

@@ -35,7 +35,7 @@ def mbb(nu,beta,T):
 
 
 def mbb_uK(nu,beta,T):
-    """Modified black body in mu_K CMB.
+    """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
@@ -49,7 +49,7 @@ def mbb_uK(nu,beta,T):
     return mbb(nu,beta,T)*psm.convert_units('MJysr','uK_CMB',nu)
 
 def PL_uK(nu,beta):
-    """Power law in muK_CMB.
+    """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
