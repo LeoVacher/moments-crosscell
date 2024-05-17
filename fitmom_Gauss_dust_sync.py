@@ -1,6 +1,6 @@
 import sys
 sys.path.append("./lib")
-
+import numpy as np
 import pymaster as nmt 
 import pysm3
 import time
