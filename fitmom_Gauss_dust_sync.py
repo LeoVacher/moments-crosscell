@@ -113,15 +113,15 @@ else:
 
 # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
+#an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
 
 # fit order 1 moments in beta, T and beta_s around mbb pivot, get results and save
 
-resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL)
+resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
 if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_full_d%sc.npy'%(dusttype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
 else:
-    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc.npy'%(dusttype,synctype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
 
-an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
+#an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
