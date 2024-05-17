@@ -34,7 +34,7 @@ kw = ''
 
 # instr param
 
-instr_name='LiteBIRD_full'
+instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq= instr['frequencies']
 N_freqs =len(freq)
