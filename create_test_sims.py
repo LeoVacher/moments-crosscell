@@ -2,6 +2,7 @@ import sys
 sys.path.append("./lib")
 
 import numpy as np
+import healpy as hp
 import pymaster as nmt 
 import pysm3
 import time
