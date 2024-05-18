@@ -35,9 +35,9 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 
-res0=np.load('Best-fits/resultsmbb_PL_d1s0c.npy',allow_pickle=True).item()
-res1=np.load('Best-fits/resultso1bt_PL_d1s0c_fix0.npy',allow_pickle=True).item()
-res2=np.load('Best-fits/resultso1bt_PL_d1s0c_fix1.npy',allow_pickle=True).item()
+res0=np.load('Best-fits/resultsmbb_PL_d1s1c.npy',allow_pickle=True).item()
+res1=np.load('Best-fits/resultso1bt_PL_d1s1c_fix0.npy',allow_pickle=True).item()
+res2=np.load('Best-fits/resultso1bt_PL_d1s1c_fix1.npy',allow_pickle=True).item()
 
 legs0='PL'
 legs1='fix0'

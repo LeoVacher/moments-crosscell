@@ -23,7 +23,7 @@ Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
-synctype = 0
+synctype = 1
 kw=''
 kwsim=''
 Pathload='./'
@@ -84,31 +84,31 @@ p0=[5e2, 1.54, 20, 5e2, -3,0, 0] #first guess for mbb A, beta, T, r
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
-DLdc=DLdc[:50,:,:Nell]
+#DLdc=DLdc[:200,:,:Nell]
 
 resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-fix=0
+# fix=0
 
-resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix)
+# resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s.npy'%(dusttype,fix),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s.npy'%(dusttype,fix),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
 # plot Gaussian likelihood for r
 
 # an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
 
-fix=1
+# fix=1
 
-resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=False,fix=fix)
+# resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=False,fix=fix)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s.npy'%(dusttype,fix),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s.npy'%(dusttype,fix),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
 # plot Gaussian likelihood for r
 
@@ -116,11 +116,18 @@ else:
 
 # fit order 1 moments in beta, T and beta_s around mbb pivot, get results and save
 
-resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+resultso1bt_moms_nocterm = an.fito1_bT_moms_nocterm(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
 if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_nocterm_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_nocterm)
 else:
-    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_nocterm_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_nocterm)
 
 #an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
+
+# resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+# else:
+#     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
