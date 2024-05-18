@@ -251,7 +251,7 @@ def fito1_bT_PL(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
     return results
 
-def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True):
+def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: nucross, array of the cross-frequencies
@@ -270,7 +270,7 @@ def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True):
         print("%s%%"%(L*100/Nell))
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':0},{'value':resultsmbb_PL['beta'][L,n], 'fixed':0},{'value':resultsmbb_PL['temp'][L,n], 'fixed':0},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':0},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':0},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
+            parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiterl[L,n]= m.params
@@ -353,12 +353,14 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
 # Plot results
 
 def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
+    ellbound=ell.shape[0]
     name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^T\times\omega_1^T}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^T}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{T}}$'}
     edgecolor="#80AAF3"
-    plt.errorbar(ell,np.median(res[label],axis=1),yerr=scipy.stats.median_abs_deviation(res[label],axis=1),c=color,fmt=marker,linestyle='',label=legend)
-    plt.scatter(ell,np.median(res[label],axis=1),s=175,c=color,marker=marker,edgecolor=edgecolor)
+    plt.errorbar(ell,np.median(res[label],axis=1)[:ellbound],yerr=scipy.stats.median_abs_deviation(res[label],axis=1)[:ellbound],c=color,fmt=marker,linestyle='',label=legend)
+    plt.scatter(ell,np.median(res[label],axis=1)[:ellbound],s=175,c=color,marker=marker,edgecolor=edgecolor)
     plt.ylabel(name[label],fontsize=20)
     plt.xlabel(r"$\ell$",fontsize=20)
     plt.legend()
     if show==True:
         plt.show()
+

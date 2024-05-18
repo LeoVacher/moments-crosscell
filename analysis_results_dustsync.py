@@ -22,7 +22,7 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-ELLBOUND = 19
+ELLBOUND = 15
 dusttype = 1
 synctype = 1
 kw=''
@@ -35,15 +35,15 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 
-res0=np.load('Best-fits/resultsmbb_PL_d1s1c.npy',allow_pickle=True).item()
-res1=np.load('Best-fits/resultso1bt_PL_d1s1c_fix0.npy',allow_pickle=True).item()
-res2=np.load('Best-fits/resultso1bt_PL_d1s1c_fix1.npy',allow_pickle=True).item()
+res0=np.load('Best-fits/resultsmbb_PL_d1s0c.npy',allow_pickle=True).item()
+res1=np.load('Best-fits/resultso1bt_PL_d1s0c_fix0.npy',allow_pickle=True).item()
+res2=np.load('Best-fits/resultso1bt_PL_d1s0c_fix1.npy',allow_pickle=True).item()
 
 legs0='PL'
 legs1='fix0'
 legs2='fix1'
 
-res0['X2red'] = res0['A_s'][:,:50]
+res0['X2red'] = res0['X2red'][:,:50]
 plotmed(l,'X2red',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+1,'X2red',res1,show=False,color='darkred',legend=legs1)
 plotmed(l+2,'X2red',res2,show=False,legend=legs2)
