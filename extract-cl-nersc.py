@@ -45,6 +45,7 @@ def compute_master(f_a, f_b, wsp):
    
 
 Pr = "/global/homes/l/leovchr/"
+Pathsave=Pr+ '/global/u1/l/leovchr/codes/moments-crosscell/CLsimus/'
 
 nside = 64
 Npix = hp.nside2npix(nside)
@@ -133,4 +134,4 @@ for k in range(0,N):
             CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotdc[i,1:],purify_e=True, purify_b=True), nmt.NmtField(mask,1*maptotdc[j,1:],purify_e=True, purify_b=False), wsp_dc[z]))[0])
             CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]
             z = z +1
-    np.save(Pr+'codes/Moments-EE/DL_EE/DL_EE_coadd_%s_nside%s.npy'%(complexity,nside),leff*(leff+1)*CLdc/2/np.pi) 
+    np.save(Pathsave+'DL_cross_nside%s_fsky%s_scale%s_Nlbin%s_coadd_%s.npy'%(nside,fsky,scale,Nlbin,complexity),leff*(leff+1)*CLdc/2/np.pi) 
