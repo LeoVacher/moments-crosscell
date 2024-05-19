@@ -45,7 +45,7 @@ def compute_master(f_a, f_b, wsp):
    
 
 Pr = "/global/homes/l/leovchr/"
-Pathsave=Pr+ '/global/u1/l/leovchr/codes/moments-crosscell/CLsimus/'
+Pathsave=Pr+ '/codes/moments-crosscell/CLsimus/'
 
 nside = 64
 Npix = hp.nside2npix(nside)
