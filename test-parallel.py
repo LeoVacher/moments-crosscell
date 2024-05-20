@@ -44,7 +44,7 @@ Nell = len(l)
 
 #instrument informations:
 
-instr_name='LiteBIRD_full'
+instr_name='Litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
 freq=freq
