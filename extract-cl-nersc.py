@@ -95,7 +95,7 @@ wsp_dc=[]
 for i in range(0,N_freqs): 
     for j in range(i,N_freqs):
         w_dc = nmt.NmtWorkspace()
-        w_dc.compute_coupling_matrix(nmt.NmtField(mask, maptot[i]*1,purify_e=True, purify_b=False), nmt.NmtField(mask, maptot[j]*1,purify_e=True, purify_b=False), b)
+        w_dc.compute_coupling_matrix(nmt.NmtField(mask, maptot[i]*1,purify_e=False, purify_b=True), nmt.NmtField(mask, maptot[j]*1,purify_e=False, purify_b=True), b)
         wsp_dc.append(w_dc)
 
 Ncross=int(N_freqs*(N_freqs+1)/2)
@@ -131,7 +131,7 @@ for k in range(0,N):
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
-            CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotdc[i,1:],purify_e=True, purify_b=True), nmt.NmtField(mask,1*maptotdc[j,1:],purify_e=True, purify_b=False), wsp_dc[z]))[0])
+            CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotdc[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptotdc[j,1:],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]
             z = z +1
     np.save(Pathsave+'DL_cross_nside%s_fsky%s_scale%s_Nlbin%s_coadd_%s.npy'%(nside,fsky,scale,Nlbin,complexity),leff*(leff+1)*CLdc/2/np.pi) 
