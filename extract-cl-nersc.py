@@ -117,10 +117,8 @@ for k in range(0,N):
     a='000'+"%s"%k
     if len(a)>4:
         a=a.replace("000","00")
-    if k==100:
-        a='0100'
-    if k>100:
-        a=a.replace("00","0")
+    if k>=100:
+        a='0'+str(k)
     print(a)
     
     #gérer list et concatenate
