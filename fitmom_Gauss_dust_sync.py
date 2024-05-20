@@ -116,18 +116,18 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 # fit order 1 moments in beta, T and beta_s around mbb pivot, get results and save
 
-resultso1bt_moms_nocterm = an.fito1_bT_moms_nocterm(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+# resultso1bt_moms_nocterm = an.fito1_bT_moms_nocterm(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_nocterm_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_nocterm)
-else:
-    np.save('Best-fits/resultso1bt_moms_nocterm_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_nocterm)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_moms_nocterm_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_nocterm)
+# else:
+#     np.save('Best-fits/resultso1bt_moms_nocterm_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_nocterm)
 
 #an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
 
-# resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
-# if synctype==None:
-#     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
-# else:
-#     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+if synctype==None:
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+else:
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
