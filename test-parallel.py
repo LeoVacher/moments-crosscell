@@ -69,7 +69,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results and save
 
-#DLdc=DLdc[:200,:,:Nell]
+DLdc=DLdc[:50,:,:Nell]
 
 p0=[5e2, 1.54, 20, 0] #first guess for mbb A, beta, T, r
 
