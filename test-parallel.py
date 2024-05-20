@@ -77,6 +77,7 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
+from mpi4py import MPI
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
