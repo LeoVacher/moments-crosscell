@@ -867,7 +867,9 @@ def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
                 crossdustsync2 = p[13]*(func.mbb_uK(nu[i],p[1],p[2])*lognui*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*lognuj)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
                 crossdustsync3 = p[14]*(func.mbb_uK(nu[i],p[1],p[2])*(dxi-dx0)*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
                 crossdustsync4 = p[15]*(func.mbb_uK(nu[i],p[1],p[2])*lognujs*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*lognuis)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
-                model[icross] = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+ DL_lensbin[int(p[17])] + p[16]*DL_tens[int(p[17])]
+                crossdustsync5 = p[16]*(func.mbb_uK(nu[i],p[1],p[2])*lognui*func.PL_uK(nu[j],p[4])*lognujs+ func.PL_uK(nu[i],p[4])*lognuis*func.mbb_uK(nu[j],p[1],p[2])*lognuj)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync6 = p[17]*(func.mbb_uK(nu[i],p[1],p[2])*(dxi-dx0)*func.PL_uK(nu[j],p[4])*lognujs+ func.PL_uK(nu[i],p[4])*lognuis*func.mbb_uK(nu[j],p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                model[icross] = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin[int(p[19])] + p[18]*DL_tens[int(p[19])]
                 icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
