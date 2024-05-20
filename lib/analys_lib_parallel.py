@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import basicfunc as func
 import mpi4py
 from mpi4py import MPI
+import math
 
 #contains all function for data analysis: matrix computations, moment fitting and plot results.
 
