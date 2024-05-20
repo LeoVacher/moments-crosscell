@@ -34,8 +34,6 @@ def getLinvdiag(DL,printdiag=False,offset=0):
 # FIT FUNCTIONS ##################################################################################################################
 
 
-
-
 def fito1_bT_moms_full_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     """
     Fit using a first order moment expansion in both beta and T on a DL
