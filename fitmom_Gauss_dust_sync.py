@@ -125,7 +125,7 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 #an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
 
-resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 
 if synctype==None:
     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)

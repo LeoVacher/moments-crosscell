@@ -77,7 +77,10 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
 
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
 if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0_%s/res%s.npy'%(dusttype,rank),resultso1bt_moms_full)
 else:
-    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0/res%s.npy'%(dusttype,synctype,rank),resultso1bt_moms_full)
