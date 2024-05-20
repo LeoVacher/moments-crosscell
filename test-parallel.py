@@ -74,4 +74,12 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 p0=[5e2, 1.54, 20, 0] #first guess for mbb A, beta, T, r
 
-resultsmbb = an.fitmbb_parallel(nucross,DLdc,Linvdc,p0)
+resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
+
+
+resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0)
+
+if synctype==None:
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+else:
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
