@@ -90,17 +90,16 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 fix=0
 
-resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=1)
+resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=0)
 
 if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_nocterm.npy'%(dusttype,fix),resultso1bt_PL)
+    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso1bt_PL)
 else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_nocterm.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
 # # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_nocterm')
-
+an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_fixAw')
 # fix=1
 
 # resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=1)
