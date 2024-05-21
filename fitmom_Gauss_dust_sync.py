@@ -103,7 +103,7 @@ an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
 
 fix=1
 
-resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=False,fix=fix,fixAw=1)
+resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1)
 
 if synctype==None:
     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso1bt_PL)
