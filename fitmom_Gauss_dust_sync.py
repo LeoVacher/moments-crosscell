@@ -99,7 +99,7 @@ else:
 
 # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
+an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_fixAw_nocterm')
 
 fix=1
 
@@ -112,7 +112,7 @@ else:
 
 # plot Gaussian likelihood for r
 
-#an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange')
+an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix1_fixAw_nocterm')
 
 # fit order 1 moments in beta, T and beta_s around mbb pivot, get results and save
 

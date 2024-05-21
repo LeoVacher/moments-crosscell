@@ -307,7 +307,7 @@ def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
 
 #PLOT FUNCTIONS ##################################################################################################################
 
-def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True):
+def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave=''):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result
     :param results: output of moment fitting
@@ -375,7 +375,10 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
     ax.legend()
     ax.set_xlabel(r"$\hat{r}$")
     ax.set_ylim([0,1.03])
-    plt.show()
+    if save==True:
+        np.save("./plot-gauss/"+kwsave+".pdf")
+    else:
+        plt.show()
  
 # Plot results
 
