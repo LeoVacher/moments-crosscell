@@ -1,3 +1,5 @@
+import numpy as np 
+
 dusttype = 1
 synctype = 1
 N=50
