@@ -1,4 +1,5 @@
 import numpy as np 
+import analys_lib as an
 
 dusttype = 1
 synctype = 1
@@ -18,3 +19,6 @@ if synctype==None:
     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),res)
 else:
     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),res)
+
+
+an.plotr_gaussproduct(res,Nmax=15,debug=False,color='darkorange',save=True,kwsave=name)
