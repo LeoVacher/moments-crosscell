@@ -99,7 +99,7 @@ fix=0
 
 # plot Gaussian likelihood for r
 
-resultso1bt_PL = np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw_nocterm.npy'%(dusttype,synctype,fix))
+resultso1bt_PL = np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw_nocterm.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
 an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_fixAw_nocterm')
 
 fix=1
