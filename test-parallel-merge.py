@@ -13,6 +13,6 @@ for i in range(1,N):
 		res[keys[k]]=res[keys[k]]+restemp[keys[k]]
 
 if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),res)
 else:
-    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),res)
