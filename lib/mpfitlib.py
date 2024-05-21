@@ -874,6 +874,38 @@ def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
+def Fitdcbeta2T_PL(p,fjac=None, x=None, y=None, err=None):
+    nuref  = 353
+    nurefs=23.
+    ncross = len(x)
+    nnus   = int((-1 + np.sqrt(ncross*8+1))/2.)
+    posauto = [int(nnus*i - i*(i+1)/2 + i) for i in range(nnus)]
+    nu = x[0:ncross]
+    nu = nu[posauto]
+    icross = 0
+    model = np.zeros(ncross)
+    for i in range(nnus):
+        for j in range(i,nnus):
+                ampl = (func.mbb(nu[i],p[1],p[2])*func.mbb(nu[j],p[1],p[2])/(func.mbb(nuref,p[1],p[2])**2.)*psm.convert_units('MJysr','uK_CMB',nu[i])*psm.convert_units('MJysr','uK_CMB',nu[j])/psm.convert_units('MJysr','uK_CMB',nuref)**2)
+                sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+                nui = nu[i]/nuref
+                nuj = nu[j]/nuref
+                lognui = np.log(nui)
+                lognui2 = np.log(nui)**2
+                lognuj = np.log(nuj)
+                lognuj2 = np.log(nuj)**2
+                dx0 = func.dmbbT(nuref,p[2])
+                dxi = func.dmbbT(nu[i],p[2])
+                dxj = func.dmbbT(nu[j],p[2])
+                temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
+                tempt=ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
+                temp2=ampl*(0.5*(lognui2+lognuj2) *p[11] +0.5 * (lognui2*lognuj+lognui*lognuj2) * p[12]+0.25* (lognui2*lognuj2) * p[13])
+                model[icross] = temp + tempt +temp2 + sync + crossdustsync + DL_lensbin[int(p[15])] + p[14]*DL_tens[int(p[15])]
+                icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
+
 def FitdscbetaTbetas_nocterm(p,fjac=None, x=None, y=None, err=None):
     nuref  = 353
     nurefs=23.

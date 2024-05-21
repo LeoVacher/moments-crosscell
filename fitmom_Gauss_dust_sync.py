@@ -88,18 +88,18 @@ DLdc=DLdc[:50,:,:Nell]
 
 resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-fix=0
+# fix=0
 
-resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=0)
+# resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=0)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
-# # plot Gaussian likelihood for r
+# # # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_fixAw')
+# an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_fixAw')
 # fix=1
 
 # resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=1)
@@ -130,3 +130,16 @@ an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save
 #     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
 # else:
 #     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+
+fix=0
+
+resultso2bt_PL = an.fito2_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=False,fix=fix)
+
+if synctype==None:
+    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso2bt_PL)
+else:
+    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_fixAw.npy'%(dusttype,synctype,fix),resultso2bt_PL)
+
+# # plot Gaussian likelihood for r
+
+an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_o2')
