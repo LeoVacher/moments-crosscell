@@ -40,8 +40,8 @@ res1=np.load('Best-fits/resultso1bt_moms_nocterm_d1s1c_fix0.npy',allow_pickle=Tr
 res2=np.load('Best-fits/resultso1bt_moms_full_d1s1c_fix0.npy',allow_pickle=True).item()
 
 legs0='PL'
-legs1='fix0'
-legs2='fix1'
+legs1='nocterm'
+legs2='cterm'
 
 res0['X2red'] = res0['X2red'][:,:50]
 plotmed(l,'X2red',res0,show=False,color='darkorange',legend=legs0)
@@ -72,16 +72,28 @@ plotmed(l+1,'temp',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+2,'temp',res1,show=False,color='darkred',legend=legs1)
 plt.show()
 
-res0['Asw1bs'] = res0['Asw1bs'][:,:50]
-plotmed(l+1,'Asw1bs',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+2,'Asw1bs',res1,show=False,color='darkred',legend=legs1)
 plotmed(l+2,'Asw1bs',res2,show=False,color='darkred',legend=legs1)
 plt.show()
 
-res0['w1bsw1bs'] = res0['w1bsw1bs'][:,:50]
-plotmed(l+1,'w1bsw1bs',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+2,'w1bsw1bs',res1,show=False,color='darkred',legend=legs1)
 plotmed(l+2,'w1bsw1bs',res2,show=False,color='darkred',legend=legs1)
+plt.show()
+
+plotmed(l+2,'w1bw1b',res1,show=False,color='darkred',legend=legs1)
+plotmed(l+2,'w1bw1b',res2,show=False,color='darkred',legend=legs1)
+plt.show()
+
+plotmed(l+2,'w1tw1t',res1,show=False,color='darkred',legend=legs1)
+plotmed(l+2,'w1tw1t',res2,show=False,color='darkred',legend=legs1)
+plt.show()
+
+plotmed(l+2,'Aw1t',res1,show=False,color='darkred',legend=legs1)
+plotmed(l+2,'Aw1t',res2,show=False,color='darkred',legend=legs1)
+plt.show()
+
+plotmed(l+2,'Aw1b',res1,show=False,color='darkred',legend=legs1)
+plotmed(l+2,'Aw1b',res2,show=False,color='darkred',legend=legs1)
 plt.show()
 
 res0['r'] = res0['r'][:,:50]
@@ -90,13 +102,15 @@ plotmed(l+2,'r',res1,show=False,color='darkred',legend=legs1)
 plotmed(l,'r',res2,show=False,legend=legs2)
 plt.show()
 
-
 plotmed(l,'Asw1b',res2,show=False,legend=legs2)
 plt.show()
 
 plotmed(l,'Asw1t',res2,show=False,legend=legs2)
 plt.show()
 
-plotr_gaussproduct(res0,Nmin=2,Nmax=15,debug=False,color='darkblue')
-plotr_gaussproduct(res1,Nmin=2,Nmax=15,debug=False,color='darkred')
-plotr_gaussproduct(res2,Nmin=2,Nmax=15,debug=False,color='darkorange')
+plotmed(l,'Adw1s',res2,show=False,legend=legs2)
+plt.show()
+
+plotr_gaussproduct(res0,Nmin=0,Nmax=15,debug=False,color='darkblue')
+plotr_gaussproduct(res1,Nmin=0,Nmax=15,debug=False,color='darkred')
+plotr_gaussproduct(res2,Nmin=0,Nmax=15,debug=False,color='darkorange')
