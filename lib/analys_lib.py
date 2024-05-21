@@ -376,7 +376,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug
     ax.set_xlabel(r"$\hat{r}$")
     ax.set_ylim([0,1.03])
     if save==True:
-        np.save("./plot-gauss/"+kwsave+".pdf")
+        plt.savefig("./plot-gauss/"+kwsave+".pdf")
     else:
         plt.show()
  
