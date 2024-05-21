@@ -23,7 +23,7 @@ Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
-synctype = 0
+synctype = 1
 kw=''
 kwsim=''
 Pathload='./'
@@ -133,7 +133,7 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 fix=0
 
-resultso2bt_PL = an.fito2_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=False,fix=fix)
+resultso2bt_PL = an.fito2_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix)
 
 if synctype==None:
     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_fixAw.npy'%(dusttype,fix),resultso2bt_PL)
@@ -142,4 +142,4 @@ else:
 
 # # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_o2')
+an.plotr_gaussproduct(resultso2bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s1_fix0_o2')
