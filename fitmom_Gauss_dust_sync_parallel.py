@@ -28,7 +28,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
+dusttype = 0
 synctype = 0
 kw=''
 kwsim=''
@@ -110,10 +110,10 @@ if synctype==None:
 else:
     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%ss%sc_fix0'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
 
-resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=True)
+# resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=True)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
-else:
-    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+# else:
+#     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
 
