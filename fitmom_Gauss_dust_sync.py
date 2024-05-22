@@ -69,9 +69,9 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results and save
 
-DLdc=DLdc[:50,:,:Nell]
+#DLdc=DLdc[:50,:,:Nell]
 
-p0=[1000, 1.54, 20, 10, -3,0.5, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,10, 0] #first guess for mbb A, beta, T, r
 
 resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=False)
 
