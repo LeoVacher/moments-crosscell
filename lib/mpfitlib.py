@@ -71,7 +71,7 @@ def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
         for j in range(i,nnus):
             mbb =  p[0]*(func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.)) 
             sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-            crossdustsync= p[5]*np.sqrt(p[0]*p[3])*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
+            crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
             model[icross]=mbb+ sync + crossdustsync + DL_lensbin[int(p[7])]+ p[6]*DL_tens[int(p[7])]
             icross = icross + 1
     status = 0
@@ -818,7 +818,7 @@ def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
         for j in range(i,nnus):
                 ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
                 sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= p[5]*np.sqrt(p[0]*p[3])*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)
@@ -849,7 +849,7 @@ def FitdscbetaTbetas_full(p,fjac=None, x=None, y=None, err=None):
         for j in range(i,nnus):
                 ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
                 sync= (func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= p[5]*np.sqrt(p[0]*p[3])*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)
@@ -888,7 +888,7 @@ def Fitdcbeta2T_PL(p,fjac=None, x=None, y=None, err=None):
         for j in range(i,nnus):
                 ampl = (func.mbb(nu[i],p[1],p[2])*func.mbb(nu[j],p[1],p[2])/(func.mbb(nuref,p[1],p[2])**2.)*psm.convert_units('MJysr','uK_CMB',nu[i])*psm.convert_units('MJysr','uK_CMB',nu[j])/psm.convert_units('MJysr','uK_CMB',nuref)**2)
                 sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= p[5]*np.sqrt(p[0]*p[3])*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)
@@ -920,7 +920,7 @@ def FitdscbetaTbetas_nocterm(p,fjac=None, x=None, y=None, err=None):
         for j in range(i,nnus):
                 ampl = (func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
                 sync= (func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-                crossdustsync= p[5]*np.sqrt(p[0]*p[3])*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
+                crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])/func.mbb_uK(nuref,p[1],p[2]))
                 nui = nu[i]/nuref
                 nuj = nu[j]/nuref
                 lognui = np.log(nui)

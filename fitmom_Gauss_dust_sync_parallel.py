@@ -91,19 +91,19 @@ if synctype==None:
 else:
     np.save('Best-fits/resultsmbb_PL_d%ss%sc/res%s.npy'%(dusttype,synctype,rank),resultsmbb_PL)
 
-fix=0
+# fix=0
 
-if synctype==None:
-    pathlib.Path(('./Best-fits/resultso1bt_PL_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
-else:
-    pathlib.Path(('./Best-fits/resultso1bt_PL_d%ss%sc_fix0'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
+# if synctype==None:
+#     pathlib.Path(('./Best-fits/resultso1bt_PL_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
+# else:
+#     pathlib.Path(('./Best-fits/resultso1bt_PL_d%ss%sc_fix0'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
 
-resultso1bt_PL = an.fito1_bT_PL_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+# resultso1bt_PL = an.fito1_bT_PL_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s/res%s.npy'%(dusttype,fix,rank),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s/res%s.npy'%(dusttype,synctype,fix,rank),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s/res%s.npy'%(dusttype,fix,rank),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s/res%s.npy'%(dusttype,synctype,fix,rank),resultso1bt_PL)
 
 # if synctype==None:
 #     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
