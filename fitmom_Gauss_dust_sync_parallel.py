@@ -15,6 +15,7 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib_parallel as an
 from mpi4py import MPI
+import pathlib
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
