@@ -23,7 +23,7 @@ Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
-synctype = 1
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -99,7 +99,8 @@ else:
 
 # # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_allfree')
+an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_allfree_reald1s0')
+
 # fix=1
 
 # resultso1bt_PL = an.fito1_bT_PL(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=1,fixcterm=1)
