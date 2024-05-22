@@ -71,14 +71,14 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 DLdc=DLdc[:50,:,:Nell]
 
-#p0=[5e2, 1.54, 20, 5e2, -3,0, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
-# resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0)
+resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0)
 
-# if synctype==None:
-#     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
-# else:
-#     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
+if synctype==None:
+    np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
+else:
+    np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
 # an.plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange')
 
@@ -125,12 +125,14 @@ an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save
 
 #an.plotr_gaussproduct(resultso1bt_moms_full,Nmin=2,Nmax=15,debug=False,color='darkorange')
 
-# resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
+resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 
-# if synctype==None:
-#     np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
-# else:
-#     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+if synctype==None:
+    np.save('Best-fits/resultso1bt_moms_full_d%sc_fix0.npy'%(dusttype),resultso1bt_moms_full)
+else:
+    np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
+
+an.plotr_gaussproduct(resultso1bt_moms_full,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d1s0_fix0_allfree_reald1s0')
 
 # fix=0
 

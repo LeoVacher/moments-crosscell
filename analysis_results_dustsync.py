@@ -35,10 +35,9 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 
-res0=np.load('Best-fits/resultsmbb_PL_d1s1c.npy',allow_pickle=True).item()
-res1=np.load('Best-fits/resultso1bt_PL_d1s1c_fix0.npy',allow_pickle=True).item()
-res2=np.load('Best-fits/resultso1bt_PL_d1s1c_fix1.npy',allow_pickle=True).item()
-res3=np.load('Best-fits/resultso1bt_moms_nocterm_d1s1c_fix0.npy',allow_pickle=True).item()
+res0=np.load('Best-fits/resultsmbb_PL_d1s0c.npy',allow_pickle=True).item()
+res1=np.load('Best-fits/resultso1bt_PL_d1s0c_fix0.npy',allow_pickle=True).item()
+res2=np.load('Best-fits/resultso1bt_PL_d1s0c_fix1.npy',allow_pickle=True).item()
 
 legs0='PL'
 legs1='fix0'
@@ -49,7 +48,6 @@ res0['X2red'] = res0['X2red'][:,:50]
 plotmed(l,'X2red',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+1,'X2red',res1,show=False,color='darkred',legend=legs1)
 plotmed(l+2,'X2red',res2,show=False,legend=legs2)
-plotmed(l+2,'X2red',res3,show=False,color='forestgreen',legend=legs3)
 plt.show()
 
 res0['A_s'] = res0['A_s'][:,:50]
@@ -86,7 +84,22 @@ plt.show()
 plotr_gaussproduct(res0,Nmin=2,Nmax=15,debug=False,color='darkblue')
 plotr_gaussproduct(res1,Nmin=2,Nmax=15,debug=False,color='darkred')
 plotr_gaussproduct(res2,Nmin=2,Nmax=15,debug=False,color='darkorange')
-plotr_gaussproduct(res3,Nmin=2,Nmax=15,debug=False,color='forestgreen')
+
+plotmed(l+2,'Aw1b',res1,show=False,color='darkred',legend=legs1)
+plotmed(l,'Aw1b',res2,show=False,legend=legs2)
+plt.show()
+
+plotmed(l+2,'Aw1t',res1,show=False,color='darkred',legend=legs1)
+plotmed(l,'Aw1t',res2,show=False,legend=legs2)
+plt.show()
+
+plotmed(l+2,'w1bw1b',res1,show=False,color='darkred',legend=legs1)
+plotmed(l,'w1bw1b',res2,show=False,legend=legs2)
+plt.show()
+
+plotmed(l+2,'w1tw1t',res1,show=False,color='darkred',legend=legs1)
+plotmed(l,'w1tw1t',res2,show=False,legend=legs2)
+plt.show()
 
 plotmed(l+2,'Asw1b',res1,show=False,color='darkred',legend=legs1)
 plotmed(l,'Asw1b',res2,show=False,legend=legs2)
