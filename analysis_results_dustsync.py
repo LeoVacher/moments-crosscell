@@ -24,7 +24,7 @@ Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
-synctype = 1
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -56,6 +56,12 @@ plotmed(l+1,'A_s',res1,show=False,color='darkred',legend=legs1)
 plotmed(l+2,'A_s',res2,show=False,legend=legs2)
 plt.show()
 
+res0['A_s'] = res0['A_s'][:,:50]
+plotmed(l,'A_sd',res0,show=False,color='darkorange',legend=legs0)
+plotmed(l+1,'A_sd',res1,show=False,color='darkred',legend=legs1)
+plotmed(l+2,'A_sd',res2,show=False,legend=legs2)
+plt.show()
+
 res0['beta_s'] = res0['beta_s'][:,:50]
 plotmed(l+1,'beta_s',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+2,'beta_s',res1,show=False,color='darkred',legend=legs1)
@@ -78,12 +84,11 @@ res0['r'] = res0['r'][:,:50]
 plotmed(l+1,'r',res0,show=False,color='darkorange',legend=legs0)
 plotmed(l+2,'r',res1,show=False,color='darkred',legend=legs1)
 plotmed(l,'r',res2,show=False,legend=legs2)
-plotmed(l,'r',res3,show=False,color='forestgreen',legend=legs3)
 plt.show()
 
-plotr_gaussproduct(res0,Nmin=2,Nmax=15,debug=False,color='darkblue')
-plotr_gaussproduct(res1,Nmin=2,Nmax=15,debug=False,color='darkred')
-plotr_gaussproduct(res2,Nmin=2,Nmax=15,debug=False,color='darkorange')
+plotr_gaussproduct(res0,Nmin=0,Nmax=15,debug=False,color='darkblue')
+plotr_gaussproduct(res1,Nmin=0,Nmax=15,debug=False,color='darkred')
+plotr_gaussproduct(res2,Nmin=0,Nmax=15,debug=False,color='darkorange')
 
 plotmed(l+2,'Aw1b',res1,show=False,color='darkred',legend=legs1)
 plotmed(l,'Aw1b',res2,show=False,legend=legs2)
