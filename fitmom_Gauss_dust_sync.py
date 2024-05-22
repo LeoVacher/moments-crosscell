@@ -73,7 +73,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 p0=[5e2, 1.54, 20, 10, -3,10, 0] #first guess for mbb A, beta, T, r
 
-resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=False)
+resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=True)
 
 if synctype==None:
     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
