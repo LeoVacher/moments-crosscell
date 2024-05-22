@@ -4,7 +4,7 @@ sys.path.append("./lib")
 import numpy as np 
 import analys_lib as an
 
-dusttype = 1
+dusttype = 0
 synctype = 0
 N=50
 

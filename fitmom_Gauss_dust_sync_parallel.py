@@ -105,10 +105,10 @@ if synctype==None:
 else:
     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s/res%s.npy'%(dusttype,synctype,fix,rank),resultso1bt_PL)
 
-if synctype==None:
-    pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
-else:
-    pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%ss%sc_fix0'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
+# if synctype==None:
+#     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
+# else:
+#     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%ss%sc_fix0'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
 
 # resultso1bt_moms_full = an.fito1_bT_moms_full_parallel(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=True)
 
