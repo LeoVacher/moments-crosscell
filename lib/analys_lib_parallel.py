@@ -68,7 +68,7 @@ def fitmbb_PL_parallel(nucross,DL,Linv,p0,quiet=True):
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
     return results
 
-def fito1_bT_PL_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,fixcterm=1):
+def fito1_bT_PL_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,fixcterm=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: nucross, array of the cross-frequencies
