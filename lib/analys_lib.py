@@ -4,6 +4,7 @@ import mpfitlib as mpl
 import scipy
 import matplotlib.pyplot as plt 
 import basicfunc as func
+from tqdm import tqdm
 
 #contains all function for data analysis: matrix computations, moment fitting and plot results.
 
@@ -44,8 +45,7 @@ def fitmbb(nucross,DL,Linv,p0,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdcordre0
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         pl0 = np.append(p0,L)
         parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #dust params
         parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
@@ -75,8 +75,7 @@ def fito1_b(nucross,DL,Linv,resultsmbb,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdcordre1
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -102,8 +101,7 @@ def fito1_bT(nucross,DL,Linv,resultsmbb,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdcbetaT
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -129,8 +127,7 @@ def fito2_b(nucross,DL,Linv,resultsmbb,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdcordre2
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             parinfopl = [{'value':resultsmbb['A'][L,n], 'fixed':1},{'value':resultsmbb['beta'][L,n], 'fixed':1},{'value':resultsmbb['temp'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
@@ -156,8 +153,7 @@ def fitmbb_PL(nucross,DL,Linv,p0,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdscordre0
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         pl0 = np.append(p0,L)
         parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
         parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
@@ -184,8 +180,7 @@ def fit_PL(nucross,DL,Linv,p0,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitsc
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         pl0 = np.append(p0,L)
         parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
         parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
@@ -212,8 +207,7 @@ def fito1_bs(nucross,DL,Linv,results_PL,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitscordre1
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             parinfopl = [{'value':results_PL['A_s'][L,n], 'fixed':1},{'value':results_PL['beta_s'][L,n], 'fixed':1},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #sync params
             fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
@@ -239,8 +233,7 @@ def fito1_bT_PL(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,fixcterm=
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -267,8 +260,7 @@ def fito2_bT_PL(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdcbeta2T_PL
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -295,8 +287,7 @@ def fito1_bT_moms_nocterm(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaTbetas_nocterm
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -322,8 +313,7 @@ def fito1_bT_moms_full(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaTbetas_full
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(N):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params

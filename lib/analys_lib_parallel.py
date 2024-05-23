@@ -7,6 +7,7 @@ import basicfunc as func
 import mpi4py
 from mpi4py import MPI
 import math
+from tqdm import tqdm
 
 #contains all function for data analysis: matrix computations, moment fitting and plot results.
 
@@ -54,8 +55,7 @@ def fitmbb_PL_parallel(nucross,DL,Linv,p0,quiet=True):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.Fitdscordre0
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         pl0 = np.append(p0,L)
         parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
         parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
@@ -91,8 +91,7 @@ def fito1_bT_PL_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(rank*perrank, (rank+1)*perrank):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
@@ -125,8 +124,7 @@ def fito1_bT_moms_full_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaTbetas_full
-    for L in range(0,Nell):
-        print("%s%%"%(L*100/Nell))
+    for L in tqdm(range(Nell)):
         for n in range(rank*perrank, (rank+1)*perrank):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n], 'fixed':fix},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0}, {'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params

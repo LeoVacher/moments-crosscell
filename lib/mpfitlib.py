@@ -226,7 +226,6 @@ def Fitdcordre3_func(x,p):
                 icross = icross + 1
     return(model)
 
-
 def Fitdcordre4(p,fjac=None, x=None, y=None, err=None):
     nuref  = 353
     ncross = len(x)
@@ -287,7 +286,6 @@ def Fitdcordre4_func(p,x):
                 model[icross] = temp + temp2+temp3 + temp4 + DL_lensbin[int(p[17])] + p[16]*DL_tens[int(p[17])]
                 icross = icross + 1
     return(model)
-
 
 
 def FitdcFIXordre2(p,fjac=None, x=None, y=None, err=None):
