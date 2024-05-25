@@ -5,7 +5,7 @@ import numpy as np
 import analys_lib as an
 
 dusttype = 1
-synctype = 0
+synctype = 1
 N=50
 
 def merge_parallel(name,N,dusttype,synctype):
