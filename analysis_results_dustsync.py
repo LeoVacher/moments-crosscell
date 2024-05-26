@@ -14,6 +14,7 @@ import scipy.stats as st
 import basicfunc as func
 from fgbuster import get_instrument, get_sky, get_observation  # Predefined instrumental and sky-creation configurations
 from analys_lib import plotr_gaussproduct, plotmed
+from matplotlib.backends.backend_pdf import PdfPages 
 
 r=0.
 nside = 64
@@ -23,7 +24,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 0
+dusttype = 1
 synctype = 0
 kw=''
 kwsim=''
@@ -35,81 +36,117 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 
-res0=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
-res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
+res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(1,0),allow_pickle=True).item()
+res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(1,1),allow_pickle=True).item()
 #res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-legs0='PL'
-legs1='fix0'
-legs2='fix1'
-legs3='d1s1'
+legs1='d1s0'
+legs2='d1s1'
 
-res0['X2red'] = res0['X2red'][:,:50]
-plotmed(l,'X2red',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+1,'X2red',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l+2,'X2red',res2,show=False,legend=legs2)
-plt.show()
+c1='darkblue'
+c2='darkorange'
 
-res0['A_s'] = res0['A_s'][:,:50]
-plotmed(l,'A_s',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+1,'A_s',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l+2,'A_s',res2,show=False,legend=legs2)
-plt.show()
+fig1=plt.figure()
+plotmed(l,'X2red',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'X2red',res2,show=False,color=c2,legend=legs2)
+plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
+#plt.show()
 
-res0['A_s'] = res0['A_s'][:,:50]
-plotmed(l,'A_sd',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+1,'A_sd',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l+2,'A_sd',res2,show=False,legend=legs2)
-plt.show()
+fig2=plt.figure()
+plotmed(l+1,'A_s',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'A_s',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-res0['beta_s'] = res0['beta_s'][:,:50]
-plotmed(l+1,'beta_s',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+2,'beta_s',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l,'beta_s',res2,show=False,legend=legs2)
-plt.show()
+fig3=plt.figure()
+plotmed(l,'A_sd',res1,show=False,legend=legs1,color=c1)
+plotmed(l+2,'A_sd',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-res0['beta'] = res0['beta'][:,:50]
-plotmed(l+1,'beta',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+2,'beta',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l,'beta',res2,show=False,legend=legs2)
-plt.show()
+fig4=plt.figure()
+plotmed(l,'beta_s',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'beta_s',res2,show=False,color=c2,legend=legs2)
+plt.plot(l,-3*np.ones(len(l)),c='k',linestyle='--')
+#plt.show()
 
-res0['temp'] = res0['temp'][:,:50]
-plotmed(l+1,'temp',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+2,'temp',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l,'temp',res2,show=False,legend=legs2)
-plt.show()
+fig5=plt.figure()
+plotmed(l+1,'beta',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'beta',res2,show=False,color=c2,legend=legs2)
+#plotmed(l,'beta',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-res0['r'] = res0['r'][:,:50]
-plotmed(l+1,'r',res0,show=False,color='darkorange',legend=legs0)
-plotmed(l+2,'r',res1,show=False,color='darkred',legend=legs1)
-#plotmed(l,'r',res2,show=False,legend=legs2)
-plt.show()
+fig6=plt.figure()
+plotmed(l+1,'temp',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'temp',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotr_gaussproduct(res0,Nmin=0,Nmax=15,debug=False,color='darkblue')
-plotr_gaussproduct(res1,Nmin=0,Nmax=15,debug=False,color='darkred')
-#plotr_gaussproduct(res2,Nmin=0,Nmax=15,debug=False,color='darkorange')
+fig7=plt.figure()
+plotmed(l+1,'r',res1,show=False,color=c1,legend=legs1)
+plotmed(l+2,'r',res2,show=False,color=c2,legend=legs2)
+plt.plot(l,-3*np.zeros((len(l))),c='k',linestyle='--')
+#plt.show()
 
-plotmed(l+2,'Aw1b',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'Aw1b',res2,show=False,legend=legs2)
-plt.show()
+fig8=plt.figure()
+plotmed(l+2,'Aw1b',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'Aw1b',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotmed(l+2,'Aw1t',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'Aw1t',res2,show=False,legend=legs2)
-plt.show()
+fig9=plt.figure()
+plotmed(l+2,'Aw1t',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'Aw1t',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotmed(l+2,'w1bw1b',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'w1bw1b',res2,show=False,legend=legs2)
-plt.show()
+fig11=plt.figure()
+plotmed(l+2,'w1bw1t',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'w1bw1t',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotmed(l+2,'w1tw1t',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'w1tw1t',res2,show=False,legend=legs2)
-plt.show()
+fig16=plt.figure()
+plotmed(l+2,'w1bw1b',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'w1bw1b',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotmed(l+2,'Asw1b',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'Asw1b',res2,show=False,legend=legs2)
-plt.show()
+fig11=plt.figure()
+plotmed(l+2,'w1tw1t',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'w1tw1t',res2,show=False,color=c2,legend=legs2)
+#plt.show()
 
-plotmed(l+2,'Asw1t',res1,show=False,color='darkred',legend=legs1)
-plotmed(l,'Asw1t',res2,show=False,legend=legs2)
-plt.show()
+fig12=plt.figure()
+plotmed(l+2,'Asw1b',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'Asw1b',res2,show=False,color=c2,legend=legs2)
+#plt.show()
+
+fig13=plt.figure()
+plotmed(l+2,'Asw1t',res1,show=False,color=c1,legend=legs1)
+plotmed(l,'Asw1t',res2,show=False,color=c2,legend=legs2)
+#plt.show()
+
+fig14=plt.figure()
+plotr_gaussproduct(res1,Nmin=0,Nmax=15,debug=False,color=c1,save=True)
+fig15=plt.figure()
+plotr_gaussproduct(res2,Nmin=0,Nmax=15,debug=False,color=c2,save=True)
+
+def save_image(filename): 
+    
+    # PdfPages is a wrapper around pdf  
+    # file so there is no clash and create 
+    # files with no error. 
+    p = PdfPages(filename) 
+      
+    # get_fignums Return list of existing  
+    # figure numbers 
+    fig_nums = plt.get_fignums()   
+    figs = [plt.figure(n) for n in fig_nums] 
+      
+    # iterating over the numbers in list 
+    for fig in figs:  
+        
+        # and saving the files 
+        fig.savefig(p, format='pdf')  
+      
+    # close the object 
+    p.close()   
+ 
+filename = "d1s0vsd1s1.pdf"  
+  
+# call the function 
+save_image(filename)   
