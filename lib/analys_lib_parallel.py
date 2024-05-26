@@ -102,6 +102,41 @@ def fito1_bT_PL_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
     return results
 
+def fito1_bT_PL_p0_parallel(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcterm=1):
+    """
+    Fit using a first order moment expansion in both beta and T on a DL
+    :param: nucross, array of the cross-frequencies
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param Linv: inverse of the Cholesky matrix
+    :param resultsmbb: must be input mbb best fit in the format of fitmbb()
+    :param quiet: display output of the fit for debugging
+    :param fix: fix the 0th order parameters, 1=yes, 0=no.
+    :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
+    """
+    N,_,Nell=DL.shape
+    #parallel:
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    perrank = math.ceil(N/size)
+
+    nparam=len(pl0)+1
+    paramiterl=np.zeros((Nell,N,nparam))
+    chi2l=np.zeros((Nell,N))
+    funcfit=mpl.FitdscbetaT
+    parinfopl0 = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
+    for L in tqdm(range(Nell)):
+        parinfopl=parinfopl0
+        parinfopl.append({'value':L,'fixed':1}) #and L 
+        for n in range(rank*perrank, (rank+1)*perrank):
+            # first o1 fit, dust fixed, mom free, r fixed
+            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
+            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
+            paramiterl[L,n]= m.params
+            chi2l[L,n]=m.fnorm/m.dof            
+    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
+    return results
+
 def fito1_bT_moms_full_parallel(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1):
     """
     Fit using a first order moment expansion in both beta and T on a DL
