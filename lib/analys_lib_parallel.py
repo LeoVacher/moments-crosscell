@@ -126,7 +126,7 @@ def fito1_bT_PL_p0_parallel(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcter
     funcfit=mpl.FitdscbetaT
     parinfopl0 = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
     for L in tqdm(range(Nell)):
-        parinfopl=parinfopl0
+        parinfopl=parinfopl0.copy()
         parinfopl.append({'value':L,'fixed':1}) #and L 
         for n in range(rank*perrank, (rank+1)*perrank):
             # first o1 fit, dust fixed, mom free, r fixed
