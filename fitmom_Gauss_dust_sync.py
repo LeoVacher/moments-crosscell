@@ -72,16 +72,16 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:50,:,:Nell]
 
-p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
+#p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
 
-resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
+#resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
 
 # if synctype==None:
 #     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
 # else:
 #     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_vectorize'%(synctype,dusttype))
+#plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_vectorize'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -89,18 +89,20 @@ plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=Tru
 
 # p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-# fix=0
+resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-#resultso1bt_PL_p0 = an.fito1_bT_PL_p0(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+fix=0
 
-# if synctype==None:
-#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
-# else:
-#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+resultso1bt_PL = an.fito1_bT_PL_p0(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+
+if synctype==None:
+    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
+else:
+    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
 # # plot Gaussian likelihood for r
 
-#plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_p0'%(synctype,dusttype,fix))
+plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_vectorize'%(synctype,dusttype,fix))
 
 # resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 

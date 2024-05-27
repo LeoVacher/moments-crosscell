@@ -77,15 +77,12 @@ def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def Fitdscordre0_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None):
+def Fitdscordre0_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.):
     nu_i=x1
     nu_j=x2
-    nuref = 353.
-    nurefs = 23.
     mbb = (p[0] * (func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])/(func.mbb_uK(nuref, p[1], p[2]) ** 2.)))
     sync = (p[3] * (func.PL_uK(nu_i, p[4]) * func.PL_uK(nu_j, p[4])/(func.PL_uK(nurefs, p[4]) ** 2)))
     crossdustsync = (p[5] * (func.mbb_uK(nu_i, p[1], p[2]) * func.PL_uK(nu_j, p[4]) + func.PL_uK(nu_i, p[4]) * func.mbb_uK(nu_j, p[1], p[2]))/(func.PL_uK(nurefs, p[4]) * func.mbb_uK(nuref, p[1], p[2])))
-    # Calcul du modèle
     model = mbb + sync + crossdustsync + DL_lensbin[int(p[7])] + p[6] * DL_tens[int(p[7])]
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
@@ -843,6 +840,26 @@ def FitdscbetaT(p,fjac=None, x=None, y=None, err=None):
                 crossdustsync3 = p[12]*(func.mbb_uK(nu[i],p[1],p[2])*(dxi-dx0)*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
                 model[icross] = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
                 icross = icross + 1
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
+
+def FitdscbetaT_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.):
+    nu_i=x1
+    nu_j=x2
+
+    ampl = (func.mbb_uK(nu_i,p[1],p[2])*func.mbb_uK(nu_j,p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.))
+    sync= p[3]*(func.PL_uK(nu_i,p[4])*func.PL_uK(nu_j,p[4])/(func.PL_uK(nurefs,p[4])**2))
+    crossdustsync= p[5]*(func.mbb_uK(nu_i,p[1],p[2])*func.PL_uK(nu_j,p[4])+ func.PL_uK(nu_i,p[4])*func.mbb_uK(nu_j,p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+    lognui = np.log(nu_i/nuref)
+    lognuj = np.log(nu_j/nuref)
+    dx0 = func.dmbbT(nuref,p[2])
+    dxi = func.dmbbT(nu_i,p[2])
+    dxj = func.dmbbT(nu_j,p[2])
+    temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
+    temp2=ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
+    crossdustsync2 = p[11]*(func.mbb_uK(nu[i],p[1],p[2])*lognui*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*lognuj)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+    crossdustsync3 = p[12]*(func.mbb_uK(nu[i],p[1],p[2])*(dxi-dx0)*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+    model = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin[int(p[14])] + p[13]*DL_tens[int(p[14])]
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
