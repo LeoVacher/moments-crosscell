@@ -23,7 +23,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 0
+dusttype = 1
 synctype = 0
 kw=''
 kwsim=''
@@ -72,16 +72,16 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:50,:,:Nell]
 
-#p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
 
-#resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
+resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
 
-# if synctype==None:
-#     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
-# else:
-#     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
+if synctype==None:
+    np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
+else:
+    np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-#plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_vectorize'%(synctype,dusttype))
+plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_vectorize'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -89,7 +89,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
+#resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
 fix=0
 
