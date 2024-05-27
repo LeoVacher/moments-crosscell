@@ -3,6 +3,7 @@ from pathlib import Path
 sys.path.append("./lib")
 import numpy as np 
 import analys_lib as an
+from plotlib import plotr_gaussproduct
 
 dusttype = 0
 synctype = 0
@@ -20,7 +21,7 @@ def merge_parallel(name,N,dusttype,synctype):
 	    np.save('Best-fits/%s.npy'%(name),res)
 	else:
 	    np.save('Best-fits/%s.npy'%(name),res)
-	an.plotr_gaussproduct(res,Nmax=15,debug=False,color='darkorange',save=True,kwsave=name)
+	plotr_gaussproduct(res,Nmax=15,debug=False,color='darkorange',save=True,kwsave=name)
 
 merge_parallel('resultsmbb_PL_d%ss%sc'%(dusttype,synctype),N,dusttype,synctype)
 merge_parallel('resultso1bt_PL_d%ss%sc_fix0_p0'%(dusttype,synctype),N,dusttype,synctype)

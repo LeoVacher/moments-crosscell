@@ -13,6 +13,7 @@ import matplotlib.patheffects as path_effects
 import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
+from plotlib import plotr_gaussproduct
 
 r=0.
 nside = 64
@@ -71,35 +72,35 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:50,:,:Nell]
 
-p0=[5e2, 1.54, 20, 10, -3,10, 0] #first guess for mbb A, beta, T, r
+p0=[150, 1.54, 20, 1, -3,0.1, 0] #first guess for mbb A, beta, T, r
 
-resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=True)
+resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=False)
 
-if synctype==None:
-    np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
-else:
-    np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
+# else:
+#     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-an.plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s'%(synctype,dusttype))
+plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 #DLdc=DLdc[:200,:,:Nell]
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+# p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-fix=0
+# fix=0
 
-resultso1bt_PL_p0 = an.fito1_bT_PL_p0(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+#resultso1bt_PL_p0 = an.fito1_bT_PL_p0(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
 # # plot Gaussian likelihood for r
 
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_p0'%(synctype,dusttype,fix))
+#plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_p0'%(synctype,dusttype,fix))
 
 # resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 
@@ -108,4 +109,4 @@ an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save
 # else:
 #     np.save('Best-fits/resultso1bt_moms_full_d%ss%sc_fix0.npy'%(dusttype,synctype),resultso1bt_moms_full)
 
-# an.plotr_gaussproduct(resultso1bt_moms_full,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bTs_fix%s'%(dusttype,synctype,fix))
+# plotr_gaussproduct(resultso1bt_moms_full,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bTs_fix%s'%(dusttype,synctype,fix))

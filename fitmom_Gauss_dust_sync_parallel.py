@@ -124,10 +124,6 @@ if synctype==None:
 else:
     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0/res%s.npy'%(dusttype,synctype,fix,rank),resultso1bt_PL_p0)
 
-# # plot Gaussian likelihood for r
-
-an.plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_p0'%(synctype,dusttype,fix))
-
 
 # if synctype==None:
 #     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 

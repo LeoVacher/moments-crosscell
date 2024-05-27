@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import basicfunc as func
 from tqdm import tqdm
 
-#contains all function for data analysis: matrix computations, moment fitting and plot results.
+#contains all function for data analysis: matrix computations and moment fitting.
 
 #GENERAL #######################################################################################################################
 

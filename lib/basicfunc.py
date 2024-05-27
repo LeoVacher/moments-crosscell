@@ -49,15 +49,13 @@ def mbb_uK(nu,beta,T):
     return mbb(nu,beta,T)*psm.convert_units('MJysr','uK_CMB',nu)
 
 def PL_uK(nu,beta):
-    """Modified black body.
+    """Power law.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
     :param beta: spectral index of the emissivity
     :type beta: float    
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
-    :return: float -- modified black body brightness.
+    :return: float -- power law brightness.
 
     """    
     return psm.convert_units('uK_RJ','uK_CMB',nu)*(nu)**beta
