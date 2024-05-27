@@ -93,7 +93,7 @@ resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),
 
 fix=0
 
-resultso1bt_PL = an.fito1_bT_PL_p0(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+resultso1bt_PL = an.fito1_bT_PL_vectorize(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
 if synctype==None:
     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
