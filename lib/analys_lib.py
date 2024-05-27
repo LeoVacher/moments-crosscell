@@ -309,7 +309,7 @@ def fito1_bT_PL_vectorize(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT_vectorize
     for L in tqdm(range(Nell)):
-        for n in range(N):
+        for n in tqdm(range(N)):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n],'fixed':fix,'limited':[1,1],'limits':[0.5,3.]},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix,'limited':[1,1],'limits':[10.,30.]},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L]}
