@@ -295,7 +295,7 @@ def fito1_bT_PL_vectorize(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
-
+    ncross=len(nucross)
     nnus = int((-1 + np.sqrt(ncross * 8 + 1)) / 2.)
     posauto = [int(nnus * i - i * (i + 1) / 2 + i) for i in range(nnus)]
     nu = nucross[posauto]
