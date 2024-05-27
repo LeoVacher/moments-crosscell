@@ -12,7 +12,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
 import scipy.stats as st
 import basicfunc as func
-from fgbuster import get_instrument, get_sky, get_observation  # Predefined instrumental and sky-creation configurations
 from analys_lib import plotr_gaussproduct, plotmed
 from matplotlib.backends.backend_pdf import PdfPages 
 
@@ -24,7 +23,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
+dusttype = 0
 synctype = 0
 kw=''
 kwsim=''
@@ -35,12 +34,11 @@ l = b.get_effective_ells()
 l = l[:ELLBOUND]
 Nell = len(l)
 
-
-res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(1,0),allow_pickle=True).item()
-res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(1,1),allow_pickle=True).item()
+res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
+res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
 #res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-legs1='d1s0'
+legs1='d0s0'
 legs2='d1s1'
 
 c1='darkblue'
@@ -146,7 +144,7 @@ def save_image(filename):
     # close the object 
     p.close()   
  
-filename = "d1s0vsd1s1.pdf"  
+filename = "%svs%s.pdf"%(legs1,legs2)  
   
 # call the function 
 save_image(filename)   

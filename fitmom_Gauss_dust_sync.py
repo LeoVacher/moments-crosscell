@@ -22,8 +22,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -73,14 +73,14 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # p0=[5e2, 1.54, 20, 10, -3,10, 0] #first guess for mbb A, beta, T, r
 
-# resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=True)
+resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=True)
 
-# if synctype==None:
-#     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
-# else:
-#     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
+if synctype==None:
+    np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
+else:
+    np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-# an.plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s'%(synctype,dusttype))
+an.plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
