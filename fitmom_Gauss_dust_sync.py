@@ -72,16 +72,16 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:50,:,:Nell]
 
-p0=[150, 1.54, 20, 1, -3,0.1, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
 
-resultsmbb_PL = an.fitmbb_PL(nucross,DLdc,Linvdc,p0,quiet=False)
+resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
 
 # if synctype==None:
 #     np.save('Best-fits/resultsmbb_PL_d%sc.npy'%dusttype,resultsmbb_PL)
 # else:
 #     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s'%(synctype,dusttype))
+plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_vectorize'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 

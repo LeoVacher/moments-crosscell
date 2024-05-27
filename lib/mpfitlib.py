@@ -77,6 +77,19 @@ def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
+def Fitdscordre0_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None):
+    nu_i=x1
+    nu_j=x2
+    nuref = 353.
+    nurefs = 23.
+    mbb = (p[0] * (func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])/(func.mbb_uK(nuref, p[1], p[2]) ** 2.)))
+    sync = (p[3] * (func.PL_uK(nu_i, p[4]) * func.PL_uK(nu_j, p[4])/(func.PL_uK(nurefs, p[4]) ** 2)))
+    crossdustsync = (p[5] * (func.mbb_uK(nu_i, p[1], p[2]) * func.PL_uK(nu_j, p[4]) + func.PL_uK(nu_i, p[4]) * func.mbb_uK(nu_j, p[1], p[2]))/(func.PL_uK(nurefs, p[4]) * func.mbb_uK(nuref, p[1], p[2])))
+    # Calcul du modèle
+    model = mbb + sync + crossdustsync + DL_lensbin[int(p[7])] + p[6] * DL_tens[int(p[7])]
+    status = 0
+    return([status, np.dot(np.transpose(y-model), err)])
+
 def Fitdcordre1(p,fjac=None, x=None, y=None, err=None):
     nuref  = 353
     ncross = len(x)
