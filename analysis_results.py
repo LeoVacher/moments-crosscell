@@ -38,7 +38,7 @@ Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
 res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res2=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(1,0),allow_pickle=True).item()
+res2=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(0,0),allow_pickle=True).item()
 
 legs1='d0s0'
 legs2='d1s1'

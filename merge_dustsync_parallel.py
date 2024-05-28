@@ -5,7 +5,7 @@ import numpy as np
 import analys_lib as an
 from plotlib import plotr_gaussproduct
 
-dusttype = 0
+dusttype = 1
 synctype = 0
 N=50
 

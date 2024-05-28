@@ -34,7 +34,7 @@ def mbb(nu,beta,T):
     return B(nu,T)*(1e9*nu)**beta
 
 
-def mbb_uK(nu,beta,T):
+def mbb_uK(nu,beta,T,nu0=353.):
     """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
@@ -46,9 +46,9 @@ def mbb_uK(nu,beta,T):
     :return: float -- modified black body brightness.
 
     """    
-    return mbb(nu,beta,T)*psm.convert_units('MJysr','uK_CMB',nu)
+    return (mbb(nu,beta,T)/mbb(nu0,beta,T))*psm.convert_units('MJysr','uK_CMB',nu)/psm.convert_units('MJysr','uK_CMB',nu0)
 
-def PL_uK(nu,beta):
+def PL_uK(nu,beta,nu0=23.):
     """Power law.
 
     :param nu: frequency in GHz at which to evaluate planck function.
@@ -58,7 +58,7 @@ def PL_uK(nu,beta):
     :return: float -- power law brightness.
 
     """    
-    return psm.convert_units('uK_RJ','uK_CMB',nu)*(nu)**beta
+    return psm.convert_units('uK_RJ','uK_CMB',nu)/psm.convert_units('uK_RJ','uK_CMB',nu0)*(nu/nu0)**beta
 
 
 def dmbbT(nu,T):
