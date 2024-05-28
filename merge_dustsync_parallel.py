@@ -6,7 +6,7 @@ import analys_lib as an
 from plotlib import plotr_gaussproduct
 
 dusttype = 1
-synctype = 0
+synctype = 1
 N=50
 
 def merge_parallel(name,N,dusttype,synctype):

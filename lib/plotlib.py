@@ -145,8 +145,6 @@ def plotrespdf(l,res,legs,colors):
                 plt.loglog()
             if k =='A_s':
                 plt.loglog()
-            if k =='A_sd':
-                plt.loglog()
             if k=='X2red':
                 plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
             if k=='r':
