@@ -74,9 +74,9 @@ def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
 def Fitdscordre0_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.):
     nu_i=x1
     nu_j=x2
-    mbb = p[0] * func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])
-    sync = p[3] * func.PL_uK(nu_i, p[4]) * func.PL_uK(nu_j, p[4])
-    crossdustsync = p[5] * (func.mbb_uK(nu_i, p[1], p[2]) * func.PL_uK(nu_j, p[4]) + func.PL_uK(nu_i, p[4]) * func.mbb_uK(nu_j, p[1], p[2]))
+    mbb = p[0] * func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref)
+    sync = p[3] * func.PL_uK(nu_i, p[4],nu0=nurefs) * func.PL_uK(nu_j, p[4],nu0=nurefs)
+    crossdustsync = p[5] * (func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.PL_uK(nu_j, p[4],nu0=nurefs) + func.PL_uK(nu_i, p[4],nu0=nurefs) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref))
     model = mbb + sync + crossdustsync + DL_lensbin[int(p[7])] + p[6] * DL_tens[int(p[7])]
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])

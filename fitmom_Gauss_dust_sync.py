@@ -72,7 +72,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:50,:,:Nell]
 
-p0=[5e2, 1.54, 20, 10, -3,0.1, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
 resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
 
