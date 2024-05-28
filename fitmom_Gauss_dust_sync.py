@@ -23,8 +23,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -91,18 +91,18 @@ plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=Tru
 
 #resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-fix=0
+# fix=0
 
-resultso1bt_PL = an.fito1_bT_PL_vectorize(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+# resultso1bt_PL = an.fito1_bT_PL_vectorize(nucross,DLdc,Linvdc,resultsmbb_PL,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
-if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
-else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
+# if synctype==None:
+#     np.save('Best-fits/resultso1bt_PL_d%sc_fix%s_p0.npy'%(dusttype,fix),resultso1bt_PL)
+# else:
+#     np.save('Best-fits/resultso1bt_PL_d%ss%sc_fix%s_p0.npy'%(dusttype,synctype,fix),resultso1bt_PL)
 
-# # plot Gaussian likelihood for r
+# # # plot Gaussian likelihood for r
 
-plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_vectorize'%(synctype,dusttype,fix))
+# plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_vectorize'%(synctype,dusttype,fix))
 
 # resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 
