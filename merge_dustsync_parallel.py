@@ -23,6 +23,6 @@ def merge_parallel(name,N,dusttype,synctype):
 	    np.save('Best-fits/%s.npy'%(name),res)
 	plotr_gaussproduct(res,Nmax=15,debug=False,color='darkorange',save=True,kwsave=name)
 
-merge_parallel('resultsmbb_PL_d%ss%sc'%(dusttype,synctype),N,dusttype,synctype)
-merge_parallel('resultso1bt_PL_d%ss%sc_fix0_p0'%(dusttype,synctype),N,dusttype,synctype)
+#merge_parallel('resultsmbb_PL_d%ss%sc'%(dusttype,synctype),N,dusttype,synctype)
+merge_parallel('resultso1bt_PL_d%ss%sc_fix0'%(dusttype,synctype),N,dusttype,synctype)
 #merge_parallel('resultso1bt_moms_full_d%ss%sc_fix0'%(dusttype,synctype),N,dusttype,synctype)

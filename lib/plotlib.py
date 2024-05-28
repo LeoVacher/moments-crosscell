@@ -101,8 +101,12 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
     ellbound=ell.shape[0]
     name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^T\times\omega_1^T}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^T}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
     edgecolor="#80AAF3"
-    plt.errorbar(ell,np.median(res[label],axis=1)[:ellbound],yerr=scipy.stats.median_abs_deviation(res[label],axis=1)[:ellbound],c=color,fmt=marker,linestyle='',label=legend)
-    plt.scatter(ell,np.median(res[label],axis=1)[:ellbound],s=175,c=color,marker=marker,edgecolor=edgecolor)
+    if label=='A_sd':
+        plt.errorbar(ell,np.median(res[label]/np.sqrt(res['A']*res['A_s']),axis=1)[:ellbound],yerr=scipy.stats.median_abs_deviation(res[label]/np.sqrt(res['A']*res['A_s']),axis=1)[:ellbound],c=color,fmt=marker,linestyle='',label=legend)
+        plt.scatter(ell,np.median(res[label]/np.sqrt(res['A']*res['A_s']),axis=1)[:ellbound],s=175,c=color,marker=marker,edgecolor=edgecolor)
+    else:
+        plt.errorbar(ell,np.median(res[label],axis=1)[:ellbound],yerr=scipy.stats.median_abs_deviation(res[label],axis=1)[:ellbound],c=color,fmt=marker,linestyle='',label=legend)
+        plt.scatter(ell,np.median(res[label],axis=1)[:ellbound],s=175,c=color,marker=marker,edgecolor=edgecolor)
     plt.ylabel(name[label],fontsize=20)
     plt.xlabel(r"$\ell$",fontsize=20)
     plt.legend()
