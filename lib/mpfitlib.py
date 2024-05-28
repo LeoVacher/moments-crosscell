@@ -10,6 +10,9 @@ import basicfunc as func
 
 #contains all the functions to be fitted by mpfit 
 
+
+#########################
+#this part should be optimized outside of mpfitlib:
 nside = 64
 lmax = nside*3-1
 Nlbin = 10 
@@ -23,7 +26,11 @@ CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
 
 DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
 DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
- 
+#########################
+
+
+#All function should be vectorized and commented:
+
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
     model = func.Gaussian(x,p[0],p[1])
     status = 0
