@@ -81,7 +81,7 @@ resultsmbb_PL = an.fitmbb_PL_vectorize(nucross,DLdc,Linvdc,p0,quiet=True)
 # else:
 #     np.save('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),resultsmbb_PL)
 
-plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_normalize'%(synctype,dusttype))
+plotr_gaussproduct(resultsmbb_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='MBB_PL_d%ss%s_normalize2'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
