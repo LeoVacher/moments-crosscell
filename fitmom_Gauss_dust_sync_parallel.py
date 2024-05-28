@@ -29,7 +29,7 @@ Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
-synctype = 1
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -77,19 +77,19 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 #DLdc=DLdc[:200,:,:Nell]
 
-# p0=[5e2, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
+p0=[5e2, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
-# if synctype==None:
-#     pathlib.Path(('./Best-fits/resultsmbb_PL_d%sc'%dusttype)).mkdir(parents=True, exist_ok=True) 
-# else:
-#     pathlib.Path(('./Best-fits/resultsmbb_PL_d%ss%sc'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
+if synctype==None:
+    pathlib.Path(('./Best-fits/resultsmbb_PL_d%sc'%dusttype)).mkdir(parents=True, exist_ok=True) 
+else:
+    pathlib.Path(('./Best-fits/resultsmbb_PL_d%ss%sc'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
 
-# resultsmbb_PL = an.fitmbb_PL_parallel(nucross,DLdc,Linvdc,p0)
+resultsmbb_PL = an.fitmbb_PL_parallel(nucross,DLdc,Linvdc,p0)
 
-# if synctype==None:
-#     np.save('Best-fits/resultsmbb_PL_d%sc/res%s.npy'%dusttype,resultsmbb_PL,rank)
-# else:
-#     np.save('Best-fits/resultsmbb_PL_d%ss%sc/res%s.npy'%(dusttype,synctype,rank),resultsmbb_PL)
+if synctype==None:
+    np.save('Best-fits/resultsmbb_PL_d%sc/res%s.npy'%dusttype,resultsmbb_PL,rank)
+else:
+    np.save('Best-fits/resultsmbb_PL_d%ss%sc/res%s.npy'%(dusttype,synctype,rank),resultsmbb_PL)
 
 resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
