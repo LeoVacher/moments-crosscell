@@ -149,6 +149,12 @@ def fito1_bT_PL_parallelvec(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
+    #parallel:
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    perrank = math.ceil(N/size)
+
     ncross=len(nucross)
     nnus = int((-1 + np.sqrt(ncross * 8 + 1)) / 2.)
     posauto = [int(nnus * i - i * (i + 1) / 2 + i) for i in range(nnus)]
@@ -163,7 +169,7 @@ def fito1_bT_PL_parallelvec(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT_vectorize
     for L in tqdm(range(Nell)):
-        for n in tqdm(range(N)):
+        for n in range(rank*perrank, (rank+1)*perrank):
             # first o1 fit, dust fixed, mom free, r fixed
             parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n],'fixed':fix,'limited':[1,1],'limits':[0.5,3.]},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix,'limited':[1,1],'limits':[10.,30.]},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L]}
