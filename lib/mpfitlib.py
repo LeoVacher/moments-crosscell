@@ -63,9 +63,9 @@ def Fitdscordre0(p,fjac=None, x=None, y=None, err=None):
     model = np.zeros(ncross)
     for i in range(0,nnus):
         for j in range(i,nnus):
-            mbb =  p[0]*(func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])/(func.mbb_uK(nuref,p[1],p[2])**2.)) 
-            sync= p[3]*(func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])/(func.PL_uK(nurefs,p[4])**2))
-            crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
+            mbb =  p[0]*func.mbb_uK(nu[i],p[1],p[2])*func.mbb_uK(nu[j],p[1],p[2])
+            sync= p[3]*func.PL_uK(nu[i],p[4])*func.PL_uK(nu[j],p[4])
+            crossdustsync= p[5]*(func.mbb_uK(nu[i],p[1],p[2])*func.PL_uK(nu[j],p[4])+ func.PL_uK(nu[i],p[4])*func.mbb_uK(nu[j],p[1],p[2]))
             model[icross]=mbb+ sync + crossdustsync + DL_lensbin[int(p[7])]+ p[6]*DL_tens[int(p[7])]
             icross = icross + 1
     status = 0

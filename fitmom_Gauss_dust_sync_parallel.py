@@ -84,7 +84,7 @@ if synctype==None:
 else:
     pathlib.Path(('./Best-fits/resultsmbb_PL_d%ss%sc'%(dusttype,synctype))).mkdir(parents=True, exist_ok=True)
 
-resultsmbb_PL = an.fitmbb_PL_parallel(nucross,DLdc,Linvdc,p0)
+resultsmbb_PL = an.fitmbb_PL_parallelvec(nucross,DLdc,Linvdc,p0)
 
 if synctype==None:
     np.save('Best-fits/resultsmbb_PL_d%sc/res%s.npy'%dusttype,resultsmbb_PL,rank)
