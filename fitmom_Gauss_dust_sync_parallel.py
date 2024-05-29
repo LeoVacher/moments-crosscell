@@ -119,9 +119,9 @@ fix=0
 resultso1bt_PL_p0 = an.fito1_bT_PL_parallelvec(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
 if synctype==None:
-    np.save('Best-fits/resultso1bt_PL_d%sc_p0/res%s.npy'%(dusttype,fix,rank),resultso1bt_PL_p0)
+    np.save('Best-fits/resultso1bt_PL_d%sc_p0/res%s.npy'%(dusttype,rank),resultso1bt_PL_p0)
 else:
-    np.save('Best-fits/resultso1bt_PL_d%ss%sc_p0/res%s.npy'%(dusttype,synctype,fix,rank),resultso1bt_PL_p0)
+    np.save('Best-fits/resultso1bt_PL_d%ss%sc_p0/res%s.npy'%(dusttype,synctype,rank),resultso1bt_PL_p0)
 
 # if synctype==None:
 #     pathlib.Path(('./Best-fits/resultso1bt_moms_full_d%sc_fix0'%dusttype)).mkdir(parents=True, exist_ok=True) 
