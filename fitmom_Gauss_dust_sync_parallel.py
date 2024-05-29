@@ -116,7 +116,7 @@ p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
 fix=0
 
-resultso1bt_PL_p0 = an.fito1_bT_PL_p0_parallel(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
+resultso1bt_PL_p0 = an.fito1_bT_PL_parallelvec(nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,fixAw=0,fixcterm=0)
 
 if synctype==None:
     np.save('Best-fits/resultso1bt_PL_d%sc_p0/res%s.npy'%(dusttype,fix,rank),resultso1bt_PL_p0)
