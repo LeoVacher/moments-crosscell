@@ -193,6 +193,8 @@ def fito1_bT_PL_parallelvec(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcter
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
+    nparam=14
+
     #parallel:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -209,8 +211,6 @@ def fito1_bT_PL_parallelvec(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcter
     nu_j = nu[freq_pairs[:, 1]]
 
     parinfopl0 = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
-
-    nparam=14
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT_vectorize
