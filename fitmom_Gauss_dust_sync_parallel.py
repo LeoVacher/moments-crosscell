@@ -91,7 +91,7 @@ if synctype==None:
 else:
     np.save('Best-fits/resultsmbb_PL_d%ss%sc/res%s.npy'%(dusttype,synctype,rank),resultsmbb_PL)
 
-resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
+#resultsmbb_PL=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(dusttype,synctype),allow_pickle=True).item()
 
 fix=0
 
