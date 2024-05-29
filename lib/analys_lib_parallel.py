@@ -181,7 +181,7 @@ def fito1_bT_PL_p0_parallel(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcter
     results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
     return results
 
-def fito1_bT_PL_parallelvec(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw=0,fixcterm=0):
+def fito1_bT_PL_parallelvec(nucross,DL,Linv,pl0,quiet=True,fix=1,fixAw=0,fixcterm=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: nucross, array of the cross-frequencies
@@ -208,14 +208,18 @@ def fito1_bT_PL_parallelvec(nucross,DL,Linv,resultsmbb_PL,quiet=True,fix=1,fixAw
     nu_i = nu[freq_pairs[:, 0]]
     nu_j = nu[freq_pairs[:, 1]]
 
+    parinfopl0 = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
+
     nparam=14
     paramiterl=np.zeros((Nell,N,nparam+1))
     chi2l=np.zeros((Nell,N))
     funcfit=mpl.FitdscbetaT_vectorize
     for L in tqdm(range(Nell)):
+        parinfopl=parinfopl0.copy()
+        parinfopl.append({'value':L,'fixed':1}) #and L 
         for n in range(rank*perrank, (rank+1)*perrank):
             # first o1 fit, dust fixed, mom free, r fixed
-            parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n],'fixed':fix,'limited':[1,1],'limits':[0.5,3.]},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix,'limited':[1,1],'limits':[10.,30.]},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
+            #parinfopl = [{'value':resultsmbb_PL['A'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta'][L,n],'fixed':fix,'limited':[1,1],'limits':[0.5,3.]},{'value':resultsmbb_PL['temp'][L,n], 'fixed':fix,'limited':[1,1],'limits':[10.,30.]},{'value':resultsmbb_PL['A_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['beta_s'][L,n], 'fixed':fix},{'value':resultsmbb_PL['A_sd'][L,n], 'fixed':fix},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':fixAw},{'value':0, 'fixed':0},{'value':0, 'fixed':0},{'value':0, 'fixed':fixcterm},{'value':0, 'fixed':fixcterm}, {'value':0, 'fixed':0},{'value':L, 'fixed':1}] #dust params
             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L]}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiterl[L,n]= m.params

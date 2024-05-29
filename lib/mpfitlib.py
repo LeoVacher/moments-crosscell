@@ -107,7 +107,7 @@ def FitdcbetaT(p,fjac=None, x=None, y=None, err=None):
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def FitdcbetaT_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353):
+def FitdcbetaT_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.):
     nu_i=x1
     nu_j=x2
 
@@ -120,7 +120,7 @@ def FitdcbetaT_vectorize(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=3
     dxj = func.dmbbT(nu_j,p[2])
     temp = ampl * (p[0]+ (lognui+lognuj) * p[3]+ lognui*lognuj * p[4])
     temp2= ampl * ((dxi+dxj-2*dx0)*p[5]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[6]+(dxi-dx0)*(dxj-dx0)*p[7])
-    model = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[0])]
+    model = temp + temp2 + DL_lensbin[int(p[9])] + p[8]*DL_tens[int(p[9])]
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
