@@ -34,40 +34,6 @@ def getLinvdiag(DL,printdiag=False,offset=0):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fitmbb_PL_parallel(nucross,DL,Linv,p0,quiet=True):
-    """
-    Fit a mbb, pl and r on a DL
-    :param: nucross, array of the cross-frequencies
-    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
-    :param Linv: inverse of the Cholesky matrix
-    :param quiet: display output of the fit for debugging
-    :return results: dictionnary containing A, beta, temp, A_s, beta_s, r and X2red for each (ell,n)
-    """
-    N,_,Nell=DL.shape
-
-    #parallel:
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    perrank = math.ceil(N/size)
-
-    nparam = len(p0)
-    paramiterl=np.zeros((Nell,N,nparam+1))
-    chi2l=np.zeros((Nell,N))
-    funcfit=mpl.Fitdscordre0
-    for L in tqdm(range(Nell)):
-        pl0 = np.append(p0,L)
-        parinfopl = [{'value':pl0[i], 'fixed':0} for i in range(nparam-1)] #fg params
-        parinfopl.append({'value':pl0[nparam-1], 'fixed':0}) #add r    
-        parinfopl.append({'value':pl0[nparam],'fixed':1}) #and L 
-        for n in range(rank*perrank, (rank+1)*perrank):
-            fa = {'x':nucross, 'y':DL[n,:,L], 'err': Linv[L]}
-            m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
-            paramiterl[L,n]= m.params
-            chi2l[L,n]=m.fnorm/m.dof            
-    results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
-    return results
-
 def fitmbb_PL_parallelvec(nucross,DL,Linv,p0,quiet=True):
     """
     Fit a mbb, pl and r on a DL
