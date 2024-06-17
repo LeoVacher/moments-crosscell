@@ -81,8 +81,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False):
     
     #perform the fit
 
-    for L in tqdm(range(Nell)):
-        for n in tqdm(range(Nmin,Nmax)):
+    for n in tqdm(range(Nmin,Nmax)):
+        for L in range(Nell):
             # first o1 fit, dust fixed, mom free, r fixed
             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
