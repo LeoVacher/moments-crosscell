@@ -102,7 +102,7 @@ else:
 
 # # # plot Gaussian likelihood for r
 
-# plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_vectorize'%(synctype,dusttype,fix))
+plotr_gaussproduct(resultso1bt_PL,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_fullo1bT_fix%s_vectorize'%(synctype,dusttype,fix))
 
 # resultso1bt_moms_full = an.fito1_bT_moms_full(nucross,DLdc,Linvdc,resultsmbb_PL,fix=0,quiet=False)
 
