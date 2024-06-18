@@ -230,7 +230,7 @@ def convert_units(unit1, unit2, nu):
 
     return np.array(conversion_factor * prefac * postfac)
 
-@FloatOrArray
+#@FloatOrArray
 def K_CMB2Jysr(nu): 
     """Kelvin_CMB to Janskies per steradian. Nu is in GHz.
 
@@ -241,7 +241,7 @@ def K_CMB2Jysr(nu):
     """
     return dB(nu, 2.7255) * 1.e26
 
-@FloatOrArray
+#@FloatOrArray
 def K_RJ2Jysr(nu):
     """Kelvin_RJ to Janskies per steradian. Nu is in GHz.
 
