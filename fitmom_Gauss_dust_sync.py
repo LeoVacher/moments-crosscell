@@ -70,16 +70,16 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results and save
 
-# p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
+p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
 
-# results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
-# if synctype==None:
-#     np.save('Best-fits/results_d%s_o0.npy'%dusttype,results_ds_o0)
-# else:
-#     np.save('Best-fits/results_d%ss%s_o0.npy'%(dusttype,synctype),results_ds_o0)
+if synctype==None:
+    np.save('Best-fits/results_d%s_o0.npy'%dusttype,results_ds_o0)
+else:
+    np.save('Best-fits/results_d%ss%s_o0.npy'%(dusttype,synctype),results_ds_o0)
 
-#plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o0'%(synctype,dusttype))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o0'%(synctype,dusttype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
