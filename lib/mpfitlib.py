@@ -1,5 +1,3 @@
-from astropy import constants as constants
-#import scipy.constants as constants
 import numpy as np
 import basicfunc as func
 import pysm3

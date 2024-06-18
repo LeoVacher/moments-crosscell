@@ -10,7 +10,7 @@ from __future__ import print_function
 import healpy as hp
 import numpy as np
 #import scipy.constants as constants
-from astropy import constants as constants
+from astropy import constants as const
 import scipy.integrate
 import sys
 
@@ -251,7 +251,7 @@ def K_RJ2Jysr(nu):
     :return: unit conversion coefficient - float. 
     
     """
-    return  2. * (nu * 1.e9 / constants.c.value) ** 2 * constants.k_B.value * 1.e26
+    return  2. * (nu * 1.e9 / const.c.value) ** 2 * const.k_B.value * 1.e26
 
 def B(nu, T):
     """Planck function. 
@@ -263,8 +263,8 @@ def B(nu, T):
     :return: float -- black body brightness.
 
     """
-    x = constants.h.value * nu * 1.e9 / constants.k_B.value / T
-    return 2. * constants.h.value * (nu * 1.e9) ** 3 / constants.c.value ** 2 / np.expm1(x)
+    x = const.h.value * nu * 1.e9 / const.k_B.value / T
+    return 2. * const.h.value * (nu * 1.e9) ** 3 / const.c.value ** 2 / np.expm1(x)
 
 def dB(nu, T):
     """Differential planck function. 
@@ -276,7 +276,7 @@ def dB(nu, T):
     :return: float -- differential black body function. 
 
     """
-    x = constants.h.value * nu * 1.e9 / constants.k_B.value / T
+    x = const.h.value * nu * 1.e9 / const.k_B.value / T
     return B(nu, T) / T * x * np.exp(x) / np.expm1(x)
 
 def bandpass_convert_units(unit, channel):
