@@ -79,7 +79,7 @@ if synctype==None:
 else:
     np.save('Best-fits/results_d%ss%s_o0.npy'%(dusttype,synctype),results_ds_o0)
 
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o0'%(synctype,dusttype))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o0'%(dusttype,synctype))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -96,7 +96,7 @@ else:
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o1bt'%(synctype,dusttype))
+plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_o1bt'%(dusttype,synctype))
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
