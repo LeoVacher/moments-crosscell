@@ -9,7 +9,8 @@
 from __future__ import print_function
 import healpy as hp
 import numpy as np
-import scipy.constants as constants
+#import scipy.constants as constants
+from astropy import constants as const
 import scipy.integrate
 import sys
 
@@ -230,7 +231,7 @@ def convert_units(unit1, unit2, nu):
 
     return np.array(conversion_factor * prefac * postfac)
 
-@FloatOrArray
+#@FloatOrArray
 def K_CMB2Jysr(nu): 
     """Kelvin_CMB to Janskies per steradian. Nu is in GHz.
 
@@ -241,7 +242,7 @@ def K_CMB2Jysr(nu):
     """
     return dB(nu, 2.7255) * 1.e26
 
-@FloatOrArray
+#@FloatOrArray
 def K_RJ2Jysr(nu):
     """Kelvin_RJ to Janskies per steradian. Nu is in GHz.
 
@@ -250,7 +251,7 @@ def K_RJ2Jysr(nu):
     :return: unit conversion coefficient - float. 
     
     """
-    return  2. * (nu * 1.e9 / constants.c) ** 2 * constants.k * 1.e26
+    return  2. * (nu * 1.e9 / const.c.value) ** 2 * const.k_B.value * 1.e26
 
 def B(nu, T):
     """Planck function. 
@@ -262,8 +263,8 @@ def B(nu, T):
     :return: float -- black body brightness.
 
     """
-    x = constants.h * nu * 1.e9 / constants.k / T
-    return 2. * constants.h * (nu * 1.e9) ** 3 / constants.c ** 2 / np.expm1(x)
+    x = const.h.value * nu * 1.e9 / const.k_B.value / T
+    return 2. * const.h.value * (nu * 1.e9) ** 3 / const.c.value ** 2 / np.expm1(x)
 
 def dB(nu, T):
     """Differential planck function. 
@@ -275,7 +276,7 @@ def dB(nu, T):
     :return: float -- differential black body function. 
 
     """
-    x = constants.h * nu * 1.e9 / constants.k / T
+    x = const.h.value * nu * 1.e9 / const.k_B.value / T
     return B(nu, T) / T * x * np.exp(x) / np.expm1(x)
 
 def bandpass_convert_units(unit, channel):

@@ -1,4 +1,5 @@
-import scipy.constants as constants
+from astropy import constants as const
+#import scipy.constants as constants
 import numpy as np
 import healpy as hp
 import pysm3.units as u
@@ -16,8 +17,8 @@ def B(nu, T):
     :return: float -- black body brightness.
 
     """
-    x = constants.h*nu*1.e9/constants.k/T
-    return 2.*constants.h *(nu *1.e9)**3/ constants.c**2/np.expm1(x)
+    x = const.h.value*nu*1.e9/const.k_B.value/T
+    return 2.*const.h.value *(nu *1.e9)**3/ const.c.value**2/np.expm1(x)
 
 def mbb(nu,beta,T):
     """Modified black body.
@@ -62,15 +63,15 @@ def PL_uK(nu,beta,nu0=23.):
 
 
 def dmbbT(nu,T):
-    x = constants.h*nu*1.e9/constants.k/T
+    x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x/T)*np.exp(x)/np.expm1(x)
 
 def ddmbbT(nu,T):
-    x = constants.h*nu*1.e9/constants.k/T
+    x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
 
 def d3mbbT(nu,T):
-    x = constants.h*nu*1.e9/constants.k/T
+    x = const.h.value*nu*1.e9/const.k_B.value/T
     theta = (x/T)*np.exp(x)/np.expm1(x)
     TR2= x*np.tanh(x/2)-2
     TR3= x**2*(np.cosh(x)+2)/(np.cosh(x)-1)
@@ -477,10 +478,10 @@ def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=
     
     nuval = nu * 1e9
     nu0val = nu0 * 1e9
-    Bval = 2*constants.h*(nuval**3)/constants.c**2
-    Cval = constants.h*nuval/constants.k
-    Bval0 = 2*constants.h*(nu0val**3)/constants.c**2
-    Cval0 = constants.h*nu0val/constants.k
+    Bval = 2*const.h.value*(nuval**3)/const.c.value**2
+    Cval = const.h.value*nuval/const.k_B.value
+    Bval0 = 2*const.h.value*(nu0val**3)/const.c.value**2
+    Cval0 = const.h.value*nu0val/const.k_B.value
     Bvalratio = Bval/Bval0
     mbb = ((nuval / nu0val) ** beta) * Bvalratio / (sym.exp(Cval / T) - 1) * (sym.exp(Cval0 / T) - 1)
     for border in range(maxborder+1):
@@ -540,10 +541,10 @@ def get_mom_function(nu,tempmap,nu0=353.,border=3,torder=3,mult_factor=1.):
     valuemom=[]
     for f in nu:
         nuval = f * 1e9
-        Bval = 2*constants.h*(nuval**3)/constants.c**2
-        Cval = constants.h*nuval/constants.k
-        Bval0 = 2*constants.h*(nu0val**3)/constants.c**2
-        Cval0 = constants.h*nu0val/constants.k
+        Bval = 2*const.h.value*(nuval**3)/const.c.value**2
+        Cval = const.h.value*nuval/const.k_B.value
+        Bval0 = 2*const.h.value*(nu0val**3)/const.c.value**2
+        Cval0 = const.h.value*nu0val/const.k_B.value
         Bvalratio = Bval/Bval0
         mbb = ((nuval / nu0val) ** beta) * Bvalratio / (sym.exp(Cval / T) - 1) * (sym.exp(Cval0 / T) - 1)
         analyticalmom = sym.diff(mbb,beta,border)*sym.diff(mbb,T,torder).factor()/mbb**2

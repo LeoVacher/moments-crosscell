@@ -1,6 +1,8 @@
 import sys
 sys.path.append("./lib")
 
+import numpy as np
+import healpy as hp
 import pymaster as nmt 
 import pysm3
 import time
@@ -12,7 +14,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
 import scipy.stats as st
 import basicfunc as func
-from fgbuster import get_instrument, get_sky, get_observation  # Predefined instrumental and sky-creation configurations
 import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
@@ -26,14 +27,14 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 1
-syncrotype = 0
+dusttype = 0
+syncrotype = 7
 mascut=0
 kw = ''
 
 # instr param
 
-instr_name='LiteBIRD_full'
+instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq= instr['frequencies']
 N_freqs =len(freq)
@@ -55,9 +56,9 @@ mask = nmt.mask_apodization(mask0, scale, apotype='C2')
 if dusttype==None:
     sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
 if syncrotype==None:
-    sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
+	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
 if syncrotype!=None and dusttype!=None:
-    sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
+	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
 
 mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
 mapfg=mapfg[:,1:]
@@ -81,14 +82,14 @@ for i in range(0,N_freqs):
 wsp_dc=np.array(wsp_dc)
 
 CLcross=np.zeros((N,Ncross,len(leff)))
-for k in range(0,100):
+for k in range(0,N):
     print('k=',k)
     noisemaps= np.zeros((3,N_freqs,2,Npix))
 
     for p in range(3):
         for i in range(N_freqs):
-            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix) #noise Q
-            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix) #noise U
+            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix)
+            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix)
     
     mapcmb0= hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
@@ -110,18 +111,18 @@ for k in range(0,100):
                 CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             z = z +1  
     if syncrotype==None:
-        if r ==0:
-            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
-        else :
-            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
+    	if r ==0:
+    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
+    	else :
+    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
     if dusttype==None:
         if r ==0:
             np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
         else :
             np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
     if syncrotype!=None and dusttype!=None:
-        if r ==0:
-            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
-        else :
-            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+    	if r ==0:
+    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+    	else :
+    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
 
