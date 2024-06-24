@@ -49,7 +49,7 @@ Pathsave=Pr+ '/codes/moments-crosscell/CLsimus/'
 
 nside = 64
 Npix = hp.nside2npix(nside)
-N=499
+N=249
 lmax = 2*nside+1
 #nside*3-1
 #lmax=850
@@ -60,7 +60,8 @@ complexity='baseline'   #should be 'baseline', 'high_complexity' or 'medium_comp
 kw=''
 r=0
 
-folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/coadd_sims/e2e_noise/%s"%complexity
+#folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/coadd_sims/e2e_noise/%s"%complexity
+folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s"%complexity
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
 
@@ -124,12 +125,22 @@ for k in range(0,N):
     #gérer list et concatenate
 
     for i in range(N_freqs):
-        maptoti= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s.fits"%(bands[i],a),field=(0,1,2))
-        maptotdc[i]= downgrade_map(maptoti,nside_in=512,nside_out=nside)
+        maptotf= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_full.fits"%(bands[i],a),field=(0,1,2))
+        maptot_HM1= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitA.fits"%(bands[i],a),field=(0,1,2))
+        maptot_HM2= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitB.fits"%(bands[i],a),field=(0,1,2))
+
+        maptotfull[i]= downgrade_map(maptotf,nside_in=512,nside_out=nside)
+        maptot_HM1[i]= downgrade_map(maptot_HM1,nside_in=512,nside_out=nside)
+        maptot_HM2[i]= downgrade_map(maptot_HM2,nside_in=512,nside_out=nside)
+
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
-            CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotdc[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptotdc[j,1:],purify_e=False, purify_b=True), wsp_dc[z]))[3])
-            CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]
+            if i!=j:
+                CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotfull[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptotfull[j,1:],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]
+            if i==j:
+                CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptot_HM1[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptot_HM2[j,1:],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]                
             z = z +1
     np.save(Pathsave+'DL_cross_nside%s_fsky%s_scale%s_Nlbin%s_coadd_%s.npy'%(nside,fsky,scale,Nlbin,complexity),leff*(leff+1)*CLdc/2/np.pi) 
