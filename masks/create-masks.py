@@ -28,6 +28,6 @@ mask0 = hp.read_map("./masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits", field=fiel
 mask0 = nmt.mask_apodization(mask0, scale, apotype="C2")
 mask = hp.pixelfunc.ud_grade(mask0, nside, dtype=float)
 
-hp.mollview(mask)
+#hp.mollview(mask)
 
 hp.write_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale), mask, dtype=float, overwrite=True)
