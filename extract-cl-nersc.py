@@ -50,9 +50,7 @@ Pathsave=Pr+ '/codes/moments-crosscell/CLsimus/'
 nside = 64
 Npix = hp.nside2npix(nside)
 N=249
-lmax = 2*nside+1
-#nside*3-1
-#lmax=850
+lmax = 3*nside+1
 scale = 10
 Nlbin = 10
 fsky = 0.7
@@ -60,7 +58,6 @@ complexity='baseline'   #should be 'baseline', 'high_complexity' or 'medium_comp
 kw=''
 r=0
 
-#folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/coadd_sims/e2e_noise/%s"%complexity
 folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s"%complexity
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
@@ -72,19 +69,12 @@ bands = ['LFT_L1-040', 'LFT_L2-050', 'LFT_L1-060', 'LFT_L3-068','LFT_L2-068', 'L
 freq=np.array([40,50,60,58,68,78,78,89,89,100,119,140,100,119,140,166,195,195,235,280,337,403])
 N_freqs=len(bands)
 
-#folder_masks= "/pscratch/sd/d/delahoz/E-mode-paper/cs_products/masks/"
-#mask=np.zeros((N_freqs,Npix))
-#for f in range(N_freqs):
-#    mask0 = hp.read_map(folder_masks+"mask_f%s_smoo5deg_fgdsE%s_nside512.fits"%(int(fsky*100),freq[f]))
-#    mask0 = hp.ud_grade(mask0,nside_out=nside)
-#    mask[f] = nmt.mask_apodization(mask0, scale, apotype='C2')
-    
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 maptot= np.zeros((N_freqs,3,Npix))
 
 for i in range(N_freqs):
-    maptoti= hp.read_map(folder+"/0000/"+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_0000.fits"%bands[i],field=(0,1,2))
+    maptoti= hp.read_map(folder+"/0000/"+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_0000_full.fits"%bands[i],field=(0,1,2))
     maptot[i]= downgrade_map(maptoti,nside_in=512,nside_out=nside)
 maptot=maptot[:,1:]
 
