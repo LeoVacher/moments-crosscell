@@ -23,8 +23,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.8
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -109,4 +109,4 @@ else:
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(resultso1bt_moms_full,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts'%(dusttype,synctype,fsky))
