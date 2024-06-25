@@ -71,7 +71,7 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o1bts(p,fjac=None, x=None, y=None, err=None,nuref=353,nurefs=23.,ell=None):
+def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None):
 
     nu_i=x1
     nu_j=x2
