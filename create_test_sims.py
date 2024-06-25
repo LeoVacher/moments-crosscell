@@ -26,9 +26,9 @@ lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 10
-fsky = 0.7
-dusttype = 12
-syncrotype = 0
+fsky = 0.8
+dusttype = 1
+syncrotype = 1
 kw = ''
 
 # instr param
