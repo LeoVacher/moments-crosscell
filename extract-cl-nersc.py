@@ -115,12 +115,12 @@ for k in range(0,N):
 
     for i in range(N_freqs):
         maptotf= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_full.fits"%(bands[i],a),field=(0,1,2))
-        maptot_HM1= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitA.fits"%(bands[i],a),field=(0,1,2))
-        maptot_HM2= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitB.fits"%(bands[i],a),field=(0,1,2))
+        maptot_f1= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitA.fits"%(bands[i],a),field=(0,1,2))
+        maptot_f2= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_%s_splitB.fits"%(bands[i],a),field=(0,1,2))
 
         maptotfull[i]= downgrade_map(maptotf,nside_in=512,nside_out=nside)
-        maptot_HM1[i]= downgrade_map(maptot_HM1,nside_in=512,nside_out=nside)
-        maptot_HM2[i]= downgrade_map(maptot_HM2,nside_in=512,nside_out=nside)
+        maptot_HM1[i]= downgrade_map(maptot_f1,nside_in=512,nside_out=nside)
+        maptot_HM2[i]= downgrade_map(maptot_f2,nside_in=512,nside_out=nside)
 
     z=0
     for i in range(0,N_freqs):
