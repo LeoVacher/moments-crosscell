@@ -79,10 +79,7 @@ N_freqs=len(bands)
 #    mask0 = hp.ud_grade(mask0,nside_out=nside)
 #    mask[f] = nmt.mask_apodization(mask0, scale, apotype='C2')
     
-cut = {0.5:53,0.6:80,0.7:121}
-mask0 = hp.read_map("./masks/mask_nside512_fsky%spc_P353_smooth10deg_cut%smuK.fits"%(np.int(fsky*100),cut[fsky]))
-mask0 = hp.ud_grade(mask0,nside_out=nside)
-mask = nmt.mask_apodization(mask0, scale, apotype='C2')
+mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 maptot= np.zeros((N_freqs,3,Npix))
 

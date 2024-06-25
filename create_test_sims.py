@@ -27,9 +27,8 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 0
-syncrotype = 7
-mascut=0
+dusttype = 1
+syncrotype = 1
 kw = ''
 
 # instr param
@@ -46,10 +45,7 @@ leff = b.get_effective_ells()
 
 #mask
 
-cut = {0.5:53,0.6:80,0.7:121}
-mask0 = hp.read_map("./masks/mask_nside512_fsky%spc_P353_smooth10deg_cut%smuK.fits"%(np.int(fsky*100),cut[fsky]))
-mask0 = hp.ud_grade(mask0,nside_out=nside)
-mask = nmt.mask_apodization(mask0, scale, apotype='C2')
+mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 #call foreground sky
 
