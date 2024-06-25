@@ -90,7 +90,9 @@ Ncross=int(N_freqs*(N_freqs+1)/2)
 
 CLdc=np.zeros((N,Ncross,len(leff)))
     
-maptotdc= np.zeros((N_freqs,3,Npix))
+maptotfull= np.zeros((N_freqs,3,Npix))
+maptot_HM1= np.zeros((N_freqs,3,Npix))
+maptot_HM2= np.zeros((N_freqs,3,Npix))
 
 beam = np.array([70.5,58.5,51.1,41.6,47.1,36.9, 43.8, 33.0 , 41.5, 30.2,26.3, 23.7, 37.8,33.6,30.8,28.9,28.0,28.6,24.7,22.5,20.9,17.9])
 
