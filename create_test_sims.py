@@ -28,7 +28,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 dusttype = 1
-syncrotype = 0
+syncrotype = 1
 kw = ''
 
 # instr param
