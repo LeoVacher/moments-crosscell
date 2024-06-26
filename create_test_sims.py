@@ -27,8 +27,8 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 0
-syncrotype = 0
+dusttype = None
+syncrotype = None
 kw = ''
 
 # instr param
@@ -49,15 +49,17 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 
 #call foreground sky
 
-if dusttype==None:
-    sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
-if syncrotype==None:
-	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
-if syncrotype!=None and dusttype!=None:
-	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
-
-mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
-mapfg=mapfg[:,1:]
+if dusttype==None and syncrotype==None:
+    mapfg=np.zeros((N_freqs,2,Npix))
+else:
+    if dusttype==None:
+        sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
+    if syncrotype==None:
+    	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
+    if syncrotype!=None and dusttype!=None:
+    	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
+    mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
+    mapfg=mapfg[:,1:]
 
 # call cmb
 
@@ -106,6 +108,11 @@ for k in range(0,N):
             if i==j :
                 CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
             z = z +1  
+    if syncrotype==None and dusttype==None:
+        if r ==0:
+            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
+        else :
+            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
     if syncrotype==None:
     	if r ==0:
     		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
