@@ -113,17 +113,17 @@ for k in range(0,N):
             np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
         else :
             np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
-    if syncrotype==None:
+    elif syncrotype==None:
     	if r ==0:
     		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
     	else :
     		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
-    if dusttype==None:
+    elif dusttype==None:
         if r ==0:
             np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
         else :
             np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
-    if syncrotype!=None and dusttype!=None:
+    elif syncrotype!=None and dusttype!=None:
     	if r ==0:
     		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
     	else :
