@@ -62,16 +62,15 @@ nucross = np.array(nucross)
 
 Nlist = [300,500,700,1000]#,5000,10000]
 
-
 r_N=[]
 sig_N=[]
 
-for N in Nlist:
-    DLdc=DLdc[:N,:,:Nell]
+DLdc=DLdc[:500,:,:Nell]
 
+for N in Nlist:
     #compute Cholesky matrix:
 
-    Linvdc=an.getLinvdiag(DLdc,printdiag=True)
+    Linvdc=an.getLinvdiag(DLdc[:N,:,:Nell],printdiag=True)
 
     # fit MBB, get results and save
 
