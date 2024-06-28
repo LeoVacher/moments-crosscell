@@ -60,7 +60,7 @@ for i in range(0,nf):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
-Nlist = [100,250,500,1000,5000,10000]
+Nlist = [100,250,500,1000]#,5000,10000]
 
 
 r_N=[]
@@ -88,4 +88,4 @@ r_N=np.array(r_N)
 sig_N=np.array(sig_N)
 
 plt.errorbar(Nlist,r_N,yerr=sig_N)
-plt.show()
+plt.savefig("./pdf_plots/cov_nsim_test.pdf")
