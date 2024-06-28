@@ -60,7 +60,7 @@ for i in range(0,nf):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
-N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
+N = 500#len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 
 DLdc=DLdc[:N,:,:Nell]
 
