@@ -60,7 +60,7 @@ for i in range(0,nf):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
-Nlist = [250,500,1000]#,5000,10000]
+Nlist = [300,500,700,1000]#,5000,10000]
 
 
 r_N=[]
