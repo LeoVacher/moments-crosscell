@@ -14,6 +14,7 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 from plotlib import plotr_gaussproduct
+import matplotlib.pyplot as plt 
 
 r=0.
 nside = 64
