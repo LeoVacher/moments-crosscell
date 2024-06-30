@@ -88,4 +88,6 @@ r_N=np.array(r_N)
 sig_N=np.array(sig_N)
 
 plt.errorbar(Nlist,r_N,yerr=sig_N)
+plt.xlabel(r"$N$")
+plt.ylabel(r"$r\pm\sigma(r)$")
 plt.savefig("./pdf_plots/cov_nsim_test.pdf")
