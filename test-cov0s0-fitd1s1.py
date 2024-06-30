@@ -77,12 +77,12 @@ p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
 
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
-if synctype==None:
-    np.save('Best-fits/results_d%s_o0.npy'%dusttype,results_ds_o0)
-else:
-    np.save('Best-fits/results_d%ss%s_%s_o0.npy'%(dusttype,synctype,fsky),results_ds_o0)
+# if synctype==None:
+#     np.save('Best-fits/results_d%s_o0.npy'%dusttype,results_ds_o0)
+# else:
+#     np.save('Best-fits/results_d%ss%s_%s_o0.npy'%(dusttype,synctype,fsky),results_ds_o0)
 
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covcmb'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covd0s0'%(dusttype,synctype,fsky))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -99,7 +99,7 @@ results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_d0s0cov'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_covd0s0'%(dusttype,synctype,fsky))
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
@@ -112,4 +112,4 @@ results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=Fals
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_d0s0cov'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_covd0s0'%(dusttype,synctype,fsky))
