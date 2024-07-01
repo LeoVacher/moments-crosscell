@@ -24,8 +24,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 'b'
+synctype = 'b'
 kw=''
 kwsim=''
 Pathload='./'
@@ -67,7 +67,7 @@ DLdc=DLdc[:N,:,:Nell]
 
 #compute Cholesky matrix:
 
-DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d0s0c.npy"%(nside,fsky,scale,Nlbin))
+DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d1s1c.npy"%(nside,fsky,scale,Nlbin))
 
 Linvdc=an.getLinvdiag(DL_cov[:N,:,:Nell],printdiag=True)
 
@@ -82,7 +82,7 @@ results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 # else:
 #     np.save('Best-fits/results_d%ss%s_%s_o0.npy'%(dusttype,synctype,fsky),results_ds_o0)
 
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covd0s0'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covd1s1'%(dusttype,synctype,fsky))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -99,7 +99,7 @@ results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_covd0s0'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_covd1s1'%(dusttype,synctype,fsky))
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
@@ -112,4 +112,4 @@ results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=Fals
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_covd0s0'%(dusttype,synctype,fsky))
+plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_covd1s1'%(dusttype,synctype,fsky))
