@@ -61,7 +61,7 @@ for i in range(0,nf):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
-N = 500#len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
+N = 249#len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 
 DLdc=DLdc[:N,:,:Nell]
 
@@ -69,7 +69,7 @@ DLdc=DLdc[:N,:,:Nell]
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d1s1c.npy"%(nside,fsky,scale,Nlbin))
 
-Linvdc=an.getLinvdiag(DL_cov[:N,:,:Nell],printdiag=True)
+Linvdc=an.getLinvdiag(DL_cov[:500,:,:Nell],printdiag=True)
 
 # fit MBB, get results and save
 
