@@ -98,7 +98,7 @@ else:
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt%s'%(dusttype,synctype,fsky,kw))
+plotr_gaussproduct(results_ds_o1bt,Nmax=6,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt%s'%(dusttype,synctype,fsky,kw))
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
