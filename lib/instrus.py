@@ -65,14 +65,14 @@ freqnsub6 = [134.06, 139.79, 145.77, 152.01, 158.51, 165.29, 196.62, 205.03, 213
 freqnsub7 = [133.65, 138.53, 143.6,  148.85, 154.29, 159.93, 165.77, 196.02, 203.18, 210.61, 218.31, 226.29, 234.56, 243.14]
 freqnsub8 = [133.34, 137.6,  141.99, 146.52, 151.2 , 156.02, 161.  , 166.14, 195.57, 201.81, 208.25, 214.9,  221.76, 228.83, 236.14, 243.67]
 
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub1",freqnsub1)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub2",freqnsub2)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub3",freqnsub3)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub4",freqnsub4)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub5",freqnsub5)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub6",freqnsub6)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub7",freqnsub7)
-np.save(Pr+"/Librairies/instrus/freq_QUBIC_Nsub8",freqnsub8)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub1",freqnsub1)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub2",freqnsub2)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub3",freqnsub3)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub4",freqnsub4)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub5",freqnsub5)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub6",freqnsub6)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub7",freqnsub7)
+np.save("./lib/instr_dict/freq_QUBIC_Nsub8",freqnsub8)
 
 #PICO///////////////////////////////////////////
 
@@ -90,7 +90,7 @@ PICO = {
         'use_smoothing': False,
     }
 
-np.save(Pr+"/Librairies/instrus/PICO",PICO)
+np.save("./lib/instr_dict/PICO",PICO)
 
 #SIMONS///////////////////////////////////////////
 
@@ -113,10 +113,10 @@ SO_LAT =  {
 freq_SO = np.array([27.,39.,93.,145.,225.,280.])
 beams_SO = np.array([7.4, 5.1, 2.2, 1.4, 1.0, 0.9])
 
-np.save(Pr+"/Librairies/instrus/SO_LAT",SO_LAT)
-np.save(Pr+"/Librairies/instrus/sens_P_SO",sens_P_SO)
-np.save(Pr+"/Librairies/instrus/freq_SO",freq_SO)
-np.save(Pr+"/Librairies/instrus/beams_SO",beams_SO)
+np.save("./lib/instr_dict/SO_LAT",SO_LAT)
+np.save("./lib/instr_dict/sens_P_SO",sens_P_SO)
+np.save("./lib/instr_dict/freq_SO",freq_SO)
+np.save("./lib/instr_dict/beams_SO",beams_SO)
 
 
 #CMB-S4///////////////////////////////////////////
@@ -137,4 +137,4 @@ CMBS4 = {
         'use_smoothing': False,
     }
 
-np.save(Pr+"/Librairies/instrus/CMBS4",CMBS4)
+np.save("./lib/instr_dict/CMBS4",CMBS4)
