@@ -94,7 +94,7 @@ def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nure
     crossdustsync4 = p[15]*(func.mbb_uK(nu_i,p[1],p[2])*lognujs*func.PL_uK(nu_j,p[4])+ func.PL_uK(nu_i,p[4])*func.mbb_uK(nu_j,p[1],p[2])*lognuis)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
     crossdustsync5 = p[16]*(func.mbb_uK(nu_i,p[1],p[2])*lognui*func.PL_uK(nu_j,p[4])*lognujs+ func.PL_uK(nu_i,p[4])*lognuis*func.mbb_uK(nu_j,p[1],p[2])*lognuj)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
     crossdustsync6 = p[17]*(func.mbb_uK(nu_i,p[1],p[2])*(dxi-dx0)*func.PL_uK(nu_j,p[4])*lognujs+ func.PL_uK(nu_i,p[4])*lognuis*func.mbb_uK(nu_j,p[1],p[2])*(dxj-dx0))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
-    model = temp + temp2 + syncmom + crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin[ell] + p[18]*DL_tens[ell]
+    model[icross] = temp + temp2 + syncmom + crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin[ell] + p[18]*DL_tens[ell]
     icross = icross + 1
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
