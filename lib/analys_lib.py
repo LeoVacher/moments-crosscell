@@ -33,7 +33,7 @@ def getLinvdiag(DL,printdiag=False,offset=0):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False,nside = 64, Nlbin = 10):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -47,6 +47,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False):
     """
     N,_,Nell=DL.shape
     nparam = len(p0)
+
+    # get cmb spectra:
+
+    DL_lensbin, DL_tens= mpl.getDL_cmb(nside=nside,Nlbin=Nlbin)
 
     #get frequencies:
     ncross=len(nucross)
@@ -84,7 +88,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False):
     for n in tqdm(range(Nmin,Nmax)):
         for L in range(Nell):
             # first o1 fit, dust fixed, mom free, r fixed
-            fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L}
+            fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiterl[L,n]= m.params
             chi2l[L,n]=m.fnorm/m.dof            

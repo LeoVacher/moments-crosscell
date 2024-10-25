@@ -8,30 +8,25 @@ import pysm_common as psm
 import basicfunc as func
 
 #contains all the functions to be fitted by mpfit 
-
-nside = 64
-lmax = nside*3-1
-Nlbin = 10 
-ELLBOUND = 19
-
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
-l = b.get_effective_ells()
-
-CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
-CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
-
-DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
-DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,2:lmax+3])[0:ELLBOUND]/2/np.pi
  
+def getDL_cmb(nside=64,Nlbin=10):
+    lmax = nside*3-1
+    b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+    l = b.get_effective_ells()
+    CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
+    CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
+    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,2:lmax+3])/2/np.pi
+    DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,2:lmax+3])/2/np.pi
+    return DL_lensbin, DL_tens
+
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
     # Gaussian curve
     model = func.Gaussian(x,p[0],p[1])
     status = 0
     return([status, (y-model)/err])
 
-def func_d_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.):
+def func_d_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,DL_lensbin=None, DL_tens=None):
     #fit function dust, order 0
-
     nu_i=x1
     nu_j=x2
     mbb = p[0] * func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])
@@ -39,7 +34,7 @@ def func_d_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.):
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.,ell=None):
+def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i=x1
     nu_j=x2
@@ -50,7 +45,7 @@ def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None):
+def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and T
     nu_i=x1
     nu_j=x2
@@ -71,8 +66,7 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None):
-
+def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     nu_i=x1
     nu_j=x2
 

@@ -25,7 +25,7 @@ fsky = 0.8
 ELLBOUND = 6
 dusttype = 1
 synctype = 1
-kw=''
+kw='_Nbin30'
 kwsim=''
 Pathload='./'
 
@@ -74,7 +74,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
 
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 
 if synctype==None:
     np.save('Best-fits/results_d%s_o0%s.npy'%(dusttype,kw),results_ds_o0)
@@ -89,7 +89,7 @@ p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
 fix=0
 
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix)
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,nside=nside, Nlbin=Nlbin)
 
 if synctype==None:
     np.save('Best-fits/results_d%ss_o1bt%s.npy'%(dusttype,kw),results_ds_o1bt)
@@ -102,7 +102,7 @@ plotr_gaussproduct(results_ds_o1bt,Nmax=6,debug=False,color='darkorange',save=Tr
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False)
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False,nside=nside, Nlbin=Nlbin)
 
 if synctype==None:
     np.save('Best-fits/results_d%s_o1bts%s.npy'%(dusttype,kw),results_ds_o1bts)
