@@ -169,7 +169,7 @@ Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
 p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=False)
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
 plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
 
