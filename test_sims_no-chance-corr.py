@@ -31,7 +31,8 @@ fsky = 0.7
 dusttype = 1
 syncrotype = 1
 kw = ''
-load=True 
+load_dust=True 
+load_cmbnoise=True 
 
 # instr param
 
@@ -51,7 +52,7 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 
 #call foreground sky
 
-if load==False:
+if load_dust==False:
     if dusttype==None and syncrotype==None:
         mapfg=np.zeros((N_freqs,2,Npix))
     else:
@@ -66,6 +67,7 @@ if load==False:
 
     # call cmb
 
+if load_cmbnoise==True:
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
 
     #Initialise workspaces :
@@ -131,8 +133,9 @@ if load==False:
     np.save("./CLsimus/DLcross_cmb_nside%s_fsky%s_scale%s_Nlbin%s"%(nside,fsky,scale,Nlbin),CLcross_cmb)
 
 
-if load==True:
+if load_dust==True:
     CLcross_fg=np.load("./CLsimus/DLcross_fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%s.npy"%(nside,fsky,scale,Nlbin,dusttype,syncrotype))
+if load_cmbnoise==True:
     CLcross_noise=np.load("./CLsimus/DLcross_noise_nside%s_fsky%s_scale%s_Nlbin%s_Gaussian.npy"%(nside,fsky,scale,Nlbin))
     CLcross_cmb= np.load("./CLsimus/DLcross_cmb_nside%s_fsky%s_scale%s_Nlbin%s.npy"%(nside,fsky,scale,Nlbin))
 
