@@ -29,7 +29,7 @@ scale = 10
 Nlbin =10
 fsky = 0.7
 dusttype = 1
-syncrotype = 1
+syncrotype = 0
 kw = ''
 load_dust=True 
 load_cmbnoise=True 
@@ -79,17 +79,7 @@ if load_dust==False:
 
     wsp_dc=np.array(wsp_dc)
     CLcross_fg_tp=np.zeros((Ncross,len(leff)))
-    z=0
-    for i in range(0,N_freqs):
-        for j in range(i,N_freqs):
-            if i != j :
-                CLcross_fg_tp[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*mapfg[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
-            if i==j :
-                CLcross_fg_tp[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*mapfg[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
-            z = z +1  
-    
-    CLcross_fg = np.array([CLcross_fg_tp for k in range(N)])            
-     
+
 if load_cmbnoise==False:
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
 
