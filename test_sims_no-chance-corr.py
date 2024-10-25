@@ -65,11 +65,6 @@ if load_dust==False:
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
         mapfg=mapfg[:,1:]
 
-    # call cmb
-
-if load_cmbnoise==True:
-    CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
-
     #Initialise workspaces :
 
     wsp_dc=[]
@@ -83,11 +78,7 @@ if load_cmbnoise==True:
             wsp_dc.append(w_dc)
 
     wsp_dc=np.array(wsp_dc)
-
     CLcross_fg_tp=np.zeros((Ncross,len(leff)))
-    CLcross_cmb=np.zeros((N,Ncross,len(leff)))
-    CLcross_noise=np.zeros((N,Ncross,len(leff)))
-
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
@@ -99,6 +90,11 @@ if load_cmbnoise==True:
     
     CLcross_fg = np.array([CLcross_fg_tp for k in range(N)])            
      
+if load_cmbnoise==False:
+    CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
+
+    CLcross_cmb=np.zeros((N,Ncross,len(leff)))
+    CLcross_noise=np.zeros((N,Ncross,len(leff)))
     for k in range(0,N):
         print('k=',k)
         noisemaps= np.zeros((3,N_freqs,2,Npix))
@@ -174,7 +170,7 @@ p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=True,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
