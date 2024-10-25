@@ -167,11 +167,11 @@ Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
 # fit MBB, get results and save
 
-#p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
+p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
-#results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=False)
 
-#plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
@@ -190,9 +190,9 @@ Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
 #plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_nochance-corr'%(dusttype,syncrotype,fsky))
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+#p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False)
+#results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False)
 
 # if synctype==None:
 #     np.save('Best-fits/results_d%s_o1bts.npy'%(dusttype),results_ds_o1bts)
@@ -201,4 +201,4 @@ results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=Fals
 
 # plot Gaussian likelihood for r
 
-plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_nochance-corr'%(dusttype,synctype,fsky))
+#plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_nochance-corr'%(dusttype,synctype,fsky))
