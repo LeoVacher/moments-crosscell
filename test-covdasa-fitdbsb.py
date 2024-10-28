@@ -26,6 +26,9 @@ fsky = 0.7
 ELLBOUND = 15
 dusttype_fit = 'b'
 synctype_fit = 'b'
+dusttype_cov = 0
+synctype_cov = 0
+
 kw=''
 kwsim=''
 Pathload='./'
