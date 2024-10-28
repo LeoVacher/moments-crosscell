@@ -185,9 +185,8 @@ plt.errorbar(leff+2,np.mean(DLdc[6],axis=0),yerr=np.std(DLdc[6],axis=0))
 
 #p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-#fix=0
 
-#results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix)
+#results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True)
 
 # if synctype==None:
 #     np.save('Best-fits/results_d%ss_o1bt.npy'%(dusttype),results_ds_o1bt)
@@ -200,7 +199,7 @@ plt.errorbar(leff+2,np.mean(DLdc[6],axis=0),yerr=np.std(DLdc[6],axis=0))
 
 #p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-#results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False)
+#results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=False)
 
 # if synctype==None:
 #     np.save('Best-fits/results_d%s_o1bts.npy'%(dusttype),results_ds_o1bts)

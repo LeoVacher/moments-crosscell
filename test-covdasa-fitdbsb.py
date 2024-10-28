@@ -91,9 +91,8 @@ plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=Tru
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-fix=0
 
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix)
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True)
 
 # if synctype==None:
 #     np.save('Best-fits/results_d%ss_o1bt.npy'%(dusttype),results_ds_o1bt)
