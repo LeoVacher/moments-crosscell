@@ -40,7 +40,8 @@ def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs
     nu_j=x2
     mbb = p[0]*func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref)
     sync = p[3]*func.PL_uK(nu_i, p[4],nu0=nurefs) * func.PL_uK(nu_j, p[4],nu0=nurefs)
-    normcorr= np.sqrt(abs(p[0]*p[3]))
+    #normcorr= np.sqrt(abs(p[0]*p[3]))
+    normcorr= 1
     crossdustsync = p[5]*normcorr*(func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.PL_uK(nu_j, p[4],nu0=nurefs) + func.PL_uK(nu_i, p[4],nu0=nurefs) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref))
     model = mbb + sync + crossdustsync + DL_lensbin[ell] + p[6] * DL_tens[ell]
     status = 0
@@ -53,7 +54,8 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
 
     ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
     sync= p[3]*func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
-    normcorr= np.sqrt(abs(p[0]*p[3]))
+    #normcorr= np.sqrt(abs(p[0]*p[3]))
+    normcorr= 1
     crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref))
     lognui = np.log(nu_i/nuref)
     lognuj = np.log(nu_j/nuref)
@@ -74,7 +76,8 @@ def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nure
 
     ampl = func.mbb_uK(nu_i,p[1],p[2])*func.mbb_uK(nu_j,p[1],p[2])
     sync= func.PL_uK(nu_i,p[4])*func.PL_uK(nu_j,p[4])
-    normcorr= np.sqrt(abs(p[0]*p[3]))
+    #normcorr= np.sqrt(abs(p[0]*p[3]))
+    normcorr= 1
     crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2])*func.PL_uK(nu_j,p[4])+ func.PL_uK(nu_i,p[4])*func.mbb_uK(nu_j,p[1],p[2]))/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[1],p[2]))
     lognui = np.log(nu_i/nuref)
     lognuj = np.log(nu_j/nuref)
