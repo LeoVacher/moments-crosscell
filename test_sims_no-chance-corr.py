@@ -145,9 +145,10 @@ nucross = np.array(nucross)
 
 #N = 500#len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 
-Nfit=N
-Ncov=N
+Nfit=100
+Ncov=500
 
+DLdc2 = np.load("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,syncrotype))
 DLdc=CLcross_fg + CLcross_noise+ CLcross_cmb
 DLdc=DLdc[:Nfit,:,:Nell]
 
@@ -175,8 +176,12 @@ legs2= 'nocorr'
 c1='darkblue'
 c2='darkorange'
 
-plotrespdf(leff,[res1,res2],[legs1,legs2],[c1,c2])
+plotrespdf(leff[:15],[res1,res2],[legs1,legs2],[c1,c2])
+
 # fit order 1 moments in beta and T around mbb pivot, get results and save
+
+plt.errorbar(leff,np.mean(DLdc2[6],axis=0),yerr=np.std(DLdc2[6],axis=0))
+plt.errorbar(leff+2,np.mean(DLdc[6],axis=0),yerr=np.std(DLdc[6],axis=0))
 
 #p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 

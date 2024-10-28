@@ -33,7 +33,7 @@ def getLinvdiag(DL,printdiag=False,offset=0):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False,nside = 64, Nlbin = 10):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -41,7 +41,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,fix=1,parallel=False,nside = 64, Nl
     :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
     :param Linv: inverse of the Cholesky matrix
     :param quiet: display output of the fit for debugging
-    :param resultsmbb: must be input mbb best fit in the format of fitmbb()
     :param : parallel, if true use mpi to parallelise the computation on number of simulations.
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
