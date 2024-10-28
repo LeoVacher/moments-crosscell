@@ -12,7 +12,7 @@ import matplotlib
 
 #PLOT FUNCTIONS ##################################################################################################################
 
-def getr_gaussproduct(results,Nmin=0,Nmax=20,debug=False,r=0,quiet=True):
+def getr_analytical(results,Nmin=0,Nmax=20,debug=False,r=0,quiet=True):
     """
     return r and sigma(r)
     :param results: output of moment fitting
@@ -21,56 +21,7 @@ def getr_gaussproduct(results,Nmin=0,Nmax=20,debug=False,r=0,quiet=True):
     :debug: plot the gaussian fit in each ell to ensure its working well, default: False
     :label: label for the plot
     """
-    rl = results['r']
-    Nell,N = rl.shape
-    K_r = int(2*N**(0.33))
-    moytemp=[]
-    sigtemp=[]
-    for ell in range(Nmin,Nmax):
-        y1_cond , bins_cond = np.histogram(rl[ell,:],K_r)
-        x1_cond = [.5*(b1+b2) for b1,b2 in zip(bins_cond[:-1],bins_cond[1:])] # Milieu du bin
-        ysum_cond = scipy.integrate.simps(y1_cond,x1_cond)
-        coeffunit = y1_cond[np.argmax(y1_cond)]/ysum_cond
-
-        pl0=[np.mean(y1_cond),np.std(y1_cond)]
-        parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
-        fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1/(np.sqrt(y1_cond)*ysum_cond)}
-        m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)
-        if m.params[1]>0.01:
-            fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1000/(np.sqrt(y1_cond)*ysum_cond)}
-            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
-        if m.params[1]>0.01:
-            fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 0.0001/(np.sqrt(y1_cond)*ysum_cond)}
-            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
-        
-        if debug==True:
-            plt.plot(x1_cond,y1_cond/ysum_cond)
-            plt.plot(x1_cond,func.Gaussian(x1_cond,m.params[0],m.params[1]))
-            plt.show()
-        moytemp.append(m.params[0])
-        sigtemp.append(m.params[1])
-    moy = np.array(moytemp)
-    sig = np.array(sigtemp)
-
-    x = np.linspace(-1,1,10000)
-    intervall = 0.014
-    fig,ax = plt.subplots(1,1, figsize=(10,7))
-    gausstot = 1
-    for i in range(Nmax-Nmin):
-        gausstot = gausstot*func.Gaussian(x,moy[i],sig[i])
-    Norm = scipy.integrate.simps(gausstot,x)
-    coeffunit = gausstot[np.argmax(gausstot)]/Norm
-    pl0=[np.mean(gausstot/Norm/coeffunit),np.std(gausstot/Norm/coeffunit)]
-    parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
-    fa = {'x':x, 'y':gausstot/Norm/coeffunit, 'err': 1000/(np.sqrt(gausstot/Norm))}
-    m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
-    if m.params[1]>0.01:
-                fa = {'x':x, 'y':gausstot/Norm, 'err': 0.0001/(np.sqrt(gausstot/Norm))}
-                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
-    if m.params[1]>0.01:
-                fa = {'x':x, 'y':gausstot/Norm, 'err': 1000/(np.sqrt(gausstot/Norm))}
-                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
-    return m.params[0],m.params[1]
+    return rmean,rstd
 
 def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
     """

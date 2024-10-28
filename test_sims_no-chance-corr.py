@@ -1,6 +1,6 @@
 import sys
 sys.path.append("./lib")
-
+from plotlib import plotrespdf
 import numpy as np
 import healpy as hp
 import pymaster as nmt 
@@ -144,13 +144,16 @@ nucross = np.array(nucross)
 
 #N = 500#len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 
+Nfit=N
+Ncov=N
+
 DLdc=CLcross_fg + CLcross_noise+ CLcross_cmb
-DLdc=DLdc[:N,:,:Nell]
+DLdc=DLdc[:Nfit,:,:Nell]
 
 print(DLdc.shape)
 #compute Cholesky matrix:
 
-DL_cov = CLcross_noise+ CLcross_cmb
+DL_cov = CLcross_noise[:Ncov]+ CLcross_cmb[:Ncov]
 
 Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
@@ -162,6 +165,15 @@ results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
 plotr_gaussproduct(results_ds_o0,Nmax=15,debug=True,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_nochance-corr'%(dusttype,syncrotype,fsky))
 
+res1=np.load('Best-fits/results_d%ss%s_0.7_o0.npy'%(dusttype,syncrotype),allow_pickle=True).item()
+res2=results_ds_o0
+legs1= 'normal'
+legs2= 'nocorr'
+
+c1='darkblue'
+c2='darkorange'
+
+plotrespdf(leff,[res1,res2],[legs1,legs2],[c1,c2])
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 #p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]

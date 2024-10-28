@@ -21,11 +21,11 @@ lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 30
-fsky = 0.8
-ELLBOUND = 6
+fsky = 0.7
+ELLBOUND = 19
 dusttype = 1
-synctype = 1
-kw='_Nbin30'
+synctype = 0
+kw=''
 kwsim=''
 Pathload='./'
 
@@ -112,3 +112,4 @@ else:
 # plot Gaussian likelihood for r
 
 plotr_gaussproduct(results_ds_o1bts,Nmax=6,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts%s'%(dusttype,synctype,fsky,kw))
+
