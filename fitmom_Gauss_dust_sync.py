@@ -81,7 +81,7 @@ if synctype==None:
 else:
     np.save('Best-fits/results_d%ss%s_%s_o0%s.npy'%(dusttype,synctype,fsky,kw),results_ds_o0)
 
-plotr_gaussproduct(results_ds_o0,Nmax=6,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0%s'%(dusttype,synctype,fsky,kw))
+plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0%s'%(dusttype,synctype,fsky,kw))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
