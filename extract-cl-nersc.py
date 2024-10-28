@@ -74,7 +74,7 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 maptot= np.zeros((N_freqs,3,Npix))
 
 for i in range(N_freqs):
-    maptoti= hp.read_map(folder+"/0000/"+"coadd_maps_LB_%s_cmb_e2e_sims_fg_baseline_wn_1f_binned_030mHz_0000_full.fits"%bands[i],field=(0,1,2))
+    maptoti= hp.read_map(folder+"/0000/"+"coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_0000_full.fits"%(bands[i],complexity),field=(0,1,2))
     maptot[i]= downgrade_map(maptoti,nside_in=512,nside_out=nside)
 maptot=maptot[:,1:]
 
