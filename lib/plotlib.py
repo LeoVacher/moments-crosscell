@@ -12,20 +12,40 @@ import matplotlib
 
 #PLOT FUNCTIONS ##################################################################################################################
 
-def getr_analytical(results,Nmin=0,Nmax=20,debug=False,r=0,quiet=True):
+def getr_analytical(results,Nmin=0,Nmax=20):
     """
     return r and sigma(r) computed analytically
     :param results: output of moment fitting
     :Nmin: minimal bin of ell in which to fit the Gaussians
     :Nmax: maximal bin of ell in which to fit the Gaussians
     """
-    rl = results['r']
+    rl = results['r'][Nmin:Nmax]
     sig=np.std(rl,axis=1)
     mean=np.mean(rl,axis=1)
     rstd= np.sqrt(1/(np.sum(1/sig**2)))
     rmean = np.sqrt(np.sum(mean**2/sig**2))*rstd
     return rmean,rstd
 
+def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+    rmean,rstd=getr_analytical(results,Nmin=Nmin,Nmax=Nmax)
+    x = np.linspace(-1,1,10000)
+    intervall = 0.014
+    fig,ax = plt.subplots(1,1, figsize=(10,7))
+    ax.plot(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(rmean,5),np.round(rstd,5)))
+    ax.fill_between(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),color=color,alpha=0.2,linewidth=5)
+    ax.fill_between(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),facecolor="none",edgecolor=color,linewidth=5)
+    ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
+    ax.plot(x, np.zeros(len(x)), color = 'black', linewidth=5,linestyle='--',zorder=10000000)
+    ax.set_xlim([r-intervall,r+intervall])
+    ax.legend()
+    ax.set_xlabel(r"$\hat{r}$")
+    ax.set_ylim([0,1.03])
+    if save==True:
+        show=False
+        plt.savefig("./plot-gauss/"+kwsave+"_analytical.pdf")
+    if show==True:
+        plt.show()
+ 
 def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result

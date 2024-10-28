@@ -72,7 +72,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results and save
 
-p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
+p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 
