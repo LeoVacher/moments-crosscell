@@ -14,13 +14,16 @@ import matplotlib
 
 def getr_analytical(results,Nmin=0,Nmax=20,debug=False,r=0,quiet=True):
     """
-    return r and sigma(r)
+    return r and sigma(r) computed analytically
     :param results: output of moment fitting
     :Nmin: minimal bin of ell in which to fit the Gaussians
     :Nmax: maximal bin of ell in which to fit the Gaussians
-    :debug: plot the gaussian fit in each ell to ensure its working well, default: False
-    :label: label for the plot
     """
+    rl = results['r']
+    sig=np.std(rl,axis=1)
+    mean=np.mean(rl,axis=1)
+    rstd= np.sqrt(1/(np.sum(1/sig**2)))
+    rmean = np.sqrt(np.sum(mean**2/sig**2))*rstd
     return rmean,rstd
 
 def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):

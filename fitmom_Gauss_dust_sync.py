@@ -20,9 +20,9 @@ nside = 64
 lmax = nside*3-1
 #lmax=850
 scale = 10
-Nlbin = 30
+Nlbin = 10
 fsky = 0.7
-ELLBOUND = 19
+ELLBOUND = 15
 dusttype = 1
 synctype = 0
 kw=''
@@ -51,7 +51,7 @@ freq = instr['frequencies']
 freq=freq
 nf = len(freq)
 Ncross = int(nf*(nf+1)/2)
-kw="_bin30"
+kw=""
 
 #compute cross-frequencies 
 
