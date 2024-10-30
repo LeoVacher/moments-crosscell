@@ -54,7 +54,7 @@ lmax = 3*nside-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-complexity='medium_complexity'   #should be 'baseline', 'high_complexity' or 'medium_complexity'
+complexity='high_complexity'   #should be 'baseline', 'high_complexity' or 'medium_complexity'
 kw=''
 r=0
 
