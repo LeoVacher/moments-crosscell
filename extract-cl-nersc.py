@@ -47,6 +47,7 @@ def compute_master(f_a, f_b, wsp):
 Pr = "/global/homes/l/leovchr/"
 Pathsave=Pr+ '/codes/moments-crosscell/CLsimus/'
 
+load=True
 nside = 64
 Npix = hp.nside2npix(nside)
 N=249
@@ -88,7 +89,12 @@ for i in range(0,N_freqs):
 
 Ncross=int(N_freqs*(N_freqs+1)/2)
 
-CLdc=np.zeros((N,Ncross,len(leff)))
+if load ==True:
+    CLdc= 2*np.pi*np.load(Pathsave+'DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,complexity[0],complexity[0]))/leff/(leff+1)  
+    kini=80
+else:
+    kini=0
+    CLdc=np.zeros((N,Ncross,len(leff)))
     
 maptotfull= np.zeros((N_freqs,3,Npix))
 maptot_HM1= np.zeros((N_freqs,3,Npix))
@@ -103,7 +109,7 @@ for i in range(len(beam)):
     BL.append(bl)
 BL = np.array(BL)
 
-for k in range(0,N):
+for k in range(kini,N):
     a='000'+"%s"%k
     if len(a)>4:
         a=a.replace("000","00")
