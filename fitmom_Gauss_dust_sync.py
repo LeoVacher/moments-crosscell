@@ -14,6 +14,7 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 from plotlib import plotr_gaussproduct
+from plotlib import plotrespdf
 
 r=0.
 nside = 64
@@ -23,8 +24,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 kw=''
 kwsim=''
 Pathload='./'
@@ -72,7 +73,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results and save
 
-p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
+p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 
@@ -80,6 +81,8 @@ if synctype==None:
     np.save('Best-fits/results_d%s_o0%s.npy'%(dusttype,kw),results_ds_o0)
 else:
     np.save('Best-fits/results_d%ss%s_%s_o0%s.npy'%(dusttype,synctype,fsky,kw),results_ds_o0)
+
+plotrespdf(l,[results_ds_o0],['d%ss%s-o0'%(dusttype,synctype)],['darkorange'])
 
 plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0%s'%(dusttype,synctype,fsky,kw))
 
@@ -96,6 +99,7 @@ else:
 
 # plot Gaussian likelihood for r
 
+plotrespdf(l,[results_ds_o1bt],['d%ss%s-o1bt'%(dusttype,synctype)],['darkorange'])
 plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt%s'%(dusttype,synctype,fsky,kw))
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
@@ -108,6 +112,6 @@ else:
     np.save('Best-fits/results_d%ss%s_%s_o1bts%s.npy'%(dusttype,synctype,fsky,kw),results_ds_o1bts)
 
 # plot Gaussian likelihood for r
-
+plotrespdf(l,[results_ds_o1bts],['d%ss%s-o1bts'%(dusttype,synctype)],['darkorange'])
 plotr_gaussproduct(results_ds_o1bts,Nmax=6,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts%s'%(dusttype,synctype,fsky,kw))
 

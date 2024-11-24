@@ -14,6 +14,7 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 from plotlib import plotr_gaussproduct
+from plotlib import plotrespdf
 import matplotlib.pyplot as plt 
 
 r=0.
@@ -82,12 +83,12 @@ results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
 
 np.save('Best-fits/results_d%ss%s_%s_o0_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov),results_ds_o0)
 
+plotrespdf(l,[results_ds_o0],['d%ss%s_%s_o0_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
 plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covd%ss%s'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov))
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 p0=[100, 1.54, 20, 10, -3,1,0,0,0,0,0,0,0,0]
-
 
 results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True)
 
@@ -95,6 +96,7 @@ np.save('Best-fits/results_d%ss%s_%s_o1bt_covd%ss%s.npy'%(dusttype_fit,synctype_
 
 # plot Gaussian likelihood for r
 
+plotrespdf(l,[results_ds_o1bt],['d%ss%s_%s_o1bt_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
 plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_covd%ss%s'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov))
 
 p0=[100, 1.54, 20, 10, -3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -105,4 +107,5 @@ np.save('Best-fits/results_d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype
 
 # plot Gaussian likelihood for r
 
+plotrespdf(l,[results_ds_o1bts],['d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
 plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_covd%ss%s'%(dusttype,synctype,fsky,dusttype_cov,synctype_cov))
