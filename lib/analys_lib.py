@@ -69,7 +69,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #set initial values:
     parinfopl = [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
-
+    parinfopl[1]= {'value':p0[1], 'fixed':0,'limited':[1,1],'limits':[0.5,2]} #betad
+    parinfopl[2]= {'value':p0[2], 'fixed':0,'limited':[1,1],'limits':[3,40]} #Td
+    parinfopl[4]= {'value':p0[4], 'fixed':0,'limited':[1,1],'limits':[-5,-2]} #betas    
     #for parallel:
     if parallel==True:
         comm = MPI.COMM_WORLD
