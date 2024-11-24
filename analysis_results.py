@@ -1,6 +1,7 @@
 import sys
 sys.path.append("./lib")
 
+import numpy as np
 import pymaster as nmt 
 import pysm3
 import time
@@ -36,11 +37,11 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/resultsmbb_PL_d%ss%sc.npy'%(0,0),allow_pickle=True).item()
-res2=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%('m','m'),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%('h','h'),allow_pickle=True).item()
 
-legs1= 'ordre 0'
-legs2= 'ordre 1'
+legs1= 'dmsm'
+legs2= 'dhsh'
 
 c1='darkblue'
 c2='darkorange'
