@@ -196,6 +196,7 @@ def plotrespdf(l,res,legs,colors):
 
     for i in range(len(res)):
         plotr_gaussproduct(res[i],color=colors[i],label=legs[i],show=False,Nmax=len(l))
+        plotr_gaussproduct_analytical(res[i],color=colors[i],label=legs[i]+'analyt',show=False,Nmax=len(l))
         pdf.savefig()
 
     pdf.close()
