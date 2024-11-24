@@ -72,7 +72,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     parinfopl[1]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
     parinfopl[1]= {'value':p0[1], 'fixed':0,'limited':[1,1],'limits':[0.5,2]} #betad
     parinfopl[2]= {'value':p0[2], 'fixed':0,'limited':[1,1],'limits':[3,40]} #Td
-    parinfopl[2]= {'value':p0[2], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
+    parinfopl[3]= {'value':p0[2], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
     parinfopl[4]= {'value':p0[4], 'fixed':0,'limited':[1,1],'limits':[-5,-2]} #betas    
     #for parallel:
     if parallel==True:
