@@ -93,7 +93,7 @@ plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=T
 
 # fit order 1 moments in beta, T and beta_s, get results and save
 p0=[100, 1.54, 20, 10, -3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=False)
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True)
 np.save('Best-fits/results_d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov),results_ds_o1bts)
 # plot all results
 plotrespdf(l,[results_ds_o1bts],['d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
