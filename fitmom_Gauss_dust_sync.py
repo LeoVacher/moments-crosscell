@@ -100,7 +100,7 @@ else:
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=True,nside=nside, Nlbin=Nlbin)
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 if synctype==None:
     np.save('Best-fits/results_d%s_o1bts%s.npy'%(dusttype,kw),results_ds_o1bts)
     plotrespdf(l,[results_ds_o1bts],['d%ss-o1bts'%(dusttype)],['darkorange'])
