@@ -41,7 +41,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
     :param Linv: inverse of the Cholesky matrix
     :param quiet: display output of the fit for debugging
-    :param : parallel, if true use mpi to parallelise the computation on number of simulations.
+    :param: parallel, if true use mpi to parallelise the computation on number of simulations.
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -68,7 +68,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     funcfit= eval('mpl.func_'+kw)
 
     #set initial values:
-    parinfopl = [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
+    parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
     parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
     parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
     parinfopl[2]= {'value':p0[2], 'fixed':fix,'limited':[1,1],'limits':[3,100]} #Td
