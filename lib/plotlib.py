@@ -173,17 +173,17 @@ def plotrespdf(l,res,legs,colors):
             plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
             if k =='A':
                 plt.loglog()
-            if k =='A_s':
+            elif k =='A_s':
                 plt.loglog()
-            if k=='X2red':
+            elif k=='X2red':
                 plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
-            if k=='r':
+            elif k=='r':
                 plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-            if k=='beta_s':
+            elif k=='beta_s':
                 plt.plot(l,-3*np.ones(len(l)),c='k',linestyle='--')
-            if k=='temp':
+            elif k=='temp':
                 plt.plot(l,20*np.ones(len(l)),c='k',linestyle='--')
-            if k=='beta':
+            elif k=='beta':
                 plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
             else:
                 plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')

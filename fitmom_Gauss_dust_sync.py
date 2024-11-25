@@ -73,7 +73,7 @@ Linvdc=an.getLinvdiag(DLdc,printdiag=True)
 
 # fit MBB, get results, save and plot
 
-p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
+p0=[100, 1.50, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 if synctype==None:
     np.save('Best-fits/results_d%s_o0%s.npy'%(dusttype,kw),results_ds_o0)
@@ -86,7 +86,7 @@ else:
 
 # fit order 1 in beta and T, get results, save and plot
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 if synctype==None:
     np.save('Best-fits/results_d%ss_o1bt%s.npy'%(dusttype,kw),results_ds_o1bt)
@@ -99,7 +99,7 @@ else:
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin)
 if synctype==None:
     np.save('Best-fits/results_d%s_o1bts%s.npy'%(dusttype,kw),results_ds_o1bts)
