@@ -85,7 +85,7 @@ if load ==True:
         CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
     else:
         CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))/leff/(leff+1)  
-    kini=np.argwhere(CLdc == 0)[0,0]
+    kini=np.argwhere(CLcross == 0)[0,0]
 else:
     kini=0
     CLcross=np.zeros((N,Ncross,len(leff)))
