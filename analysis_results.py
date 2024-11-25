@@ -37,11 +37,11 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%('m','m'),allow_pickle=True).item()
-res2=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%('h','h'),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%(1,1),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%('b','b'),allow_pickle=True).item()
 
-legs1= 'dmsm'
-legs2= 'dhsh'
+legs1= 'dbsb'
+legs2= 'd1s1'
 
 c1='darkblue'
 c2='darkorange'
