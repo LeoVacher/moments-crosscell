@@ -81,7 +81,10 @@ for i in range(0,N_freqs):
 wsp_dc=np.array(wsp_dc)
 
 if load ==True:
-    CLdc= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,complexity[0],complexity[0]))/leff/(leff+1)  
+    if syncrotype==None:
+        CLdc= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
+    else:
+        CLdc= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))/leff/(leff+1)  
     kini=np.argwhere(CLdc == 0)[0,0]
 else:
     kini=0

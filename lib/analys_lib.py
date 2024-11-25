@@ -33,7 +33,7 @@ def getLinvdiag(DL,printdiag=False,offset=0):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -70,10 +70,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     #set initial values:
     parinfopl = [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
     parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
-    parinfopl[1]= {'value':p0[1], 'fixed':1,'limited':[1,1],'limits':[0.5,2]} #betad
-    parinfopl[2]= {'value':p0[2], 'fixed':1,'limited':[1,1],'limits':[3,100]} #Td
+    parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
+    parinfopl[2]= {'value':p0[2], 'fixed':fix,'limited':[1,1],'limits':[3,100]} #Td
     parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-    parinfopl[4]= {'value':p0[4], 'fixed':1,'limited':[1,1],'limits':[-5,-2]} #betas    
+    parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
     #for parallel:
     if parallel==True:
         comm = MPI.COMM_WORLD
