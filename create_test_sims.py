@@ -82,13 +82,13 @@ wsp_dc=np.array(wsp_dc)
 
 if load ==True:
     if syncrotype==None:
-        CLdc= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
+        CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
     else:
-        CLdc= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))/leff/(leff+1)  
+        CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))/leff/(leff+1)  
     kini=np.argwhere(CLdc == 0)[0,0]
 else:
     kini=0
-    CLdc=np.zeros((N,Ncross,len(leff)))
+    CLcross=np.zeros((N,Ncross,len(leff)))
 
 for k in range(kini,N):
     print('k=',k)
