@@ -185,6 +185,8 @@ def plotrespdf(l,res,legs,colors):
                 plt.plot(l,20*np.ones(len(l)),c='k',linestyle='--')
             if k=='beta':
                 plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
+            else:
+                plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
         pdf.savefig()
 
     for i in range(len(res)):
