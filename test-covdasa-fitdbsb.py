@@ -73,7 +73,7 @@ DLdc=DLdc[:N,:,:Nell]
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
 
-Linvdc=an.getLinvdiag(DL_cov[:500,:,:Nell],printdiag=True)
+Linvdc=an.getLinvdiag(DL_cov[:,:,:Nell],printdiag=True)
 
 # fit MBB, get results and save
 p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
