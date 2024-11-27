@@ -227,5 +227,12 @@ def plotrespdf(l,res,legs,colors):
                 plt.figure(figsize=(10,7))
                 plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
                 pdf.savefig()
+    
+    for i in range(len(res)):
+        if len(res[i]['r'].shape)!=1:
+            plotr_gaussproduct(res[i],color=colors[i],label=legs[i],show=False,Nmax=len(l))
+            pdf.savefig()
+            plotr_gaussproduct_analytical(res[i],color=colors[i],label=legs[i]+'analyt',show=False,Nmax=len(l))
+            pdf.savefig()
     pdf.close()
 
