@@ -219,7 +219,7 @@ def plotrespdf(l,res,legs,colors):
                     plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
                 else:
                     plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-            pdf.savefig()
+        pdf.savefig()
 
     for i in range(len(res)):
         for k in unique_keys:
