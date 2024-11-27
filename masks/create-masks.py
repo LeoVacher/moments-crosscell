@@ -17,10 +17,17 @@ import basicfunc as func
 import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
+import urllib.request
 
-fsky=0.9
+fsky=0.7
 scale=10
-nside=64
+nside=16
+
+download = True
+if download:
+    url = "http://pla.esac.esa.int/pla/aio/product-action?MAP.MAP_ID=HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
+    output_file = "./masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
+    urllib.request.urlretrieve(url, output_file)
 
 fskylist=np.array([0.2,0.4,0.6,0.7,0.8,0.9,0.97,0.99])
 field= list(np.where(fskylist==fsky)[0])
