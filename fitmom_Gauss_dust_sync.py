@@ -24,11 +24,11 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 0
+dusttype = 1
 synctype = 0
 kw=''
 Pathload='./'
-all_ell=True #all ell or each ell independently
+all_ell=False #all ell or each ell independently
 fix= 1 #fix beta and T ?
 
 # Call C_ell of simulation
@@ -75,7 +75,7 @@ else:
 
 # fit MBB and PL, get results, save and plot
 
-p0=[100, 1.50, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
 results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta and T, get results, save and plot
