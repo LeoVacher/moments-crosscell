@@ -21,16 +21,16 @@ import pysm3.units as u
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=500 
+N=10000 
 lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
 dusttype = 0
-syncrotype = None
+syncrotype = 0
 kw = ''
-load=True
+load=False
 
 # instr param
 
@@ -84,7 +84,7 @@ if load ==True:
     if syncrotype==None:
         CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
     else:
-        CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))/leff/(leff+1)  
+        CLcross= 2*np.pi*np.load('./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))/leff/(leff+1)  
     kini=np.argwhere(CLcross == 0)[0,0]
 else:
     kini=0
