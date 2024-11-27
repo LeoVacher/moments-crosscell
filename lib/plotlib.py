@@ -7,11 +7,27 @@ import basicfunc as func
 from tqdm import tqdm
 from matplotlib.backends.backend_pdf import PdfPages 
 import matplotlib
+import seaborn
 
 #contains all function to plot results.
 
 #PLOT FUNCTIONS ##################################################################################################################
 
+def plotr_hist(results,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+    rn=results['r']
+    chi2=results['X2red']
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 7))
+    seaborn.histplot(rn,stat="probability",kde=True,ax=ax[0])
+    ax[0].text(0.95, 0.95, r"$r=%s\pm%s$"%(np.round(np.mean(rn),6), np.round(np.std(rn),6)), transform=ax[0].transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
+    seaborn.histplot(chi2,stat="probability",kde=True,ax=ax[1])
+    ax[1].text(0.95, 0.95, r"$\chi^2_{\rm red}=%s\pm%s$"%(np.round(np.mean(chi2),6), np.round(np.std(chi2),6)), transform=ax[1].transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
+    plt.tight_layout()
+    if save==True:
+        show=False
+        plt.savefig("./plot-gauss/"+kwsave+".pdf")
+    if show==True:
+        plt.show()
+ 
 def getr_analytical(results,Nmin=0,Nmax=20):
     """
     return r and sigma(r) computed analytically
@@ -170,24 +186,30 @@ def plotrespdf(l,res,legs,colors):
     for k in common_keys:
         plt.figure(figsize=(10,7))
         for i in range(len(res)):
-            plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
-            if k =='A':
-                plt.loglog()
-            elif k =='A_s':
-                plt.loglog()
-            elif k=='X2red':
-                plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
-            elif k=='r':
-                plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-            elif k=='beta_s':
-                plt.plot(l,-3*np.ones(len(l)),c='k',linestyle='--')
-            elif k=='temp':
-                plt.plot(l,20*np.ones(len(l)),c='k',linestyle='--')
-            elif k=='beta':
-                plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
+            if len(res[i][k].shape)==1:
+                fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
+                seaborn.histplot(res[i][k],stat="probability",kde=True,ax=ax)
+                plt.text(0.95, 0.95, r"$%s=%s\pm%s$"%(k,np.round(np.mean(res[i][k]),6), np.round(np.std(res[i][k]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
+                pdf.savefig()
             else:
-                plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-        pdf.savefig()
+                plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
+                if k =='A':
+                    plt.loglog()
+                elif k =='A_s':
+                    plt.loglog()
+                elif k=='X2red':
+                    plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
+                elif k=='r':
+                    plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
+                elif k=='beta_s':
+                    plt.plot(l,-3*np.ones(len(l)),c='k',linestyle='--')
+                elif k=='temp':
+                    plt.plot(l,20*np.ones(len(l)),c='k',linestyle='--')
+                elif k=='beta':
+                    plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
+                else:
+                    plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
+            pdf.savefig()
 
     for i in range(len(res)):
         for k in unique_keys:
@@ -195,10 +217,5 @@ def plotrespdf(l,res,legs,colors):
                 plt.figure(figsize=(10,7))
                 plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
                 pdf.savefig()
-
-    for i in range(len(res)):
-        plotr_gaussproduct(res[i],color=colors[i],label=legs[i],show=False,Nmax=len(l))
-        pdf.savefig()
-        plotr_gaussproduct_analytical(res[i],color=colors[i],label=legs[i]+'analyt',show=False,Nmax=len(l))
-        pdf.savefig()
     pdf.close()
+

@@ -29,8 +29,8 @@ dusttype_fit = 'b'
 synctype_fit = 'b'
 dusttype_cov = 0
 synctype_cov = 0
-
-kw=''
+all_ell=False
+kw='_covd%ss%s'%(dusttype_cov,synctype_cov)
 kwsim=''
 Pathload='./'
 
@@ -72,29 +72,19 @@ DLdc=DLdc[:N,:,:Nell]
 #compute Cholesky matrix:
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
-
-Linvdc=an.getLinvdiag(DL_cov[:,:,:Nell],printdiag=True)
+if all_ell==True:
+    Linvdc=an.getLinv_all_ell(DL_cov,printdiag=True)
+else:
+    Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
 # fit MBB, get results and save
 p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
-np.save('Best-fits/results_d%ss%s_%s_o0_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov),results_ds_o0)
-# plot all results
-plotrespdf(l,[results_ds_o0],['d%ss%s_%s_o0_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covd%ss%s'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov))
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 moments in beta and T, get results and save
 p0=[100, 1.54, 20, 10, -3,1,0,0,0,0,0,0,0,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True)
-np.save('Best-fits/results_d%ss%s_%s_o1bt_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov),results_ds_o1bt)
-# plot all results
-plotrespdf(l,[results_ds_o1bt],['d%ss%s_%s_o1bt_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_covd%ss%s'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov))
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 moments in beta, T and beta_s, get results and save
 p0=[100, 1.54, 20, 10, -3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True)
-np.save('Best-fits/results_d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov),results_ds_o1bts)
-# plot all results
-plotrespdf(l,[results_ds_o1bts],['d%ss%s_%s_o1bts_covd%ss%s.npy'%(dusttype_fit,synctype_fit,fsky,dusttype_cov,synctype_cov)],['darkorange'])
-plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_covd%ss%s'%(dusttype,synctype,fsky,dusttype_cov,synctype_cov))
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)

@@ -26,9 +26,10 @@ fsky = 0.7
 ELLBOUND = 15
 dusttype = 0
 synctype = 0
-kw=''
+kw='_covcmb+noise'
 kwsim=''
 Pathload='./'
+all_ell=False
 
 # Call C_ell of simulation
 
@@ -69,47 +70,25 @@ DLdc=DLdc[:N,:,:Nell]
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c.npy"%(nside,fsky,scale,Nlbin))
 
-Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
+if all_ell==True:
+    Linvdc=an.getLinv_all_ell(DL_cov,printdiag=True)
+else:
+    Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
 # fit MBB, get results and save
 
 p0=[100, 1.54, 20, 10, -3,1, 0] #first guess for mbb A, beta, T, r
 
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True)
-
-if synctype==None:
-    np.save('Best-fits/results_d%s_o0.npy'%dusttype,results_ds_o0)
-else:
-    np.save('Best-fits/results_d%ss%s_%s_o0.npy'%(dusttype,synctype,fsky),results_ds_o0)
-
-plotr_gaussproduct(results_ds_o0,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o0_covcmb'%(dusttype,synctype,fsky))
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 moments in beta and T around mbb pivot, get results and save
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-
 fix=0
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,fix=fix)
-
-# if synctype==None:
-#     np.save('Best-fits/results_d%ss_o1bt.npy'%(dusttype),results_ds_o1bt)
-# else:
-#     np.save('Best-fits/results_d%ss%s_%s_o1bt.npy'%(dusttype,synctype,fsky),results_ds_o1bt)
-
-# plot Gaussian likelihood for r
-
-plotr_gaussproduct(results_ds_o1bt,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bt_cmbcov'%(dusttype,synctype,fsky))
+# fit order 1 moments in beta, beta_s and T around mbb pivot, get results and save
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,fix=0,quiet=False)
-
-# if synctype==None:
-#     np.save('Best-fits/results_d%s_o1bts.npy'%(dusttype),results_ds_o1bts)
-# else:
-#     np.save('Best-fits/results_d%ss%s_%s_o1bts.npy'%(dusttype,synctype,fsky),results_ds_o1bts)
-
-# plot Gaussian likelihood for r
-
-plotr_gaussproduct(results_ds_o1bts,Nmax=15,debug=False,color='darkorange',save=True,kwsave='d%ss%s_%s_o1bts_cmbcov'%(dusttype,synctype,fsky))
