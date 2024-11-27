@@ -14,6 +14,10 @@ import seaborn
 #PLOT FUNCTIONS ##################################################################################################################
 
 def plotr_hist(results,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+    """
+    plot histogramm of r and chi^2 for the all-ell case
+    :param results: output of moment fitting for the all-ell case
+    """
     rn=results['r']
     chi2=results['X2red']
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 7))
@@ -42,7 +46,13 @@ def getr_analytical(results,Nmin=0,Nmax=20):
     rmean = np.sqrt(np.sum(mean**2/sig**2))*rstd
     return rmean,rstd
 
-def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+    """
+    compute r and sigma(r) analytically and plot a corresponding Gaussian curve
+    :param results: output of moment fitting
+    :Nmin: minimal bin of ell in which to fit the Gaussians
+    :Nmax: maximal bin of ell in which to fit the Gaussians
+    """
     rmean,rstd=getr_analytical(results,Nmin=Nmin,Nmax=Nmax)
     x = np.linspace(-1,1,10000)
     intervall = 0.014
@@ -62,7 +72,7 @@ def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,label='MBB',color='dark
     if show==True:
         plt.show()
  
-def plotr_gaussproduct(results,Nmin=0,Nmax=20,label='MBB',color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result
     :param results: output of moment fitting

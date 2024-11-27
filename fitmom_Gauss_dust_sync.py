@@ -27,9 +27,9 @@ ELLBOUND = 15
 dusttype = 0
 synctype = 0
 kw=''
-kwsim=''
 Pathload='./'
-all_ell=True
+all_ell=True #all ell or each ell independently
+fix= 1 #fix beta and T ?
 
 # Call C_ell of simulation
 
@@ -53,7 +53,6 @@ freq = instr['frequencies']
 freq=freq
 nf = len(freq)
 Ncross = int(nf*(nf+1)/2)
-kw=""
 
 #compute cross-frequencies 
 
@@ -77,15 +76,15 @@ else:
 # fit MBB, get results, save and plot
 
 p0=[100, 1.50, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta and T, get results, save and plot
 
 p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 

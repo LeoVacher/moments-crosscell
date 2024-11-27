@@ -95,8 +95,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         #put arrays in NcrossxNell shape for all-ell fit
         nu_i = np.tile(nu_i, Nell)
         nu_j = np.tile(nu_j, Nell)
-        DL_lensbin= np.swapaxes(np.array([DL_lensbin[:Nell] for i in range(ncross)]),0,1).flatten()
-        DL_tens= np.swapaxes(np.array([DL_tens[:Nell] for i in range(ncross)]),0,1).flatten()
+        DL_lensbin= np.repeat(DL_lensbin[:Nell],ncross)
+        DL_tens= np.repeat(DL_tens[:Nell],ncross)
         DLdcflat = np.zeros([N,Nell*ncross])
         for i in range(N):
             DLdcflat[i] = np.swapaxes(DL[i,:,:],0,1).flatten()
@@ -200,6 +200,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #save and plot results
 
+    kw=kw+'_fix%s'%fix
     if all_ell==True:
         kw=kw+"_all_ell"
     np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kw),results)
