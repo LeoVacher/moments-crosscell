@@ -29,7 +29,8 @@ dusttype_fit = 'b'
 synctype_fit = 'b'
 dusttype_cov = 0
 synctype_cov = 0
-all_ell=False
+all_ell=False 
+fix=1
 kw='_covd%ss%s'%(dusttype_cov,synctype_cov)
 kwsim=''
 Pathload='./'
@@ -77,14 +78,17 @@ if all_ell==True:
 else:
     Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
 
-# fit MBB, get results and save
-p0=[100, 1.54, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, r
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+# fit MBB and PL, get results, save and plot
 
-# fit order 1 moments in beta and T, get results and save
-p0=[100, 1.54, 20, 10, -3,1,0,0,0,0,0,0,0,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+p0=[100, 1.50, 20, 10, -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
-# fit order 1 moments in beta, T and beta_s, get results and save
-p0=[100, 1.54, 20, 10, -3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+# fit order 1 in beta and T, get results, save and plot
+
+p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc[:5],Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+
+# fit order 1 in beta, T and beta_s, get results, save and plot
+
+p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
