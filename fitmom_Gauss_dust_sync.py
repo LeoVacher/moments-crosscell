@@ -83,6 +83,11 @@ results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside
 p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
+# fit order 1 in beta and T altnorm, get results, save and plot
+
+p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+results_ds_o1bt = an.fit_mom('ds_o1bt_altnorm',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 p0=[100, 1.50, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
