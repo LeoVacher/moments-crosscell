@@ -28,7 +28,7 @@ dusttype = 1
 synctype = 1
 kw=''
 Pathload='./'
-all_ell=False #all ell or each ell independently
+all_ell=True #all ell or each ell independently
 fix= 1 #fix beta and T ?
 
 # Call C_ell of simulation

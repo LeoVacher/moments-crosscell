@@ -200,7 +200,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #save and plot results
 
-    kw=kw+'_fix%s'%fix
+    if all_ell==False:
+        kw=kw+'_fix%s'%fix
     if all_ell==True:
         kw=kw+"_all_ell"
     np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kw),results)
