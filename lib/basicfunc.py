@@ -62,7 +62,6 @@ def PL_uK(nu,beta,nu0=23.):
     """    
     return psm.convert_units('uK_RJ','uK_CMB',nu)/psm.convert_units('uK_RJ','uK_CMB',nu0)*(nu/nu0)**beta
 
-
 def dmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x/T)*np.exp(x)/np.expm1(x)
