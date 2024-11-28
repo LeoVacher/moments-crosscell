@@ -4,6 +4,7 @@ import numpy as np
 import healpy as hp
 import pysm3.units as u
 import pysm_common as psm 
+import sympy as sp
 
 #FONCTIONS
 
@@ -65,6 +66,10 @@ def PL_uK(nu,beta,nu0=23.):
 def dmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x/T)*np.exp(x)/np.expm1(x)
+
+def dmbbp(nu,p):
+    x = const.h.value*nu*1.e9/const.k_B.value
+    return -x*np.exp(x*p)/np.expm1(x*p)
 
 def ddmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
@@ -243,7 +248,7 @@ def binning(ell,arr,bintab):
     return arrbin
 
 
-#Downgrade from dodo
+#Downgrade
 
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
@@ -298,176 +303,10 @@ def dBnu_dT(nu,T):
     return (B(nu,T)*constc/nu/T)**2 / 2 * np.exp(consth*nu*1e9/constk/T) / constk
 
 
-#compute automatically moment's seds
+#compute automatically moment's SEDs
 
 import sympy as sym
 import scipy.constants as constants
-
-def compute_3Dfrom2D(nside,model,betamap,tempmap,radius=60.,maxborder=3,maxtorder=3,mix='deterministic'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-        templist = tempmap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            np.random.shuffle(templist)
-            # np.random.shuffle(alist)
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari = np.sum(templist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if ((border == 0)  * (torder == 0)) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari)**border*(templist-tempbari)**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar)**border*(templist-tempbar)**torder)/np.sum(alist)
-    return mom
-
-def compute_3Dfrom2D_random_layer(nside,model,betamap,tempmap,radius=60.,maxborder=3,maxtorder=3,nlayer=10,mix='shuffle'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-        templist = tempmap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            np.random.shuffle(templist)
-            np.random.shuffle(alist)
-            np.random.shuffle(alisti)
-
-        alisti = alisti[:nlayer]
-        alist = alist[:nlayer]
-        betalist = betalist[:nlayer]
-        templist = templist[:nlayer]
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari = np.sum(templist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if ((border == 0)  * (torder == 0)) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari)**border*(templist-tempbari)**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar)**border*(templist-tempbar)**torder)/np.sum(alist)
-    return mom
-
-
-def compute_3Dfrom2D_sync(nside,model,betamap,radius=60.,maxborder=3,mix='deterministic'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            # np.random.shuffle(alist)
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            if border == 0:
-                mom[0,0,0,ipix] = 1. 
-                mom[1,0,0,ipix] = 1. 
-        else:
-            mom[0,border,ipix] = np.sum(alisti*(betalist-betabari)**border)/np.sum(alisti)
-            mom[1,border,ipix] = np.sum(alist*(betalist-betabar)**border)/np.sum(alist)
-    return mom
-
-
-def compute_pure3Dmom(nside,model,betamap,tempmap,maxborder=3,maxtorder=3):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    betabar = np.zeros(npix)
-    tempbar = np.zeros(npix)
-    betabari = np.zeros(npix)
-    tempbari= np.zeros(npix) 
-    dusti = model[:,0]
-    dustp = model[:,1] + model[:,2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        listpix = ipix
-
-        alisti = dusti[:,listpix]
-        alist = dustp[:,listpix]
-        betalist = betamap[:,listpix]
-        templist = tempmap[:,listpix]
-
-        betabar[ipix] = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar[ipix] = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari[ipix] = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari[ipix] = np.sum(templist*alisti)/np.sum(alisti)
-
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if (border == 0)  * (torder == 0) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari[ipix])**border*(templist-tempbari[ipix])**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar[ipix])**border*(templist-tempbar[ipix])**torder)/np.sum(alist)
-    return mom, betabari, betabar, tempbari, tempbar
 
 def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=3,nside_moments=512,mult_factor=1.):
     npix_moments = hp.nside2npix(nside_moments)
@@ -506,54 +345,47 @@ def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=
     if nside != nside_moments: map3D = hp.ud_grade(map3D,nside)
     return map3D
 
-def model_pl_moments(nside,nu,model,mom,nu0=353.,maxborder=3,nside_moments=512,mult_factor=1.):
-    npix_moments = hp.nside2npix(nside_moments)
-    map3D = np.zeros([3,npix_moments])
+def symbolic_derivative_mbb(order, var):
+    """
+    Calcule les dérivées analytiques du corps noir modifié (MBB).
+    Parameters:
+        order : int
+            Ordre de la dérivée (1, 2, ...).
+        var : str
+            Variable par rapport à laquelle on dérive ('T', '1/T', ou 'beta').
+    Returns:
+        sympy expression : Dérivée symbolique normalisée du MBB.
+    """
+    # Définir les variables symboliques
+    nu, T, beta, nu0 = sp.symbols('nu T beta nu0', real=True, positive=True)
+    h, c, k = sp.symbols('h c k', real=True, positive=True)
+
+    # Corps noir modifié
+    x = h * nu / (k * T)  # Argument sans dimension
+    x0 = h * nu0 / (k * T)  # Argument sans dimension
+    Bnu = (2 * h * nu**3 / c**2) / (sp.exp(x) - 1)
+    Bnu0 = (2 * h * nu0**3 / c**2) / (sp.exp(x0) - 1)
+
+    # Intensité normalisée
+    if var in ['T', '1/T']:
+        I_nu = Bnu / Bnu0
+    elif var == 'beta':
+        I_nu = (nu / nu0)**beta
+    else:
+        raise ValueError("La variable doit être 'T', '1/T', ou 'beta'.")
+
+    # Calcul des dérivées selon la variable spécifiée
+    if var == 'T':
+        variable = T
+        derivative = sp.diff(I_nu, variable, order)
+    elif var == '1/T':
+        y = sp.symbols('y', real=True, positive=True)  # Définir y = 1/T
+        I_nu_y = I_nu.subs(T, 1 / y)  # Substituer T par 1/y
+        derivative = sp.diff(I_nu_y, y, order).subs(y, 1 / T)  # Revenir à T
+    elif var == 'beta':
+        variable = beta
+        derivative = sp.diff(I_nu, variable, order)
+
+    # Normalisation par l'intensité I_nu
+    return sp.simplify(derivative / I_nu)
     
-    beta = sym.Symbol('ß')
-    
-    nuval = nu * 1e9
-    nu0val = nu0 * 1e9
-    mbb = (nuval / nu0val) ** beta
-    for border in range(maxtorder+1):
-        analyticalmom = sym.diff(mbb,beta,border)*sym.diff(mbb,T,torder).factor()/mbb**2
-        valuemom = float(analyticalmom)
-
-        if border == 0 :
-            modelcomplex = (model[1]+1j*model[2]) * 1./(np.math.factorial(border))*mom[1,border]*valuemom
-            map3D[0] += model[0] * 1./(np.math.factorial(border)*np.math.factorial(torder))*np.real(mom[0,border])*valuemom
-        else:
-            modelcomplex = (model[1]+1j*model[2]) * mult_factor/(np.math.factorial(border))*mom[1,border]*valuemom
-            map3D[0] += model[0] * mult_factor/(np.math.factorial(border))*np.real(mom[0,border])*valuemom
-        map3D[1] += np.real(modelcomplex)
-        map3D[2] += np.imag(modelcomplex)
-    if nside != nside_moments: map3D = hp.ud_grade(map3D,nside)
-    return map3D
-
-def get_mom_function(nu,tempmap,nu0=353.,border=3,torder=3,mult_factor=1.):
-
-    beta = sym.Symbol('ß')
-    T = sym.Symbol('T')
-    
-    nu0val = nu0 * 1e9
-    if type(nu0val)=='int':
-        nu0val = np.array(nu0val)
-    valuemom=[]
-    for f in nu:
-        nuval = f * 1e9
-        Bval = 2*const.h.value*(nuval**3)/const.c.value**2
-        Cval = const.h.value*nuval/const.k_B.value
-        Bval0 = 2*const.h.value*(nu0val**3)/const.c.value**2
-        Cval0 = const.h.value*nu0val/const.k_B.value
-        Bvalratio = Bval/Bval0
-        mbb = ((nuval / nu0val) ** beta) * Bvalratio / (sym.exp(Cval / T) - 1) * (sym.exp(Cval0 / T) - 1)
-        analyticalmom = sym.diff(mbb,beta,border)*sym.diff(mbb,T,torder).factor()/mbb**2
-            
-        if torder == 0:
-            valuemom.append(float(analyticalmom))
-        else:
-            analyticalmom = sym.lambdify(T,analyticalmom,'numpy')
-            valuemom.append(analyticalmom(tempmap))
-    valuemom=np.array(valuemom)/np.math.factorial(border)/np.math.factorial(torder)
-    return valuemom
-

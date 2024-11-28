@@ -113,7 +113,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
         parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
         parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
-        parinfopl[2]= {'value':p0[2], 'fixed':fix,'limited':[1,1],'limits':[3,100]} #Td
+        if kw=='ds_o1bp':
+            parinfopl[2]= {'value':p0[2], 'fixed':fix,'limited':[1,1],'limits':[3,100]} #Td
+        else:
+            parinfopl[2]= {'value':p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #Td            
         parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
         parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
         #for parallel:
@@ -142,8 +145,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
         if kw=='ds_o0':
             results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
-        elif kw=='ds_o1bt' or kw=='ds_o1bt_altnorm':
+        elif kw=='ds_o1bt':
             results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
+        elif kw=='ds_o1bp':
+            results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
         elif kw=='ds_o1bts':
             results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1bs' : paramiterl[:,:,11],'w1bsw1bs' : paramiterl[:,:,12],'Asw1b' : paramiterl[:,:,13],'Asw1t' : paramiterl[:,:,14],'Adw1s' : paramiterl[:,:,15],'w1bw1s' : paramiterl[:,:,16],'w1sw1T' : paramiterl[:,:,17],'r' : paramiterl[:,:,18], 'X2red': chi2l}
         else:
