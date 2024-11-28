@@ -84,7 +84,7 @@ def func_ds_o1bp(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     dxi = func.dmbbp(nu_i,p[2])
     dxj = func.dmbbp(nu_j,p[2])
     temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-    temp2 = ampl*((dxi+dxj-2*dx0)*p[8]+(dxi-dx0)*(dxj-dx0)*p[10])
+    temp2= ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
     crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref)*lognuj)
     crossdustsync3 = p[12]*(func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref)*(dxj-dx0))
     model = temp + temp2 + sync + crossdustsync + crossdustsync2 + crossdustsync3
