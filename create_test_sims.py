@@ -21,16 +21,16 @@ import pysm3.units as u
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=500 
+N=10000 
 lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 12
-syncrotype = 7
+dusttype = 0
+syncrotype = 0
 kw = ''
-load=False
+load=True
 
 # instr param
 

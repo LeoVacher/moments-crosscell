@@ -298,7 +298,7 @@ def dBnu_dT(nu,T):
     return (B(nu,T)*constc/nu/T)**2 / 2 * np.exp(consth*nu*1e9/constk/T) / constk
 
 
-#compute automatically moment's seds
+#JONAFUNC AUTOMATIKKK
 
 import sympy as sym
 import scipy.constants as constants
