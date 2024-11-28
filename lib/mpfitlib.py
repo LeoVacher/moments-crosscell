@@ -162,7 +162,7 @@ def func_ds_o1bt_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=3
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,Nell=None,DL_lensbin=None, DL_tens=None):
     nu_i=x1
     nu_j=x2
     ellim=3*Nell-1
