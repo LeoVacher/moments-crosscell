@@ -209,7 +209,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     l = b.get_effective_ells()
     plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kw)],['darkorange'])
     if all_ell==True:
-        plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kw))
+        plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kw))
     else:
         plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kw))
     return results
