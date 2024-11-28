@@ -24,11 +24,11 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 10
+synctype = 5
 kw=''
 Pathload='./'
-all_ell=True #all ell or each ell independently
+all_ell=False #all ell or each ell independently
 fix= 1 #fix beta and T ?
 
 # Call C_ell of simulation
@@ -85,8 +85,8 @@ results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=n
 
 # fit order 1 in beta and T altnorm, get results, save and plot
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bt_altnorm = an.fit_mom('ds_o1bt_altnorm',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+#p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+#results_ds_o1bt_altnorm = an.fit_mom('ds_o1bt_altnorm',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
