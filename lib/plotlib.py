@@ -179,8 +179,11 @@ def plotrespdf(l,res,legs,colors):
     :colors: list of all colors
     """
     namesave=''
-    for i in range(len(legs)):
-        namesave += legs[i] +'-vs-'
+    if len(legs)==1:
+        namesave += legs[0]
+    if len(legs)>1:
+        for i in range(len(legs)):
+            namesave += legs[i] +'-vs-'
     pdf = matplotlib.backends.backend_pdf.PdfPages("./pdf_plots/%s.pdf"%(namesave))
 
     if len(res)==1:
@@ -200,6 +203,7 @@ def plotrespdf(l,res,legs,colors):
                 fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
                 seaborn.histplot(res[i][k],stat="probability",kde=True,ax=ax)
                 plt.text(0.95, 0.95, r"$%s=%s\pm%s$"%(k,np.round(np.mean(res[i][k]),6), np.round(np.std(res[i][k]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
+                plt.title("%s"%k)
                 pdf.savefig()
             else:
                 plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
@@ -227,7 +231,6 @@ def plotrespdf(l,res,legs,colors):
                 plt.figure(figsize=(10,7))
                 plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
                 pdf.savefig()
-    
     for i in range(len(res)):
         if len(res[i]['r'].shape)!=1:
             plotr_gaussproduct(res[i],color=colors[i],show=False,Nmax=len(l))
