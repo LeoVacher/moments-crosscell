@@ -48,7 +48,7 @@ def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs
     return([status, np.dot(np.transpose(y-model), err)])
 
 def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
-    #fit function dust+syncrotron, order 1 in beta and T
+    #fit function dust+syncrotron, order 1 in beta and 1/T
     nu_i=x1
     nu_j=x2
     ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
@@ -58,9 +58,9 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref))
     lognui = np.log(nu_i/nuref)
     lognuj = np.log(nu_j/nuref)
-    dx0 = func.dmbbT(nuref,p[2])
-    dxi = func.dmbbT(nu_i,p[2])
-    dxj = func.dmbbT(nu_j,p[2])
+    dx0 = func.dmbb_bT(nuref,p[2])
+    dxi = func.dmbb_bT(nu_i,p[2])
+    dxj = func.dmbb_bT(nu_j,p[2])
     temp = ampl*(p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
     temp2= ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
     crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
@@ -69,29 +69,8 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
 
-def func_ds_o1bp(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
-    #fit function dust+syncrotron, order 1 in beta and 1/T
-    nu_i=x1
-    nu_j=x2
-    ampl = func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref)
-    sync= p[3]*func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
-    normcorr= np.sqrt(abs(p[0]*p[3]))
-    #normcorr= 1
-    crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref))
-    lognui = np.log(nu_i/nuref)
-    lognuj = np.log(nu_j/nuref)
-    dx0 = func.dmbbp(nuref,p[2])
-    dxi = func.dmbbp(nu_i,p[2])
-    dxj = func.dmbbp(nu_j,p[2])
-    temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
-    temp2= ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
-    crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref)*lognuj)
-    crossdustsync3 = p[12]*(func.mbb_uK(nu_i,p[1],1/p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],1/p[2],nu0=nuref)*(dxj-dx0))
-    model = temp + temp2 + sync + crossdustsync + crossdustsync2 + crossdustsync3
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
 def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+    #fit function dust+syncrotron, order 1 in beta, beta_s and 1/T
     nu_i=x1
     nu_j=x2
     ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
@@ -103,9 +82,9 @@ def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nure
     lognuj = np.log(nu_j/nuref)
     lognuis = np.log(nu_i/nurefs)
     lognujs = np.log(nu_j/nurefs)
-    dx0 = func.dmbbT(nuref,p[2])
-    dxi = func.dmbbT(nu_i,p[2])
-    dxj = func.dmbbT(nu_j,p[2])
+    dx0 = func.dmbb_bT(nuref,p[2])
+    dxi = func.dmbb_bT(nu_i,p[2])
+    dxj = func.dmbb_bT(nu_j,p[2])
     temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
     temp2 = ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
     syncmom = sync * (p[3]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
@@ -172,9 +151,9 @@ def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=
     lognuj =  np.log(nu_j/nuref)
     lognuis = np.log(nu_i/nurefs)
     lognujs = np.log(nu_j/nurefs)
-    dx0 = func.dmbbT(nuref,p[ellim+2])
-    dxi = func.dmbbT(nu_i,p[ellim+2])
-    dxj = func.dmbbT(nu_j,p[ellim+2])
+    dx0 = func.dmbb_bT(nuref,p[ellim+2])
+    dxi = func.dmbb_bT(nu_i,p[ellim+2])
+    dxj = func.dmbb_bT(nu_j,p[ellim+2])
     temp = ampl*np.repeat(p[:Nell],253)*(1+ (lognui+lognuj) * p[ellim+5]+ lognui*lognuj * p[ellim+6])
     temp2= ampl*np.repeat(p[:Nell],253)*((dxi+dxj-2*dx0)*p[ellim+7]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[ellim+8]+(dxi-dx0)*(dxj-dx0)*p[ellim+9])
     crossdustsync2 = normcorr*p[ellim+10]*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*lognuj)

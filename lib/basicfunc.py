@@ -8,47 +8,47 @@ import sympy as sp
 
 #FONCTIONS
 
-def B(nu, T):
+def B(nu,b_T):
     """Planck function.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float.
     :return: float -- black body brightness.
 
     """
-    x = const.h.value*nu*1.e9/const.k_B.value/T
+    x = const.h.value*nu*1.e9*b_T/const.k_B.value
     return 2.*const.h.value *(nu *1.e9)**3/ const.c.value**2/np.expm1(x)
 
-def mbb(nu,beta,T):
+def mbb(nu,beta,b_T):
     """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
     :param beta: spectral index of the emissivity
     :type beta: float    
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float.
     :return: float -- modified black body brightness.
 
     """    
-    return B(nu,T)*(1e9*nu)**beta
+    return B(nu,b_T)*(1e9*nu)**beta
 
 
-def mbb_uK(nu,beta,T,nu0=353.):
+def mbb_uK(nu,beta,b_T,nu0=353.):
     """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
     :param beta: spectral index of the emissivity
     :type beta: float    
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float..
     :return: float -- modified black body brightness.
 
     """    
-    return (mbb(nu,beta,T)/mbb(nu0,beta,T))*psm.convert_units('MJysr','uK_CMB',nu)/psm.convert_units('MJysr','uK_CMB',nu0)
+    return (mbb(nu,beta,b_T)/mbb(nu0,beta,b_T))*psm.convert_units('MJysr','uK_CMB',nu)/psm.convert_units('MJysr','uK_CMB',nu0)
 
 def PL_uK(nu,beta,nu0=23.):
     """Power law.
@@ -66,7 +66,7 @@ def dmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x/T)*np.exp(x)/np.expm1(x)
 
-def dmbbp(nu,p):
+def dmbb_bT(nu,p):
     x = const.h.value*nu*1.e9/const.k_B.value
     return -x*np.exp(x*p)/np.expm1(x*p)
 
