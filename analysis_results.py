@@ -37,14 +37,14 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/results_d%ss%s_0.7_o1bts_covd0s0.npy'%('b','b'),allow_pickle=True).item()
-res2=np.load('Best-fits/results_d%ss%s_0.7_o1bt_covd0s0.npy'%(1,1),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_altnorm_fix1.npy'%(1,0),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_fix1.npy'%(1,0),allow_pickle=True).item()
 
-legs1= 'dbsb-o1bts'
-legs2= 'd1s1'
+legs1= 'd1s0_altnorm'
+legs2= 'd1s0'
 
 c1='darkblue'
 c2='darkorange'
 
-plotrespdf(l,[res1],[legs1],[c1])
+#plotrespdf(l,[res1],[legs1],[c1])
 plotrespdf(l,[res1,res2],[legs1,legs2],[c1,c2])
