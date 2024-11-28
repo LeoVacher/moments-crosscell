@@ -180,7 +180,7 @@ def plotrespdf(l,res,legs,colors):
     """
     namesave=''
     for i in range(len(legs)):
-        namesave += legs[i] +'-'
+        namesave += legs[i] +'vs'
     pdf = matplotlib.backends.backend_pdf.PdfPages("./pdf_plots/%s.pdf"%(namesave))
 
     if len(res)==1:
