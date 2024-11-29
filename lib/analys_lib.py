@@ -158,7 +158,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         [parinfopl.append({'value':p0[5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
         parinfopl.append({'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]}) #betad
         parinfopl.append({'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,3]}) #1/Td
-        parinfopl.append({'value':p0[4], 'fixed':0,'limited':[1,1],'limits':[-5,-2]}) #betas    
+        parinfopl.append({'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]}) #betas    
         parinfopl.append({'value':p0[5], 'fixed':0}) #r 
         if kw=='ds_o1bt':
             [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments 
