@@ -176,7 +176,8 @@ def plothist(label,res,colors='darkblue',r=0):
     seaborn.histplot(res[label],stat="probability",kde=True,ax=ax,color=colors)
     plt.text(0.95, 0.95, name[label]+r"$=%s\pm%s$"%(np.round(np.mean(res[label]),6), np.round(np.std(res[label]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
     plt.title("%s"%name[label])
-    if label=='r':
+    if label!='r' and label!='beta' and label!='temp':
+        print(1)
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
 def plotrespdf(l,res,legs,colors):
