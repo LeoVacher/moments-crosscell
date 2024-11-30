@@ -100,6 +100,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     N,_,Nell=DL.shape
     nparam = len(p0)
 
+    #ell array
+    b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
+    l = b.get_effective_ells()
+
     #update keyword for load and save:
     kwf=kw+'_fix%s'%fix
     if all_ell==True:
@@ -197,11 +201,14 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl.append({'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]}) #betas    
         parinfopl.append({'value':p0[5], 'fixed':0}) #r 
         if kw=='ds_o1bt':
-            [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments 
+            [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments and power-law indices 
+            [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #power-law indices 
         elif kw=='ds_o1bts':
-            [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #moments 
+            [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #moments and power-law indices 
+            [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #power-law indices 
         chi2=np.zeros(N)
         paramiter=np.zeros((N,len(parinfopl)))
+        
         #for parallel:
         if parallel==True:
             comm = MPI.COMM_WORLD
@@ -218,7 +225,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
         for n in tqdm(range(Nmin,Nmax)):
             # first o1 fit, dust fixed, mom free, r fixed
-            fa = {'x1':nu_i, 'x2':nu_j, 'y':DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'Nell':Nell}
+            fa = {'x1':nu_i, 'x2':nu_j, 'y':DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'ell':l}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiter[n]= m.params
             chi2[n]=m.fnorm/m.dof            
@@ -228,17 +235,21 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         if kw=='ds_o0':
             results={'A' : np.swapaxes(paramiter[:,:Nell],0,1), 'beta' : paramiter[:,3*Nell], 'temp' : 1/paramiter[:,3*Nell+1], 'A_s': np.swapaxes(paramiter[:,Nell:2*Nell],0,1), 'beta_s': paramiter[:,3*Nell+2],'A_sd' : np.swapaxes(paramiter[:,2*Nell:3*Nell],0,1), 'r':paramiter[:,3*Nell+3], 'X2red': chi2}
         elif kw=='ds_o1bt':
-            results={'A' : np.swapaxes(paramiter[:,:Nell],0,1), 'beta' : paramiter[:,3*Nell], 'temp' : 1/paramiter[:,3*Nell+1], 'A_s':np.swapaxes(paramiter[:,Nell:2*Nell],0,1) , 'beta_s':paramiter[:,3*Nell+2], 'A_sd':np.swapaxes(paramiter[:,2*Nell:3*Nell],0,1), 'Aw1b' : paramiter[:,3*Nell+4], 'w1bw1b' : paramiter[:,3*Nell+5],'Aw1t' : paramiter[:,3*Nell+6],'w1bw1t' : paramiter[:,3*Nell+7],'w1tw1t' : paramiter[:,3*Nell+8],'Asw1b' : paramiter[:,3*Nell+9],'Asw1t' : paramiter[:,3*Nell+10],'r' : paramiter[:,3*Nell+3], 'X2red': chi2}
+            results_o0=        {'A' : np.swapaxes(paramiter[:,:Nell],0,1), 'beta' : paramiter[:,3*Nell], 'temp' : 1/paramiter[:,3*Nell+1], 'A_s':np.swapaxes(paramiter[:,Nell:2*Nell],0,1) , 'beta_s':paramiter[:,3*Nell+2], 'A_sd':np.swapaxes(paramiter[:,2*Nell:3*Nell],0,1)}
+            results_mom =   {'Aw1b' : paramiter[:,3*Nell+4], 'w1bw1b' : paramiter[:,3*Nell+5],'Aw1t' : paramiter[:,3*Nell+6],'w1bw1t' : paramiter[:,3*Nell+7],'w1tw1t' : paramiter[:,3*Nell+8],'Asw1b' : paramiter[:,3*Nell+9],'Asw1t' : paramiter[:,3*Nell+10]}
+            results_mom_pl= {'alpha_Aw1b' : paramiter[:,3*Nell+11], 'alpha_w1bw1b' : paramiter[:,3*Nell+12],'alpha_Aw1t' : paramiter[:,3*Nell+13],'alpha_w1bw1t' : paramiter[:,3*Nell+14],'alpha_w1tw1t' : paramiter[:,3*Nell+15],'alpha_Asw1b' : paramiter[:,3*Nell+16],'alpha_Asw1t' : paramiter[:,3*Nell+17],'r' : paramiter[:,3*Nell+3], 'X2red': chi2}
+            results = {**results,**results_mom,**results_mom_pl}
         elif kw=='ds_o1bts':
-            results={'A' : np.swapaxes(paramiter[:,:Nell],0,1), 'beta' : paramiter[:,3*Nell], 'temp' : 1/paramiter[:,3*Nell+1], 'A_s':np.swapaxes(paramiter[:,Nell:2*Nell],0,1) , 'beta_s':paramiter[:,3*Nell+2], 'A_sd':np.swapaxes(paramiter[:,2*Nell:3*Nell],0,1), 'Aw1b' : paramiter[:,3*Nell+4], 'w1bw1b' : paramiter[:,3*Nell+4],'Aw1t' : paramiter[:,3*Nell+6],'w1bw1t' : paramiter[:,3*Nell+7],'w1tw1t' : paramiter[:,3*Nell+8],'Asw1bs' : paramiter[:,3*Nell+9],'w1bsw1bs' : paramiter[:,3*Nell+10],'Asw1b' : paramiter[:,3*Nell+11],'Asw1t' : paramiter[:,3*Nell+12],'Adw1s' : paramiter[:,3*Nell+13],'w1bw1s' : paramiter[:,3*Nell+14],'w1sw1T' : paramiter[:,3*Nell+15],'r' : paramiter[:,3*Nell+3], 'X2red': chi2}
+            results_o0 ={'A' : np.swapaxes(paramiter[:,:Nell],0,1), 'beta' : paramiter[:,3*Nell], 'temp' : 1/paramiter[:,3*Nell+1], 'A_s':np.swapaxes(paramiter[:,Nell:2*Nell],0,1) , 'beta_s':paramiter[:,3*Nell+2], 'A_sd':np.swapaxes(paramiter[:,2*Nell:3*Nell],0,1)}
+            results_mom={'Aw1b' : paramiter[:,3*Nell+4], 'w1bw1b' : paramiter[:,3*Nell+4],'Aw1t' : paramiter[:,3*Nell+6],'w1bw1t' : paramiter[:,3*Nell+7],'w1tw1t' : paramiter[:,3*Nell+8],'Asw1bs' : paramiter[:,3*Nell+9],'w1bsw1bs' : paramiter[:,3*Nell+10],'Asw1b' : paramiter[:,3*Nell+11],'Asw1t' : paramiter[:,3*Nell+12],'Adw1s' : paramiter[:,3*Nell+13],'w1bw1s' : paramiter[:,3*Nell+14],'w1sw1T' : paramiter[:,3*Nell+15],'r' : paramiter[:,3*Nell+3], 'X2red': chi2}
+            results_mom_pl = {}
+            results = {**results,**results_mom,**results_mom_pl}
         else:
             print('unexisting keyword')
 
     #save and plot results
     
     np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),results)
-    b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
-    l = b.get_effective_ells()
     plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
     if all_ell==True:
         plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))

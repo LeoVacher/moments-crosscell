@@ -171,7 +171,15 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
         plt.show()
 
 def plothist(label,res,colors='darkblue',r=0):
-    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
+    
+    #legends:
+    nameo0={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
+    namemom={'Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
+    keyspl=['alpha_'+s for s in list(namemom.keys())]
+    valuespl=[s.replace('mathcal{D}_\\ell','alpha') for s in list(namemom.values())]
+    namepl=dict(zip(keyspl, valuespl))
+    name = {**nameo0,**namemom,**namepl}
+
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
     seaborn.histplot(res[label],stat="probability",kde=True,ax=ax,color=colors)
     plt.text(0.95, 0.95, name[label]+r"$=%s\pm%s$"%(np.round(np.mean(res[label]),6), np.round(np.std(res[label]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
