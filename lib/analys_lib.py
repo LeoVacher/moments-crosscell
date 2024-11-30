@@ -103,7 +103,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     #ell array
     b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
     l = b.get_effective_ells()
-
+    l=l[:Nell]
     #update keyword for load and save:
     kwf=kw+'_fix%s'%fix
     if all_ell==True:
@@ -225,7 +225,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
         for n in tqdm(range(Nmin,Nmax)):
             # first o1 fit, dust fixed, mom free, r fixed
-            fa = {'x1':nu_i, 'x2':nu_j, 'y':DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'ell':l}
+            fa = {'x1':nu_i, 'x2':nu_j, 'y':DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'ell':np.repeat(l,ncross),'Nell':Nell}
             m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiter[n]= m.params
             chi2[n]=m.fnorm/m.dof            
