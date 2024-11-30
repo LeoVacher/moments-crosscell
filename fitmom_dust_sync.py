@@ -25,12 +25,12 @@ Nlbin = 10
 fsky = 0.8
 ELLBOUND = 15
 dusttype = 1
-synctype = 1
+synctype = 0
 kw=''
 Pathload='./'
-all_ell=False #all ell or each ell independently
+all_ell=True #all ell or each ell independently
 fix= 1 #fix beta and T ?
-adaptative=True
+adaptative=False
 
 # Call C_ell of simulation
 
@@ -66,13 +66,13 @@ nucross = np.array(nucross)
 #compute Cholesky matrix:
 
 if all_ell==True:
-    Linvdc=an.getLinv_all_ell(DLdc,printdiag=True)
+    Linvdc=an.getLinv_all_ell(DLdc[:,:,:ELLBOUND],printdiag=True)
 else:
-    Linvdc=an.getLinvdiag(DLdc,printdiag=True)
+    Linvdc=an.getLinvdiag(DLdc[:,:,:ELLBOUND],printdiag=True)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 N=50
-DLdc=DLdc[:N,:,:ELLBOUND]
+DLdc=DLdc[:N]
 
 # fit MBB and PL, get results, save and plot
 

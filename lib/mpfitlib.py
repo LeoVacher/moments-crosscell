@@ -106,11 +106,12 @@ def func_ds_o0_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353
     ellim=3*Nell-1
     nu_i=x1
     nu_j=x2
-    mbb = np.repeat(p[:Nell],253)*func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
-    sync = np.repeat(p[Nell:2*Nell],253)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
-    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),253)
+    Ncross=len(nu_i)/Nell
+    mbb = np.repeat(p[:Nell],Ncross)*func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
+    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
+    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = np.repeat(p[2*Nell:3*Nell],253)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
+    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
     model = mbb + sync + crossdustsync + DL_lensbin + p[ellim+4] * DL_tens
     status = 0
     return([status, np.dot(np.transpose(y-model), err)])
@@ -120,17 +121,18 @@ def func_ds_o1bt_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=3
     nu_i=x1
     nu_j=x2
     ellim=3*Nell-1
-    ampl = np.repeat(p[:Nell],253)*func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
-    sync = np.repeat(p[Nell:2*Nell],253)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
-    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),253)
+    Ncross=len(nu_i)/Nell
+    ampl = func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
+    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
+    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = np.repeat(p[2*Nell:3*Nell],253)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
+    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
     lognui = np.log(nu_i/nuref)
     lognuj = np.log(nu_j/nuref)
     dx0 = func.dmbb_bT(nuref,p[ellim+2])
     dxi = func.dmbb_bT(nu_i,p[ellim+2])
     dxj = func.dmbb_bT(nu_j,p[ellim+2])
-    temp = ampl*(1+ (lognui+lognuj) * p[ellim+5]+ lognui*lognuj * p[ellim+6])
+    temp = ampl*(np.repeat(p[:Nell],Ncross)+ (lognui+lognuj) * p[ellim+5]+ lognui*lognuj * p[ellim+6])
     temp2= ampl*((dxi+dxj-2*dx0)*p[ellim+7]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[ellim+8]+(dxi-dx0)*(dxj-dx0)*p[ellim+9])
     crossdustsync2 = p[ellim+10]*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*lognuj)
     crossdustsync3 = p[ellim+11]*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*(dxj-dx0))
@@ -142,11 +144,12 @@ def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=
     nu_i=x1
     nu_j=x2
     ellim=3*Nell-1
+    Ncross=len(nu_i)/Nell
     ampl = func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
-    sync = np.repeat(p[Nell:2*Nell],253)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
-    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),253)
+    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs)
+    normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = np.repeat(p[2*Nell:3*Nell],253)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
+    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
     lognui =  np.log(nu_i/nuref)
     lognuj =  np.log(nu_j/nuref)
     lognuis = np.log(nu_i/nurefs)
@@ -154,7 +157,7 @@ def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=
     dx0 = func.dmbb_bT(nuref,p[ellim+2])
     dxi = func.dmbb_bT(nu_i,p[ellim+2])
     dxj = func.dmbb_bT(nu_j,p[ellim+2])
-    temp = ampl*(np.repeat(p[:Nell],253)+ (lognui+lognuj) * p[ellim+5]+ lognui*lognuj * p[ellim+6])
+    temp = ampl*(np.repeat(p[:Nell],Ncross)+ (lognui+lognuj) * p[ellim+5]+ lognui*lognuj * p[ellim+6])
     temp2= ampl*((dxi+dxj-2*dx0)*p[ellim+7]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[ellim+8]+(dxi-dx0)*(dxj-dx0)*p[ellim+9])
     crossdustsync2 = normcorr*p[ellim+10]*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*lognuj)
     crossdustsync3 = normcorr*p[ellim+11]*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*(dxj-dx0))
