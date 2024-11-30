@@ -72,7 +72,7 @@ else:
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 N=50
-DLdc=DLdc[:N]
+DLdc=DLdc[:N,:,:ELLBOUND]
 
 # fit MBB and PL, get results, save and plot
 
