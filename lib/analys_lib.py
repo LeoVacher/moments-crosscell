@@ -62,9 +62,25 @@ def getLinv_all_ell(DL,printdiag=False,offset=0,Ncrdiag=0):
     Linvdc = np.linalg.cholesky(invcovtot)
     return Linvdc
 
+def adaptafix(arr):
+    """
+    Return 1 if the moments are not detected and 0 if the moments are detected.
+    Is used to chose if the moments should be fixed or fitted in the adaptative framework.
+    :param arr: array or list of size N (number of sims) containing all the best-fit values for a moment coefficient.
+    """
+    med= np.median(arr)
+    mad = scipy.stats.median_abs_deviation(arr)
+    a= med+mad
+    b= med-mad
+    x=(a < 0 < b) or (b < 0 < a)
+    if x==True:
+        return 1
+    else: 
+        return 0
+
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,kwsave=""):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave=""):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -73,13 +89,23 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param Linv: inverse of the Cholesky matrix
     :param quiet: display output of the fit for debugging
     :param: parallel, if true use mpi to parallelise the computation on number of simulations.
+    :param nside: nside of the simulations
+    :param Nlbin: binning of the spectra
+    :param fix: fix or fit the spectral parameters. fix=0 fit them, fix=1 keep them fixed to the values contained in p0.
+    :param all_ell: fit each multipole independently (False) or perform a single (longer) fit over all the multipole range (True).
+    :param adaptive: if True use the results of a previous run to fit only the detected moments. 
+    :param kwsave: keyword to save the results in the folder "Best-fits".
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
     nparam = len(p0)
 
-    # get cmb spectra:
+    #update keyword for load and save:
+    kwf=kw+'_fix%s'%fix
+    if all_ell==True:
+        kwf=kwf+"_all_ell"
 
+    # get cmb spectra:
     DL_lensbin, DL_tens= mpl.getDL_cmb(nside=nside,Nlbin=Nlbin)
 
     #get frequencies:
@@ -90,7 +116,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     freq_pairs = np.array([(i, j) for i in range(nnus) for j in range(i, nnus)])
     nu_i = nu[freq_pairs[:, 0]]
     nu_j = nu[freq_pairs[:, 1]]
-    
+
+    #select function to fit:
+    funcfit= eval('mpl.func_'+kw)
+     
     if all_ell==True:
         #put arrays in NcrossxNell shape for all-ell fit
         nu_i = np.tile(nu_i, Nell)
@@ -105,17 +134,23 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         #initialize parameters and chi2:
         paramiterl=np.zeros((Nell,N,nparam))
         chi2l=np.zeros((Nell,N))
-    
-        #select function to fit:
-        funcfit= eval('mpl.func_'+kw)
 
-        #set initial values:
+        #set initial values:   
         parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
         parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
         parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
         parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
         parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
         parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
+        parinfopl = np.array([parinfopl for i in range(Nell)])
+        if adaptative==True:
+            res0=np.load('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
+            keys= res0.keys()
+            #kwf=kwf+'_adaptive'
+            for k in range(6,len(res0.keys())-2):
+                for L in range(Nell):
+                    fixmom=adaptafix(res0[list(keys)[k]][L])
+                    parinfopl[L][k]= {'value':0, 'fixed':fixmom}
         #for parallel:
         if parallel==True:
             comm = MPI.COMM_WORLD
@@ -134,7 +169,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             for L in range(Nell):
                 # first o1 fit, dust fixed, mom free, r fixed
                 fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens}
-                m = mpfit(funcfit,parinfo= parinfopl ,functkw=fa,quiet=quiet)
+                m = mpfit(funcfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                 paramiterl[L,n]= m.params
                 chi2l[L,n]=m.fnorm/m.dof            
         
@@ -148,6 +183,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             results={'A' : paramiterl[:,:,0], 'beta' : paramiterl[:,:,1], 'temp' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1bs' : paramiterl[:,:,11],'w1bsw1bs' : paramiterl[:,:,12],'Asw1b' : paramiterl[:,:,13],'Asw1t' : paramiterl[:,:,14],'Adw1s' : paramiterl[:,:,15],'w1bw1s' : paramiterl[:,:,16],'w1sw1T' : paramiterl[:,:,17],'r' : paramiterl[:,:,18], 'X2red': chi2l}
         else:
             print('unexisting keyword')
+
     if all_ell==True:
         funcfit= eval('mpl.func_'+kw+'_all_ell')
 
@@ -199,18 +235,13 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             print('unexisting keyword')
 
     #save and plot results
-
-    kw=kw+'_fix%s'%fix
-    if all_ell==True:
-        kw=kw+"_all_ell"
     
-    np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kw),results)
+    np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),results)
     b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
     l = b.get_effective_ells()
-    plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kw)],['darkorange'])
+    plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
     if all_ell==True:
-        plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kw))
+        plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
     else:
-        plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kw))
+        plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
     return results
-
