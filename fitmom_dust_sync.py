@@ -31,7 +31,13 @@ Pathload='./'
 all_ell=True #all ell or each ell independently
 fix= 1 #fix beta and T ?
 adaptative=False
-N=50
+N=500
+parallel=False
+
+if parallel==True:
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+
 
 # Call C_ell of simulation
 
