@@ -31,6 +31,7 @@ Pathload='./'
 all_ell=True #all ell or each ell independently
 fix= 1 #fix beta and T ?
 adaptative=False
+N=50
 
 # Call C_ell of simulation
 
@@ -71,7 +72,6 @@ else:
     Linvdc=an.getLinvdiag(DLdc[:,:,:ELLBOUND],printdiag=True)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
-N=50
 DLdc=DLdc[:N,:,:ELLBOUND]
 
 # fit MBB and PL, get results, save and plot
@@ -82,7 +82,7 @@ DLdc=DLdc[:N,:,:ELLBOUND]
 # fit order 1 in beta and T, get results, save and plot
 
 p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=False,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
