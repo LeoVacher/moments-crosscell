@@ -9,6 +9,7 @@ import mpi4py
 from mpi4py import MPI
 import plotlib as plib
 import pymaster as nmt 
+import pathlib
 
 #contains all function for data analysis: matrix computations and moment fitting.
 
@@ -108,6 +109,12 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     kwf=kw+'_fix%s'%fix
     if all_ell==True:
         kwf=kwf+"_all_ell"
+    if adaptative==True:
+        kwf=kwf+'_adaptive'
+
+    #create folder for parallel    
+    if parallel==True:
+        pathlib.Path('./Best-fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
     DL_lensbin, DL_tens= mpl.getDL_cmb(nside=nside,Nlbin=Nlbin)
@@ -150,7 +157,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         if adaptative==True:
             res0=np.load('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
-            kwf=kwf+'_adaptive'
             for k in range(6,len(res0.keys())-2):
                 for L in range(Nell):
                     fixmom=adaptafix(res0[list(keys)[k]][L])
@@ -249,10 +255,13 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #save and plot results
     
-    np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),results)
-    plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
-    if all_ell==True:
-        plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
+    if parallel==True:
+        np.save('Best-fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
     else:
-        plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
+        np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),results)
+        plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
+        if all_ell==True:
+            plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
+        else:
+            plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
     return results
