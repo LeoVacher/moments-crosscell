@@ -72,7 +72,7 @@ nucross = np.array(nucross)
 
 #compute Cholesky matrix:
 
-Ncov=np.argwhere(DLcross == 0)[0,0]-1
+Ncov=np.argwhere(DLdc == 0)[0,0]-1
 if all_ell==True:
     Linvdc=an.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
 else:
