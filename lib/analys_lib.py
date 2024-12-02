@@ -208,7 +208,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl.append({'value':p0[5], 'fixed':0}) #r 
         if kw=='ds_o1bt':
             [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments and power-law indices 
-            [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #power-law indices 
+            [parinfopl.append({'value':-0.5,'fixed':0,'limited':[1,1],'limits':[-4,0.1]}) for i in range(7)] #power-law indices 
         elif kw=='ds_o1bts':
             [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #moments and power-law indices 
             [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #power-law indices 
