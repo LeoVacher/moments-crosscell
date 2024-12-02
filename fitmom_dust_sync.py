@@ -24,7 +24,7 @@ scale = 10
 Nlbin = 10
 fsky = 0.8
 ELLBOUND = 15
-dusttype = 0
+dusttype = 1
 synctype = 0
 kw=''
 Pathload='./'
@@ -72,7 +72,11 @@ nucross = np.array(nucross)
 
 #compute Cholesky matrix:
 
-Ncov=np.argwhere(DLdc == 0)[0,0]-1
+if np.shape(np.argwhere(DLdc == 0))[0] == 0:
+    Ncov=len(DLdc)
+else:
+    Ncov=np.argwhere(DLdc == 0)[0,0]-1
+
 if all_ell==True:
     Linvdc=an.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
 else:
