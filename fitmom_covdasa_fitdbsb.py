@@ -73,6 +73,11 @@ DLdc=DLdc[:N,:,:Nell]
 #compute Cholesky matrix:
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+if np.shape(np.argwhere(DLdc == 0))[0] == 0:
+    Ncov=len(DL_cov)
+else:
+    Ncov=np.argwhere(DL_cov == 0)[0,0]-1
+DL_cov=DL_cov[:Ncov]
 if all_ell==True:
     Linvdc=an.getLinv_all_ell(DL_cov,printdiag=True)
 else:

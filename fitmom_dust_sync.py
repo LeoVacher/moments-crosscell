@@ -38,7 +38,6 @@ if parallel==True:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-
 # Call C_ell of simulation
 
 if synctype==None:
