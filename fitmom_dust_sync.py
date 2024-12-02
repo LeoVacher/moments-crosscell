@@ -24,14 +24,14 @@ scale = 10
 Nlbin = 10
 fsky = 0.8
 ELLBOUND = 15
-dusttype = 1
+dusttype = 0
 synctype = 0
 kw=''
 Pathload='./'
 all_ell=True #all ell or each ell independently
 fix= 1 #fix beta and T ?
 adaptative=False
-N=500
+N=100
 parallel=False
 
 if parallel==True:
@@ -72,10 +72,11 @@ nucross = np.array(nucross)
 
 #compute Cholesky matrix:
 
+Ncov=np.argwhere(DLcross == 0)[0,0]-1
 if all_ell==True:
-    Linvdc=an.getLinv_all_ell(DLdc[:,:,:ELLBOUND],printdiag=True)
+    Linvdc=an.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
 else:
-    Linvdc=an.getLinvdiag(DLdc[:,:,:ELLBOUND],printdiag=True)
+    Linvdc=an.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc=DLdc[:N,:,:ELLBOUND]
