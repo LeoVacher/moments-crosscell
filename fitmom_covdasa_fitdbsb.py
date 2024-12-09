@@ -25,8 +25,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype_fit = 'b'
-synctype_fit = 'b'
+dusttype_fit = 1
+synctype_fit = 0
 dusttype_cov = 0
 synctype_cov = 0
 all_ell=False 
@@ -73,7 +73,7 @@ DLdc=DLdc[:N,:,:Nell]
 #compute Cholesky matrix:
 
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
-if np.shape(np.argwhere(DLdc == 0))[0] == 0:
+if np.shape(np.argwhere(DL_cov == 0))[0] == 0:
     Ncov=len(DL_cov)
 else:
     Ncov=np.argwhere(DL_cov == 0)[0,0]-1
