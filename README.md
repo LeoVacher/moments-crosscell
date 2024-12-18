@@ -10,6 +10,8 @@ The present folder contains the codes applied to the *[LiteBIRD](https://academi
 
 ## How to use
 
+Moments and r can be fitted by running the "fitmom_dust_sync.py" file. More documentation will be deployed soon.
+
 ## Dependencies
 
 Dependencies required: Original simulations were made using [Healpy](https://healpy.readthedocs.io/en/latest/) for map based computations, foreground models were created with [Pysm](https://github.com/galsci/pysm) while the CMB angular power-spectra were generated with [CAMB](https://camb.info/). In the present module, the instrument is called through the [fgbuster](https://github.com/fgbuster/fgbuster) class. Cross-$\mathcal{C}_{\ell}$ are computed using [Namaster](https://github.com/LSSTDESC/NaMaster). Moment coefficients are fited using [mpfit](https://github.com/segasai/astrolibpy/blob/master/mpfit/mpfit.py).
