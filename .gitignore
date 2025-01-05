@@ -315,3 +315,6 @@ TSWLatexianTemp*
 *.glstex
 
 # End of https://www.toptal.com/developers/gitignore/api/latex
+masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
+*.pyc
+*.pyc
