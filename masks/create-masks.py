@@ -19,7 +19,7 @@ import simu_lib as sim
 import pysm3.units as u
 import urllib.request
 
-fsky=0.7
+fsky=0.8
 scale=10
 nside=16
 
