@@ -108,7 +108,7 @@ for i in range(0,N_freqs):
         DL_cross_noise[z]= fact_Dl*4*np.pi*sigpix[i]*sigpix[j]/Npix*DL_cross_noise[z]
         z=z+1
 
-#compute Cholesky matrix of the inverse covariance using appropriate functions:
+#compute and save Cholesky matrix of the inverse covariance using appropriate functions:
 
 Linv_an= cvl.compute_analytical_cov(None,DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox-fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
 #Linv_sg=cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='signal',ell=leff,Nlbin=10,mask=mask,Linv=True)

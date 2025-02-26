@@ -49,5 +49,8 @@ c1='darkblue'
 c2='darkorange'
 c3='forestgreen'
 
-#plotrespdf(l,[res1],[legs1],[c1])
-plotrespdf(l,[res1,res2,res3],[legs1,legs2,legs3],[c1,c2,c3])
+reslist= [res1,res2,res3]
+leglist= [legs1,legs2,legs3]
+collist= [c1,c2,c3]
+
+plotrespdf(l,reslist,leglist,collist)

@@ -72,7 +72,7 @@ def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=
     if show==True:
         plt.show()
  
-def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False,ax=None,alpha=1):
     """
     Fit a Gaussian curve for r(ell) in each bin of ell and plot the product of all of them as a final result
     :param results: output of moment fitting
@@ -84,6 +84,9 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     rl = results['r']
     Nell,N = rl.shape
     K_r = int(2*N**(0.33))
+    
+    #fit mean and std in each bin of ell
+
     moytemp=[]
     sigtemp=[]
     for ell in range(Nmin,Nmax):
@@ -112,9 +115,10 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     moy = np.array(moytemp)
     sig = np.array(sigtemp)
 
+    #compute gaussian product and fit gauss curve
+
     x = np.linspace(-1,1,10000)
     intervall = 0.014
-    fig,ax = plt.subplots(1,1, figsize=(10,7))
     gausstot = 1
     for i in range(Nmax-Nmin):
         gausstot = gausstot*func.Gaussian(x,moy[i],sig[i])
@@ -130,10 +134,12 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     if m.params[1]>0.01:
                 fa = {'x':x, 'y':gausstot/Norm, 'err': 1000/(np.sqrt(gausstot/Norm))}
                 m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
-    ax.plot(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(m.params[0],5),np.round(m.params[1],5)))
-    ax.fill_between(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),color=color,alpha=0.2,linewidth=5)
-    ax.fill_between(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),facecolor="none",edgecolor=color,linewidth=5)
-    #ax.errorbar(x1_cond,y1_cond/ysum_cond/coeffunit,xerr=0,yerr=1/(np.sqrt(y1_cond)*ysum_cond)/coeffunit,fmt='^',color=c[i],ecolor=c[i],zorder=300001,label='$%s \\pm %s$'%(m.params[0],m.params[1]))
+    
+    #plot
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 7))
+
+    ax.plot(x,(func.Gaussian(x,m.params[0],m.params[1])/coeffunit)/np.max(func.Gaussian(x,m.params[0],m.params[1])/coeffunit),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(m.params[0],5),np.round(m.params[1],5)),alpha=alpha)
     ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
     ax.plot(x, np.zeros(len(x)), color = 'black', linewidth=5,linestyle='--',zorder=10000000)
     ax.set_xlim([r-intervall,r+intervall])
@@ -188,73 +194,66 @@ def plothist(label,res,colors='darkblue',r=0):
         print(1)
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
-def plotrespdf(l,res,legs,colors):
-    """
-    return a pdf with all the quantities of interest
-    :l: bandpower array
-    :res: list of all the results to plot
-    :legs: list of all legends 
-    :colors: list of all colors
-    """
-    namesave=''
-    if len(legs)==1:
-        namesave += legs[0]
-    if len(legs)>1:
-        for i in range(len(legs)):
-            namesave += legs[i] +'-vs-'
-    pdf = matplotlib.backends.backend_pdf.PdfPages("./pdf_plots/%s.pdf"%(namesave))
 
-    if len(res)==1:
-        common_keys = res[0].keys()
-        unique_keys=[]
-    if len(res)==2:
-        common_keys = res[0].keys() & res[1].keys()
-        unique_keys = res[0].keys() ^ res[1].keys()
-    if len(res)==3:
-        common_keys = res[0].keys() & res[1].keys() & res[2].keys()
-        unique_keys = res[0].keys() ^ res[1].keys() ^ res[2].keys()
-
+def plotrespdf(l, res, legs, colors):
+    """
+    Generate a PDF with plots for all quantities of interest.
+    :param l: Bandpower array
+    :param res: List of all result dictionaries to plot
+    :param legs: List of legends
+    :param colors: List of colors
+    """
+    # Construct file name
+    namesave = "-vs-".join(legs) if len(legs) > 1 else legs[0]
+    pdf = matplotlib.backends.backend_pdf.PdfPages(f"./pdf_plots/{namesave}.pdf")
+    
+    # Determine common and unique keys across all dictionaries
+    all_keys = [set(resi.keys()) for resi in res]
+    common_keys = set.intersection(*all_keys)
+    unique_keys = set.union(*all_keys) - common_keys
+    
+    # Check if all dictionaries have only common keys
+    only_common_keys = all(len(resi.keys() - common_keys) == 0 for resi in res)
+    
+    # Plot common keys
     for k in common_keys:
-        plt.figure(figsize=(10,7))
-        for i in range(len(res)):
-            if len(res[i][k].shape)==1:
-                plothist(k,res[i])
-                pdf.savefig()
-            else:
-                plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
-                if k =='A':
-                    plt.loglog()
-                elif k =='A_s':
-                    plt.loglog()
-                elif k=='X2red':
-                    plt.plot(l,np.ones(len(l)),c='k',linestyle='--')
-                elif k=='r':
-                    plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-                elif k=='beta_s':
-                    plt.plot(l,-3*np.ones(len(l)),c='k',linestyle='--')
-                elif k=='temp':
-                    plt.plot(l,20*np.ones(len(l)),c='k',linestyle='--')
-                elif k=='beta':
-                    plt.plot(l,1.54*np.ones(len(l)),c='k',linestyle='--')
+        plt.figure(figsize=(10, 7))
+        if only_common_keys:
+            for i, resi in enumerate(res):
+                plotmed(l+i, k, resi, show=False, color=colors[i], legend=legs[i])
+        else:
+            for i, resi in enumerate(res):
+                if resi[k].ndim == 1:
+                    plothist(k, r)
                 else:
-                    plt.plot(l,np.zeros(len(l)),c='k',linestyle='--')
-                pdf.savefig()
-
-    for i in range(len(res)):
+                    plotmed(l + i, k, r, show=False, color=colors[i], legend=legs[i])
+        
+        if k in {'A', 'A_s'}:
+            plt.loglog()
+        elif k in {'X2red', 'r', 'beta_s', 'temp', 'beta'}:
+            ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3, 'temp': 20, 'beta': 1.54}
+            plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
+        else:
+            plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
+        
+        pdf.savefig()
+    
+    # Plot unique keys
+    for i, resi in enumerate(res):
         for k in unique_keys:
-            if k in res[i]:
-                if len(res[i][k].shape)==1:
-                    plothist(k,res[i])
-                    pdf.savefig()
+            if k in r:
+                plt.figure(figsize=(10, 7))
+                if resi[k].ndim == 1:
+                    plothist(k, r)
                 else:
-                    plt.figure(figsize=(10,7))
-                    plotmed(l+i,k,res[i],show=False,color=colors[i],legend=legs[i])        
-                    pdf.savefig()
-    for i in range(len(res)):
-        if len(res[i]['r'].shape)!=1:
-            plotr_gaussproduct(res[i],color=colors[i],show=False,Nmax=len(l))
-            pdf.savefig()
-            plotr_gaussproduct_analytical(res[i],color=colors[i],show=False,Nmax=len(l))
-            pdf.savefig()
+                    plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
+                pdf.savefig()
+    
+    # Plot additional Gaussian product analyses if applicable
+    fig, ax = plt.subplots(figsize=(10, 7))  
+    for i, resi in enumerate(res):
+        if 'r' in resi and resi['r'].ndim != 1:
+            plotr_gaussproduct(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
+    pdf.savefig()
     pdf.close()
 
