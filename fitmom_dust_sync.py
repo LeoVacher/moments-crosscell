@@ -20,19 +20,20 @@ lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 10
-fsky = 0.8
+fsky = 0.7
 ELLBOUND = 15
 dusttype = 0
 synctype = 0
 Pathload='./'
 all_ell=False #all ell or each ell independently
-fix= 1 #fix beta and T ?
+fix= 0 #fix beta and T ?
 adaptative=False
 N=500
 parallel=False
-cov_type='Knox-fg' #choices: sim, Knox-fg, Knox+fg, signal.
+cov_type='sim' #choices: sim, Knox-fg, Knox+fg, signal.
+kw=''
 if cov_type!='sim':
-    kw='_%s'%cov_type
+    kw+='_%s'%cov_type
 
 if parallel==True:
     comm = MPI.COMM_WORLD
@@ -80,12 +81,12 @@ if all_ell==True:
     if cov_type=='sim':
         Linvdc= cvl.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
     else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_all_ell.npy"%(covtype,nside,fsky,scale,Nlbin,dusttype))
+        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
 else:
     if cov_type=='sim':
         Linvdc= cvl.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
     else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(covtype,nside,fsky,scale,Nlbin,dusttype))
+        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc=DLdc[:N,:,:ELLBOUND]
@@ -97,8 +98,8 @@ results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside
 
 # fit order 1 in beta and T, get results, save and plot
 
-p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
+#p0=[100, 1.54, 20, 10, -3,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+#results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 

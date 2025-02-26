@@ -37,14 +37,17 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_altnorm_fix1.npy'%(1,0),allow_pickle=True).item()
-res2=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_fix1.npy'%(1,0),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o0_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o0_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
+res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_o0_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-legs1= 'd1s0_altnorm'
-legs2= 'd1s0'
+legs1= 'sims'
+legs2= 'Knox-fg'
+legs3= 'Knox+fg'
 
 c1='darkblue'
 c2='darkorange'
+c3='forestgreen'
 
 #plotrespdf(l,[res1],[legs1],[c1])
-plotrespdf(l,[res1,res2],[legs1,legs2],[c1,c2])
+plotrespdf(l,[res1,res2,res3],[legs1,legs2,legs3],[c1,c2,c3])
