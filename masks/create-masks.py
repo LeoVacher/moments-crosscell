@@ -19,9 +19,9 @@ import simu_lib as sim
 import pysm3.units as u
 import urllib.request
 
-fsky=0.8
+fsky=0.7
 scale=10
-nside=16
+nside=32
 
 download = True
 if download:

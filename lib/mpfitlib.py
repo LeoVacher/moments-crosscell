@@ -15,8 +15,8 @@ def getDL_cmb(nside=64,Nlbin=10):
     l = b.get_effective_ells()
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
     CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
-    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,2:lmax+3])/2/np.pi
-    DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,2:lmax+3])/2/np.pi
+    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,:lmax+1])/2/np.pi
+    DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,:lmax+1])/2/np.pi
     return DL_lensbin, DL_tens
 
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
