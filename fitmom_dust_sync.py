@@ -7,14 +7,12 @@ import time
 from mpfit import mpfit
 import mpfitlib as mpl
 import scipy
-#from Nearest_Positive_Definite import *
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
 import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
-from plotlib import plotr_gaussproduct
-from plotlib import plotrespdf
+import covlib as cvl 
 
 r=0.
 nside = 64
@@ -24,15 +22,17 @@ scale = 10
 Nlbin = 10
 fsky = 0.8
 ELLBOUND = 15
-dusttype = 10
-synctype = 5
-kw=''
+dusttype = 0
+synctype = 0
 Pathload='./'
 all_ell=False #all ell or each ell independently
 fix= 1 #fix beta and T ?
 adaptative=False
-N=100
+N=500
 parallel=False
+cov_type='Knox-fg' #choices: sim, Knox-fg, Knox+fg, signal.
+if cov_type!='sim':
+    kw='_%s'%cov_type
 
 if parallel==True:
     comm = MPI.COMM_WORLD
@@ -77,9 +77,15 @@ else:
     Ncov=np.argwhere(DLdc == 0)[0,0]-1
 
 if all_ell==True:
-    Linvdc=an.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
+    if cov_type=='sim':
+        Linvdc= cvl.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
+    else:
+        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc_all_ell.npy"%(covtype,nside,fsky,scale,Nlbin,dusttype))
 else:
-    Linvdc=an.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
+    if cov_type=='sim':
+        Linvdc= cvl.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
+    else:
+        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(covtype,nside,fsky,scale,Nlbin,dusttype))
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc=DLdc[:N,:,:ELLBOUND]

@@ -11,57 +11,9 @@ import plotlib as plib
 import pymaster as nmt 
 import pathlib
 
-#contains all function for data analysis: matrix computations and moment fitting.
+#contains all function for moment fitting.
 
 #GENERAL #######################################################################################################################
-
-def getLinvdiag(DL,printdiag=False,offset=0):
-    """
-    Compute inverse of the covariance matrix used for the fit assuming it is block-diagonal in ell. 
-    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
-    :param print: if true, print the diagonal of cov.invcov to evaluate the quality of the inversion.
-    :return Linv: Cholesky matrix in the shape (Nell,ncross,ncross)
-    """
-    _,_,Nell = DL.shape
-    Linvdc = []
-    DLtempo = np.swapaxes(DL,0,1)
-    for L in range(Nell):
-        cov = np.cov(DLtempo[:,:,L])
-        invcov = np.linalg.inv(cov+offset*np.identity(len(cov)))
-        if printdiag==True:
-            print(np.diag(np.dot(cov,invcov)))
-        Linvdc.append(np.linalg.cholesky(invcov))
-    Linvdc = np.array(Linvdc)
-    return Linvdc
-
-def getLinv_all_ell(DL,printdiag=False,offset=0,Ncrdiag=0):
-    """
-    Compute inverse of the covariance matrix used for the fit assuming it is block-diagonal in ell. 
-    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
-    :param print: if true, print the diagonal of cov.invcov to evaluate the quality of the inversion.
-    :return Linv: Cholesky matrix in the shape (Nellxncross,Nellxncross)
-    """
-    N,Ncross,Nell = DL.shape
-    DLswap = np.swapaxes(DL,1,2)
-    DLflat = np.zeros([Nell*Ncross,N])
-    for i in range(N):
-        DLflat[:,i] = DLswap[i,:,:].flatten()
-    id = []
-    for L in range(Nell):
-        id.append(np.ones((Ncross,Ncross)))
-    ident = np.zeros((Nell*Ncross,Nell*Ncross))
-    for i in range(Nell):
-        ident[i*Ncross:Ncross*(i+1),i*Ncross:Ncross*(i+1)]=id[i]
-    for j in range(Ncrdiag):
-           ident[j*Ncross:Ncross*(j+1),(j+1)*Ncross:Ncross*(j+2)]=id[i]
-           ident[(j+1)*Ncross:Ncross*(j+2),j*Ncross:Ncross*(j+1)]=id[i]
-    covtot = np.cov(DLflat)
-    covtot = covtot*ident
-    invcovtot = np.linalg.inv(covtot)
-    if printdiag ==True:
-        print(np.diag(np.dot(invcovtot,covtot)))
-    Linvdc = np.linalg.cholesky(invcovtot)
-    return Linvdc
 
 def adaptafix(arr):
     """

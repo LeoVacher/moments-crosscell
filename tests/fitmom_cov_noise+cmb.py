@@ -15,6 +15,7 @@ import basicfunc as func
 import analys_lib as an
 from plotlib import plotr_gaussproduct
 import matplotlib.pyplot as plt 
+import covlib as cvl
 
 r=0.
 nside = 64
@@ -71,9 +72,9 @@ DLdc=DLdc[:N,:,:Nell]
 DL_cov = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c.npy"%(nside,fsky,scale,Nlbin))
 
 if all_ell==True:
-    Linvdc=an.getLinv_all_ell(DL_cov,printdiag=True)
+    Linvdc=cvl.getLinv_all_ell(DL_cov,printdiag=True)
 else:
-    Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
+    Linvdc=cvl.getLinvdiag(DL_cov,printdiag=True)
 
 # fit MBB, get results and save
 

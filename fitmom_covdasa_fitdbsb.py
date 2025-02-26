@@ -16,6 +16,7 @@ import analys_lib as an
 from plotlib import plotr_gaussproduct
 from plotlib import plotrespdf
 import matplotlib.pyplot as plt 
+import covlib as cvl
 
 r=0.
 nside = 64
@@ -79,9 +80,9 @@ else:
     Ncov=np.argwhere(DL_cov == 0)[0,0]-1
 DL_cov=DL_cov[:Ncov]
 if all_ell==True:
-    Linvdc=an.getLinv_all_ell(DL_cov,printdiag=True)
+    Linvdc=cvl.getLinv_all_ell(DL_cov,printdiag=True)
 else:
-    Linvdc=an.getLinvdiag(DL_cov,printdiag=True)
+    Linvdc=cvl.getLinvdiag(DL_cov,printdiag=True)
 
 # fit MBB and PL, get results, save and plot
 
