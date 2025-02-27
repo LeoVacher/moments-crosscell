@@ -232,7 +232,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None):
                 else:
                     plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
                     if mom_an != None and k in mom_an:
-                        plt.plot(l,mom_an[k][:len(l)],color=colors[i],linestyle="--",linewidth=3)
+                        plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
         
         if k in {'A', 'A_s'}:
             plt.loglog()

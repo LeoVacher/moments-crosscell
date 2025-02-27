@@ -107,7 +107,7 @@ def getmom(dusttype, syncrotype):
 
     Ad= get_dl_bb_mom(skyrefcpxd,skyrefcpxd)
     As= get_dl_bb_mom(skyrefcpxs,skyrefcpxs)
-    Asd=get_dl_bb_mom(skyrefcpxd,skyrefcpxs)
+    Asd=get_dl_bb_mom(skyrefcpxd,skyrefcpxs)/np.sqrt(Ad*As)
     w1bw1b = get_dl_bb_mom(mom1b,mom1b)
     Aw1b= get_dl_bb_mom(skyrefcpxd,mom1b)
     Asw1b= get_dl_bb_mom(skyrefcpxs,mom1b)
