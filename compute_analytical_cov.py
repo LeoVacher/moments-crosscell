@@ -44,8 +44,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 0
-synctype = 0
+dusttype = 1
+synctype = 1
 kw=''
  
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
@@ -67,7 +67,7 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 
 #signal
 
-DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+DLdc = np.load("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
 
 #cmb spectra:
 
@@ -118,5 +118,5 @@ Linv_an= cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLc
 #Linv_sg=cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='signal',ell=leff,Nlbin=10,mask=mask,Linv=True)
 Linv_anfg= cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox+fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
 
-np.save('./covariances/Linv_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)
-np.save('./covariances/Linv_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_anfg)
+np.save('./covariances/Linv_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)
+np.save('./covariances/Linv_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_anfg)
