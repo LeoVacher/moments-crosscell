@@ -1,6 +1,6 @@
 # $\mathcal{C}_{\ell}$ based moment expansion of polarized foregrounds SED.
 
-Component separation method fitting a moment expansion of the foreground SED on cross-frequencies angular power spectra (intensity, $E$- or $B$-modes) in order to recover an unbiased value of the tensor-to-scalar ratio $r$.
+Component separation method fitting a moment expansion of the foreground SED on cross-frequencies angular power spectra ($B$-modes) in order to recover an unbiased value of the tensor-to-scalar ratio $r$.
 
 ## About this work
 
