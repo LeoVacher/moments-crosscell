@@ -120,7 +120,7 @@ def getmom(dusttype, syncrotype):
     return [Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p]
 
 
-analytical_mom=np.array([getmom(dusttype[d], syncrotype[d])) for d in range(len(dusttype))])
+analytical_mom=np.array([getmom(dusttype[d], syncrotype[d]) for d in range(len(dusttype))])
 
 name=['A','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
 
