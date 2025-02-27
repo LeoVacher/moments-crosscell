@@ -37,9 +37,9 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
-res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o1bt_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
-res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_o1bt_fix0.npy'%(dusttype,synctype),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
+res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
 
 legs1= 'sims'
 legs2= 'Knox-fg'
