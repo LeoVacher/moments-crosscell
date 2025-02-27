@@ -49,8 +49,10 @@ c1='darkblue'
 c2='darkorange'
 c3='forestgreen'
 
+mom_an=np.load('./analytical_mom/analytical_mom_nside64_fsky0.7_scale10_Nlbin10_d%ss%s.npy'%(dusttype,synctype),allow_pickle=True).item()
+
 reslist= [res1,res2,res3]
 leglist= [legs1,legs2,legs3]
 collist= [c1,c2,c3]
 
-plotrespdf(l,reslist,leglist,collist)
+plotrespdf(l,reslist,leglist,collist,mom_an)

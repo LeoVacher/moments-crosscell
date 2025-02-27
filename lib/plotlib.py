@@ -197,7 +197,7 @@ def plothist(label,res,colors='darkblue',r=0):
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
 
-def plotrespdf(l, res, legs, colors):
+def plotrespdf(l, res, legs, colors,mom_an=None):
     """
     Generate a PDF with plots for all quantities of interest.
     :param l: Bandpower array
@@ -223,12 +223,16 @@ def plotrespdf(l, res, legs, colors):
         if only_common_keys:
             for i, resi in enumerate(res):
                 plotmed(l+i, k, resi, show=False, color=colors[i], legend=legs[i])
+            if mom_an != None and k in mom_an:
+                plt.plot(l,mom_an[k][:len(l)],color=colors[i],linestyle="--",linewidth=3)
         else:
             for i, resi in enumerate(res):
                 if resi[k].ndim == 1:
                     plothist(k, resi)
                 else:
                     plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
+                    if mom_an != None and k in mom_an:
+                        plt.plot(l,mom_an[k][:len(l)],color=colors[i],linestyle="--",linewidth=3)
         
         if k in {'A', 'A_s'}:
             plt.loglog()
@@ -249,6 +253,9 @@ def plotrespdf(l, res, legs, colors):
                     plothist(k, r)
                 else:
                     plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
+                    
+                    if mom_an != None and k in mom_an:
+                        plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
                 pdf.savefig()
     
     # Plot additional Gaussian product analyses if applicable
