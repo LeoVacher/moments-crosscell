@@ -226,9 +226,9 @@ def plotrespdf(l, res, legs, colors):
         else:
             for i, resi in enumerate(res):
                 if resi[k].ndim == 1:
-                    plothist(k, r)
+                    plothist(k, resi)
                 else:
-                    plotmed(l + i, k, r, show=False, color=colors[i], legend=legs[i])
+                    plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
         
         if k in {'A', 'A_s'}:
             plt.loglog()

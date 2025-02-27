@@ -203,7 +203,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             results_mom_pl = {}
             results = {**results_o0,**results_mom,**results_mom_pl}
         else:
-            print('unexisting keyword')
+            raise ValueError('unexisting keyword')
 
     #save and plot results
     
