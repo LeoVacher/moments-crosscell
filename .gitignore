@@ -318,3 +318,5 @@ TSWLatexianTemp*
 masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
 *.pyc
 *.pyc
+/notebook-plots
+/test-sim-cov
