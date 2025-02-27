@@ -52,6 +52,21 @@ def is_cholesky_possible(cov):
     except np.linalg.LinAlgError:
         return False 
 
+def nearest_PSD(cov):
+    """
+    Compute the nearest positive semi-definite matrix of a symmetric matrix
+    """
+    eigenvals, eigenvects = np.linalg.eig(cov)
+    eigenvals[eigenvals < 0] = 0
+
+    Q = eigenvects
+    D_plus = np.diag(eigenvals)
+
+    nPSD = Q @ D_plus @ Q.T
+    nPSD = (nPSD + nPSD.T) / 2
+
+    return nPSD
+
 #compute covariances:
 
 def getLinvdiag(DL,printdiag=False,offset=0):
@@ -244,14 +259,28 @@ def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_
     if Linv==True:
         Linv = np.zeros((Nell,Ncross,Ncross))
         for L in range(Nell):
-            offset_L=np.log10(np.mean(np.diag(covmat[L])))-15
-            while is_cholesky_possible(covmat[L])==False:
-                covmat[L]= covmat[L]+ 10**(offset_L)*np.identity(len(covmat[L]))
+            cov = np.copy(covmat[L])
+            mean_diag = np.mean(np.diag(cov))
+            offset_L=np.log10(mean_diag)-15
+            while is_cholesky_possible(cov)==False:
+                cov= cov+ 10**(offset_L)*np.identity(len(cov))
                 offset_L=offset_L+1
-                if offset_L >= np.log10(0.01*np.mean(np.diag(covmat[L]))):
-                    raise ValueError(f"Error : the diagonal is altered by more than 1% in the bin L={L}")
+
+                if offset_L >= np.log10(0.01 * mean_diag):
+                    cov = nearest_PSD(covmat[L])
+                    mean_diag = np.mean(np.diag(cov))
+                    offset_L = np.log10(mean_diag) - 15
+
+                    while is_cholesky_possible(cov) == False:
+                        cov += 10**(offset_L) * np.identity(len(cov))
+                        offset_L += 1
+
+                        if offset_L >= np.log10(0.01 * mean_diag):
+                            raise ValueError(f"Error: the diagonal is altered by more than 1% in the bin L={L}")
+
+            covmat[L] = cov
             invcov=np.linalg.inv(covmat[L])
-            Linv[L]= np.linalg.cholesky(invcov) 
+            Linv[L]= np.linalg.cholesky(invcov)
         return Linv
     else:
         return covmat
