@@ -127,7 +127,6 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
     """
     Nf= int((np.sqrt(1 + 8 * DLcross_fg.shape[0])-1)/2)
 
-    #Nunique = max_rep([A,B,C,D]) old version
     bands = np.array([A, B, C, D])
     counter = Counter(bands)
 
@@ -188,45 +187,6 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
             covmat = (DLAC * DLBD + DLAD * DLBC - DLcross_fg[poscrossAC] * DLcross_fg[poscrossBD] - DLcross_fg[poscrossAD] * DLcross_fg[poscrossBC]) / v_l
         else:
             covmat = (DLAC * DLBD + DLAD * DLBC) / v_l
-
-    # old version
-    '''elif Nunique == 2 and A != B and C != D:
-        if A==C:
-            DLAA = DL_cross_lens[poscrossAA] + DL_cross_noise[poscrossAA] +DLcross_fg[poscrossAA]
-            DLBD = DL_cross_lens[poscrossBD] + DLcross_fg[poscrossBD]
-            DLAB = DL_cross_lens[poscrossAB] + DLcross_fg[poscrossAB]
-            DLAD = DL_cross_lens[poscrossAD] + DLcross_fg[poscrossAD]
-            if corrfog==True:
-                covmat = (DLAA*DLBD+DLAB*DLAD - DLcross_fg[poscrossAA]*DLcross_fg[poscrossBD] -DLcross_fg[poscrossAB]*DLcross_fg[poscrossAD])/v_l
-            else:
-                covmat = (DLAA*DLBD+DLAB*DLAD)/v_l
-        elif B==C:
-            DLBB = DL_cross_lens[poscrossBB] + DL_cross_noise[poscrossBB] +DLcross_fg[poscrossBB]
-            DLBD = DL_cross_lens[poscrossBD] + DLcross_fg[poscrossBD]
-            DLAB = DL_cross_lens[poscrossAB] + DLcross_fg[poscrossAB]
-            DLAD = DL_cross_lens[poscrossAD] + DLcross_fg[poscrossAD]
-            if corrfog==True:
-                covmat = (DLAB*DLBD+DLAD*DLBB - DLcross_fg[poscrossAB]*DLcross_fg[poscrossBD] -DLcross_fg[poscrossAD]*DLcross_fg[poscrossBB])/v_l
-            else:
-                covmat = (DLAB*DLBD+DLAD*DLBB)/v_l
-        elif A==D:
-            DLAA = DL_cross_lens[poscrossAA] + DL_cross_noise[poscrossAA] +DLcross_fg[poscrossAA]
-            DLBC = DL_cross_lens[poscrossBC] + DLcross_fg[poscrossBC]
-            DLAB = DL_cross_lens[poscrossAB] + DLcross_fg[poscrossAB]
-            DLAC = DL_cross_lens[poscrossAC] + DLcross_fg[poscrossAC]
-            if corrfog==True:
-                covmat = (DLAA*DLBC+DLAB*DLAC - DLcross_fg[poscrossAA]*DLcross_fg[poscrossBC] -DLcross_fg[poscrossAB]*DLcross_fg[poscrossAC])/v_l
-            else:
-                covmat = (DLAA*DLBC+DLAB*DLAC)/v_l
-        elif B==D:
-            DLBB = DL_cross_lens[poscrossBB] + DL_cross_noise[poscrossBB] +DLcross_fg[poscrossBB]
-            DLBC = DL_cross_lens[poscrossBC] + DLcross_fg[poscrossBC]
-            DLAB = DL_cross_lens[poscrossAB] + DLcross_fg[poscrossAB]
-            DLAC = DL_cross_lens[poscrossAC] + DLcross_fg[poscrossAC]
-            if corrfog==True:
-                covmat = (DLAB*DLBC+DLAC*DLBB - DLcross_fg[poscrossAB]*DLcross_fg[poscrossBC] -DLcross_fg[poscrossAC]*DLcross_fg[poscrossBB])/v_l
-            else:
-                covmat = (DLAB*DLBC+DLAC*DLBB)/v_l'''
 
     else:
         DLAC= DLcross_fg[poscrossAC] + DL_cross_lens[poscrossAC]
