@@ -125,8 +125,12 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
     :param DL_cross_noise: The noise binned DL array should be of the shape (Ncross, Nell). Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
     :param corrfog: if true correct for the cosmic variance of the foregrounds.
     """
-    Nf= int((np.sqrt(1 + 8 * DLcross_fg.shape[0])-1)/2)    
-    Nunique = max_rep([A,B,C,D])
+    Nf= int((np.sqrt(1 + 8 * DLcross_fg.shape[0])-1)/2)
+
+    #Nunique = max_rep([A,B,C,D]) old version
+    bands = np.array([A, B, C, D])
+    counter = Counter(bands)
+
     poscrossAA= cross_index(A, A, Nf)
     poscrossBB= cross_index(B, B, Nf)
     poscrossAB= cross_index(A, B, Nf)
@@ -154,7 +158,39 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
         else:
             covmat = (DLAB**2+DLAA*DLBB)/v_l
 
-    elif Nunique == 2 and A != B and C != D:
+    elif max(counter.values()) == 2 and A != B and C != D:
+        rep_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 2)][0]
+        rep_ind = np.where(bands == rep_band)[0]
+
+        if all(rep_ind == [1, 2]):
+            bands[0], bands[1] = bands[1], bands[0]
+
+        elif all(rep_ind == [0, 3]):
+            bands[2], bands[3] = bands[3], bands[2]
+
+        elif all(rep_ind == [1, 3]):
+            bands[0], bands[1] = bands[1], bands[0]
+            bands[2], bands[3] = bands[3], bands[2]
+
+        A, B, C, D = bands
+
+        poscrossAC = cross_index(A, C, Nf)
+        poscrossBD = cross_index(B, D, Nf)
+        poscrossAD = cross_index(A, D, Nf)
+        poscrossBC = cross_index(B, C, Nf)
+
+        DLAC = DLcross_fg[poscrossAC] + DL_cross_lens[poscrossAC] + DL_cross_noise[poscrossAC]
+        DLBD = DLcross_fg[poscrossBD] + DL_cross_lens[poscrossBD]
+        DLAD = DLcross_fg[poscrossAD] + DL_cross_lens[poscrossAD]
+        DLBC = DLcross_fg[poscrossBC] + DL_cross_lens[poscrossBC]
+
+        if corrfog == True:
+            covmat = (DLAC * DLBD + DLAD * DLBC - DLcross_fg[poscrossAC] * DLcross_fg[poscrossBD] - DLcross_fg[poscrossAD] * DLcross_fg[poscrossBC]) / v_l
+        else:
+            covmat = (DLAC * DLBD + DLAD * DLBC) / v_l
+
+    # old version
+    '''elif Nunique == 2 and A != B and C != D:
         if A==C:
             DLAA = DL_cross_lens[poscrossAA] + DL_cross_noise[poscrossAA] +DLcross_fg[poscrossAA]
             DLBD = DL_cross_lens[poscrossBD] + DLcross_fg[poscrossBD]
@@ -190,8 +226,8 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
             if corrfog==True:
                 covmat = (DLAB*DLBC+DLAC*DLBB - DLcross_fg[poscrossAB]*DLcross_fg[poscrossBC] -DLcross_fg[poscrossAC]*DLcross_fg[poscrossBB])/v_l
             else:
-                covmat = (DLAB*DLBC+DLAC*DLBB)/v_l
-            
+                covmat = (DLAB*DLBC+DLAC*DLBB)/v_l'''
+
     else:
         DLAC= DLcross_fg[poscrossAC] + DL_cross_lens[poscrossAC]
         DLBD= DLcross_fg[poscrossBD] + DL_cross_lens[poscrossBD]
