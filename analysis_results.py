@@ -27,6 +27,7 @@ fsky = 0.7
 ELLBOUND = 15
 dusttype = 1
 synctype = 1
+fix=0
 kw=''
 kwsim=''
 Pathload='./'
@@ -37,22 +38,26 @@ l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
-res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
-res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_o1bt_fix1.npy'%(dusttype,synctype),allow_pickle=True).item()
+res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res4=np.load('Best-fits/results_d%ss%s_0.7_signal_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+
 
 legs1= 'sims'
 legs2= 'Knox-fg'
 legs3= 'Knox+fg'
+legs4= 'signal'
 
 c1='darkblue'
 c2='darkorange'
 c3='forestgreen'
+c4='darkred'
 
 mom_an=np.load('./analytical_mom/analytical_mom_nside64_fsky0.7_scale10_Nlbin10_d%ss%s.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-reslist= [res1,res2,res3]
-leglist= [legs1,legs2,legs3]
-collist= [c1,c2,c3]
+reslist= [res1,res2,res3,res4]
+leglist= [legs1,legs2,legs3,legs4]
+collist= [c1,c2,c3,c4]
 
 plotrespdf(l,reslist,leglist,collist,mom_an)

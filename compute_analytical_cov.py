@@ -44,8 +44,8 @@ scale = 10
 Nlbin = 10
 fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 kw=''
  
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
