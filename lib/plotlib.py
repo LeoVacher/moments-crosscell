@@ -1,6 +1,6 @@
 import numpy as np
 from mpfit import mpfit
-import mpfitlib as mpl
+import fitlib as ftl
 import scipy
 import matplotlib.pyplot as plt 
 import basicfunc as func
@@ -98,13 +98,13 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
         pl0=[np.mean(y1_cond),np.std(y1_cond)]
         parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
         fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1/(np.sqrt(y1_cond)*ysum_cond)}
-        m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)
+        m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)
         if m.params[1]>0.01:
             fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 1000/(np.sqrt(y1_cond)*ysum_cond)}
-            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
+            m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
         if m.params[1]>0.01:
             fa = {'x':x1_cond, 'y':y1_cond/ysum_cond, 'err': 0.0001/(np.sqrt(y1_cond)*ysum_cond)}
-            m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
+            m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
         
         if debug==True:
             plt.plot(x1_cond,y1_cond/ysum_cond)
@@ -127,13 +127,13 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     pl0=[np.mean(gausstot/Norm/coeffunit),np.std(gausstot/Norm/coeffunit)]
     parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
     fa = {'x':x, 'y':gausstot/Norm/coeffunit, 'err': 1000/(np.sqrt(gausstot/Norm))}
-    m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
+    m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
     if m.params[1]>0.01:
                 fa = {'x':x, 'y':gausstot/Norm, 'err': 0.0001/(np.sqrt(gausstot/Norm))}
-                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
+                m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)        
     if m.params[1]>0.01:
                 fa = {'x':x, 'y':gausstot/Norm, 'err': 1000/(np.sqrt(gausstot/Norm))}
-                m = mpfit(mpl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
+                m = mpfit(ftl.Gaussian,parinfo= parinfopl ,functkw=fa,quiet=quiet)            
     
     #plot
     if ax is None:

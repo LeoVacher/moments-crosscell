@@ -5,7 +5,6 @@ import pymaster as nmt
 import pysm3
 import time
 from mpfit import mpfit
-import mpfitlib as mpl
 import scipy
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
@@ -20,17 +19,17 @@ lmax = nside*3-1
 #lmax=850
 scale = 10
 Nlbin = 10
-fsky = 0.8
+fsky = 0.7
 ELLBOUND = 15
-dusttype = 1
-synctype = 1
+dusttype = 0
+synctype = 0
 Pathload='./'
 all_ell=False #all ell or each ell independently
 fix= 0 #fix beta and T ?
 adaptative=False
 N=500
 parallel=False
-cov_type='Knox+fg' #choices: sim, Knox-fg, Knox+fg, signal.
+cov_type='sim' #choices: sim, Knox-fg, Knox+fg, signal.
 kw=''
 if cov_type!='sim':
     kw+='_%s'%cov_type

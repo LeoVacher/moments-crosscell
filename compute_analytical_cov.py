@@ -11,7 +11,6 @@ import pymaster as nmt
 import pysm3
 import time
 from mpfit import mpfit
-import mpfitlib as mpl
 import scipy
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
@@ -114,10 +113,13 @@ for i in range(0,N_freqs):
 
 #compute and save Cholesky matrix of the inverse covariance using appropriate functions:
 
-Linv_an= cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox-fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
-Linv_sg=cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='signal',ell=leff,Nlbin=10,mask=mask,Linv=True)
-Linv_anfg= cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox+fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
+Linv_an, invcov_an = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox-fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
+Linv_sg, invcov_sg =cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='signal',ell=leff,Nlbin=10,mask=mask,Linv=True)
+Linv_anfg, invcov_anfg = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],DLcross_fg=DLcross_fg,DL_cross_lens=DL_cross_lens,DL_cross_noise=DL_cross_noise,type='Knox+fg',ell=leff,Nlbin=10,mask=mask,Linv=True)
 
 np.save('./covariances/Linv_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)
 np.save('./covariances/Linv_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_sg)
 np.save('./covariances/Linv_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_anfg)
+np.save('./covariances/invcov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_an)
+np.save('./covariances/invcov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_sg)
+np.save('./covariances/invcov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_anfg)

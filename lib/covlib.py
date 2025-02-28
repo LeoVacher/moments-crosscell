@@ -254,6 +254,7 @@ def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_
                 covmat[:,i,j]= cov_analytic(A,B,C,D,DL_cross_lens=DL_cross_lens,DLcross_fg=DLcross_fg,DL_cross_noise=DL_cross_noise,ell=ell,Nlbin=Nlbin,mask=mask,corrfog=True)
     if Linv==True:
         Linv = np.zeros((Nell,Ncross,Ncross))
+        invcov = np.zeros((Nell,Ncross,Ncross))
         for L in range(Nell):
             cov = np.copy(covmat[L])
             mean_diag = np.mean(np.diag(cov))
@@ -275,8 +276,8 @@ def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_
                             raise ValueError(f"Error: the diagonal is altered by more than 1% in the bin L={L}")
 
             covmat[L] = cov
-            invcov=np.linalg.inv(covmat[L])
-            Linv[L]= np.linalg.cholesky(invcov)
-        return Linv
+            invcov[L]=np.linalg.inv(covmat[L])
+            Linv[L]= np.linalg.cholesky(invcov[L])
+        return Linv, invcov
     else:
         return covmat

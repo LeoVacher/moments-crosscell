@@ -7,8 +7,8 @@ import numpy as np
 import pysm_common as psm 
 import basicfunc as func
 
-#contains all the functions to be fitted by mpfit 
- 
+#contains all the models to be fitted by mpfit 
+
 def getDL_cmb(nside=64,Nlbin=10):
     lmax = nside*3-1
     b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
@@ -19,8 +19,40 @@ def getDL_cmb(nside=64,Nlbin=10):
     DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,:lmax+1])/2/np.pi
     return DL_lensbin, DL_tens
 
+#Likelihoods##########################################################
+
+def lkl_mpfit(p, fjac=None, y=None, err=None, model_func=None, **kwargs):
+    '''
+    Gaussian likelihood for mpfit
+    '''
+    if model_func is None:
+        raise ValueError("A model must be specified")
+
+    model = model_func(p, **kwargs)
+    status = 0
+    return [status, np.dot(np.transpose(y - model), err)]
+
+def lnlike(p, y, invcov, model_func=None, **kwargs):
+    """Log-likelihood function for emcee"""
+    
+    if model_func is None:
+        raise ValueError("A model must be specified")
+
+    model = model_func(p, **kwargs)
+    chi2 = np.dot(np.dot(y - model, invcov), y - model)
+    return -0.5 * np.sum(chi2)
+
+def lnprob(p, y, invcov, model_func=None, **kwargs):
+    """Log-probability function for emcee"""
+    # lp = lnprior(p) 
+    # if not np.isfinite(lp):
+    #     return -np.inf
+    return lnlike(p, y, invcov, model_func=model_func, **kwargs)  # + lp
+
+#Models##########################################################
+
 def Gaussian(p,fjac=None, x=None, y=None, err=None):
-    # Gaussian curve
+    # Gaussian curve with mpfit
     model = func.Gaussian(x,p[0],p[1])
     status = 0
     return([status, (y-model)/err])
@@ -29,16 +61,15 @@ def PL_ell(ell,alpha):
     l0=80
     return (ell/l0)**alpha
 
-def func_d_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,DL_lensbin=None, DL_tens=None):
+def func_d_o0(p, x1=None, x2=None,nuref=353.,DL_lensbin=None, DL_tens=None):
     #fit function dust, order 0
     nu_i=x1
     nu_j=x2
     mbb = p[0] * func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])
     model = mbb  + DL_lensbin[int(p[4])] + p[3] * DL_tens[int(p[4])]
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
 
-def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i=x1
     nu_j=x2
@@ -48,10 +79,9 @@ def func_ds_o0(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs
     #normcorr= 1
     crossdustsync = p[5]*normcorr*(func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.PL_uK(nu_j, p[4],nu0=nurefs) + func.PL_uK(nu_i, p[4],nu0=nurefs) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref))
     model = mbb + sync + crossdustsync + DL_lensbin[ell] + p[6] * DL_tens[ell]
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
 
-def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bt(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and 1/T
     nu_i=x1
     nu_j=x2
@@ -70,10 +100,9 @@ def func_ds_o1bt(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nuref
     crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
     crossdustsync3 = p[12]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*(dxj-dx0))
     model = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin[ell] + p[13]*DL_tens[ell]
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
 
-def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta, beta_s and 1/T
     nu_i=x1
     nu_j=x2
@@ -98,14 +127,11 @@ def func_ds_o1bts(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nure
     crossdustsync5 = p[16]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nurefs)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
     crossdustsync6 = p[17]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nurefs)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*(dxj-dx0))
     model = temp + temp2 + syncmom + crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin[ell] + p[18]*DL_tens[ell]
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
-
+    return model
 
 #all_ell
 
-
-def func_ds_o0_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353.,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0_all_ell(p, x1=None, x2=None, err=None,nuref=353.,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i=x1
     nu_j=x2
@@ -117,10 +143,9 @@ def func_ds_o0_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353
     #normcorr= 1
     crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
     model = mbb + sync + crossdustsync + DL_lensbin + p[ellim+4] * DL_tens
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
 
-def func_ds_o1bt_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and T
     nu_i=x1
     nu_j=x2
@@ -141,10 +166,9 @@ def func_ds_o1bt_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=3
     crossdustsync2 = p[ellim+10]*PL_ell(ell,p[ellim+17])*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*lognuj)
     crossdustsync3 = p[ellim+11]*PL_ell(ell,p[ellim+18])*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim+3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim+3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2],nu0=nuref)*(dxj-dx0))
     model = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin + p[ellim+4]*DL_tens
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
 
-def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bts_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     nu_i=x1
     nu_j=x2
     ellim=3*Nell-1
@@ -170,5 +194,4 @@ def func_ds_o1bts_all_ell(p,fjac=None, x1=None, x2=None, y=None, err=None,nuref=
     crossdustsync6 = normcorr*p[ellim+14]*PL_ell(ell,p[ellim+21])*(func.mbb_uK(nu_i,p[ellim+1],p[ellim+2])*(dxi-dx0)*func.PL_uK(nu_j,p[ellim+3])*lognujs+ func.PL_uK(nu_i,p[ellim+3])*lognuis*func.mbb_uK(nu_j,p[ellim+1],p[ellim+2])*(dxj-dx0))/(func.PL_uK(nurefs,p[ellim+3])*func.mbb_uK(nuref,p[1],p[ellim+3]))
     syncmom = sync*((lognuis+lognujs) * p[ellim+15]*PL_ell(ell,p[ellim+22])+ lognuis*lognujs * p[ellim+16]*PL_ell(ell,p[ellim+23]))
     model = temp + temp2 + syncmom + crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin + p[ellim+4]*DL_tens
-    status = 0
-    return([status, np.dot(np.transpose(y-model), err)])
+    return model
