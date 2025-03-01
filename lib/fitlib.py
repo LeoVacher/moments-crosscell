@@ -39,15 +39,54 @@ def lnlike(p, y, invcov, model_func=None, **kwargs):
         raise ValueError("A model must be specified")
 
     model = model_func(p, **kwargs)
+
+    if np.any(np.isnan(model)) or np.any(np.isinf(model)):
+        return -np.inf  
+
     chi2 = np.dot(np.dot(y - model, invcov), y - model)
+
+    if np.isnan(chi2) or np.isinf(chi2):
+        return -np.inf  
     return -0.5 * np.sum(chi2)
 
-def lnprob(p, y, invcov, model_func=None, **kwargs):
+def lnprior(p,all_ell=True):
+    """Prior function to prevent extreme values in MCMC"""
+    if all_ell==True:
+        A_d = p[:15]     
+        A_s = p[15:30]   
+        A_sd = p[30:45]  
+        beta_d, T_d_inv, beta_s, r = p[45:]  
+        if np.any(A_d < 0) or np.any(A_d > 1000):
+            return -np.inf
+        if np.any(A_s < 0) or np.any(A_s > 1000):
+            return -np.inf
+        if np.any(A_sd < -5) or np.any(A_sd > 5):
+            return -np.inf
+        if not (1 < beta_d < 2):
+            return -np.inf
+        if not (0 < T_d_inv < 1): 
+            return -np.inf
+        if not (-5 < beta_s < -1): 
+            return -np.inf
+        if not (-0.5 < r < 0.5): 
+            return -np.inf
+        return 0  
+    elif all_ell==False:
+        A, beta_d, T_d_inv, A_s, beta_s, A_sd, r = p
+        if not (0 < A < 1000 and 0 < A_s < 1000 and -5 < A_sd < 5):  # Exemples de bornes
+            return -np.inf
+        if not (1 < beta_d < 2 and 0 < T_d_inv < 1 and -5 < beta_s < -1 and -0.5 < r < 0.5):
+            return -np.inf
+        return 0 
+
+def lnprob(p, y, invcov, model_func=None, all_ell=True, **kwargs):
     """Log-probability function for emcee"""
-    # lp = lnprior(p) 
-    # if not np.isfinite(lp):
-    #     return -np.inf
-    return lnlike(p, y, invcov, model_func=model_func, **kwargs)  # + lp
+
+    lp = lnprior(p,all_ell)
+    if not np.isfinite(lp):
+        return -np.inf  # Exclut les valeurs extrêmes
+
+    return lp + lnlike(p, y, invcov, model_func=model_func, **kwargs)
 
 #Models##########################################################
 
@@ -131,7 +170,7 @@ def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=N
 
 #all_ell
 
-def func_ds_o0_all_ell(p, x1=None, x2=None, err=None,nuref=353.,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i=x1
     nu_j=x2

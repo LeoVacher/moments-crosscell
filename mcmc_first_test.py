@@ -79,24 +79,6 @@ freq_pairs = np.array([(i, j) for i in range(nnus) for j in range(i, nnus)])
 nu_i = nu[freq_pairs[:, 0]]
 nu_j = nu[freq_pairs[:, 1]]
 
-#compute Cholesky matrix:
-
-if np.shape(np.argwhere(DLdc == 0))[0] == 0:
-    Ncov=len(DLdc)
-else:
-    Ncov=np.argwhere(DLdc == 0)[0,0]-1
-
-if all_ell==True:
-    if cov_type=='sim':
-        Linvdc= cvl.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
-    else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
-else:
-    if cov_type=='sim':
-        Linvdc= cvl.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
-    else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
-
 # fit MBB and PL, get results, save and plot
 
 n=0
@@ -122,11 +104,11 @@ thetafit = p0
 model0 = ftl.func_ds_o0(p0, x1=nu_i, x2=nu_j,nuref=353.,nurefs=23.,ell=L,DL_lensbin=DL_lensbin, DL_tens=DL_tens)
 ndim, nwalkers,chainlength,burnt= len(p0), 2*len(p0), 2000*len(p0), int(0.1*2000*len(p0))
 pos = [np.array(thetafit) + 1e-2*np.random.randn(ndim)*np.array(thetafit) for i in range(nwalkers)]
-# Correction de l'appel à emcee.EnsembleSampler
+
 sampler1 = emcee.EnsembleSampler(
     nwalkers, ndim, ftl.lnprob, 
-    args=(y, invcov1),  # Arguments fixes
-    kwargs={                  # Arguments supplémentaires pour model_func
+    args=(y, invcov1),  
+    kwargs={                
         "model_func": ftl.func_ds_o0,  
         "x1": nu_i, 
         "x2": nu_j, 
@@ -134,12 +116,13 @@ sampler1 = emcee.EnsembleSampler(
         "nurefs": 23., 
         "ell": L, 
         "DL_lensbin": DL_lensbin, 
-        "DL_tens": DL_tens
+        "DL_tens": DL_tens,
+        "all_ell": False
     })
 sampler2 = emcee.EnsembleSampler(
     nwalkers, ndim, ftl.lnprob, 
-    args=(y, invcov2),  # Arguments fixes
-    kwargs={                  # Arguments supplémentaires pour model_func
+    args=(y, invcov2),  
+    kwargs={                  
         "model_func": ftl.func_ds_o0,  
         "x1": nu_i, 
         "x2": nu_j, 
@@ -147,12 +130,13 @@ sampler2 = emcee.EnsembleSampler(
         "nurefs": 23., 
         "ell": L, 
         "DL_lensbin": DL_lensbin, 
-        "DL_tens": DL_tens
+        "DL_tens": DL_tens,
+        "all_ell": False
     })
 sampler3 = emcee.EnsembleSampler(
     nwalkers, ndim, ftl.lnprob, 
-    args=(y, invcov3),  # Arguments fixes
-    kwargs={                  # Arguments supplémentaires pour model_func
+    args=(y, invcov3),  
+    kwargs={                  
         "model_func": ftl.func_ds_o0,  
         "x1": nu_i, 
         "x2": nu_j, 
@@ -160,7 +144,8 @@ sampler3 = emcee.EnsembleSampler(
         "nurefs": 23., 
         "ell": L, 
         "DL_lensbin": DL_lensbin, 
-        "DL_tens": DL_tens
+        "DL_tens": DL_tens,
+        "all_ell": False
     })
 
 def runsample(sampler,invcov):
