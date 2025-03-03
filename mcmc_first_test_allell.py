@@ -112,7 +112,7 @@ yerr1 = np.cov(np.swapaxes(DLdcflat[:,:],0,1))
 invcov1 = np.linalg.inv(yerr1)
 
 thetafit = p0_ell
-ndim, nwalkers,chainlength,burnt= len(thetafit), 30*len(thetafit), 30000*len(thetafit), int(0.1*30000*len(thetafit))
+ndim, nwalkers,chainlength,burnt= len(thetafit), 2*len(thetafit), 30000*len(thetafit), int(0.1*30000*len(thetafit))
 pos = [np.array(thetafit) + 1e-4*np.random.randn(ndim)*np.array(thetafit) for i in range(nwalkers)]
 
 model = ftl.func_ds_o0_all_ell(np.array(p0_ell), x1=nu_i, x2=nu_j,nuref=353.,nurefs=23.,DL_lensbin=DL_lensbin, DL_tens=DL_tens,Nell=Nell)

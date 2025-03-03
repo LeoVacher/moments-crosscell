@@ -148,8 +148,10 @@ sampler3 = emcee.EnsembleSampler(
         "all_ell": False
     })
 
-def runsample(sampler,invcov):
-    sampler.run_mcmc(pos, chainlength, progress=True)
+def chi2(sampler,invcov):
+    """
+    get chi2 from sample
+    """
     samples = sampler.get_chain()
     samples = sampler.chain[:, burnt:, :].reshape((-1, ndim))
     amp_mcmc, beta_mcmc, temp_mcmc, A_s_mcmc, beta_s_mcmc, A_sd_mcmc,  r_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),zip(*np.percentile(samples, [16, 50, 84],axis=0)))
@@ -159,12 +161,37 @@ def runsample(sampler,invcov):
     dof=Ncross-len(p0)
     chi2 = np.dot(np.dot(y-model,invcov),y-model)/dof
     print('chi2=%s'%chi2)
-    flat_samples = sampler.get_chain(discard=int(0.1*chainlength), thin=15, flat=True)
-    return flat_samples
 
-flat_samples1=runsample(sampler1,invcov1)
-flat_samples2=runsample(sampler2,invcov2)
-flat_samples3=runsample(sampler3,invcov3)
+def run_mcmc_with_convergence(sampler, pos, max_iter=chainlength, min_iter=100, check_interval=100, tol=1e-2):
+    """
+    Run mcmc and stop when convergence is reached.
+    """
+    index = 0
+    old_tau = np.inf  
+    for sample in sampler.sample(pos, iterations=max_iter, progress=True):
+        index += check_interval
+        if index < min_iter:
+            continue  
+        
+        try:
+            tau = sampler.get_autocorr_time(tol=0)
+        except emcee.autocorr.AutocorrError:
+            continue  
+
+        if np.all(np.abs(tau - old_tau) / old_tau < tol):
+            print(f"Convergence atteinte après {index} itérations.")
+            break
+        old_tau = tau  
+
+    return sampler.get_chain(flat=True,discard=burnt)
+
+flat_samples1 = run_mcmc_with_convergence(sampler1, pos)
+flat_samples2 = run_mcmc_with_convergence(sampler2, pos)
+flat_samples3 = run_mcmc_with_convergence(sampler3, pos)
+
+chi2(sampler1,invcov1)
+chi2(sampler2,invcov2)
+chi2(sampler3,invcov3)
 
 param_names = ["A_d", "\\beta_d", "1/T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
 samples1 = MCSamples(samples=flat_samples1, names=param_names, labels=param_names)
