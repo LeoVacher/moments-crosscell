@@ -162,7 +162,7 @@ def chi2(sampler,invcov):
     chi2 = np.dot(np.dot(y-model,invcov),y-model)/dof
     print('chi2=%s'%chi2)
 
-def run_mcmc_with_convergence(sampler, pos, max_iter=chainlength, min_iter=100, check_interval=100, tol=1e-2):
+def run_mcmc_with_convergence(sampler, pos, max_iter=chainlength, min_iter=100, check_interval=100, tol=1e-4):
     """
     Run mcmc and stop when convergence is reached.
     """
@@ -179,7 +179,7 @@ def run_mcmc_with_convergence(sampler, pos, max_iter=chainlength, min_iter=100, 
             continue  
 
         if np.all(np.abs(tau - old_tau) / old_tau < tol):
-            print(f"Convergence atteinte après {index} itérations.")
+            print(f"Convergence reached after {index} iterations.")
             break
         old_tau = tau  
 

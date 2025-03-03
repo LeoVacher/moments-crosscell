@@ -140,7 +140,7 @@ def runsample(sampler,invcov):
     return flat_samples
 
 flat_samples1=runsample(sampler1,invcov1)
-np.save("./samples/sample_test_d0s0.npy")
+np.save("./samples/sample_test_d0s0.npy",flat_samples1)
 
 param_names = []
 [param_names.append("A^d_%s"%i) for i in range(Nell)]
