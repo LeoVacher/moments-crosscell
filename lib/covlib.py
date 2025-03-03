@@ -221,6 +221,188 @@ def cov_analytic_signal(A,B,C,D,DL_signal=None,ell=None,Nlbin=None,mask=None):
     covmat= (DLAC*DLBD+DLAD*DLBC)/v_l
     return covmat 
 
+def cov_NaMaster(A, B, C, D, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, mask, w, corrfog=True, output='all'):
+    """
+    Compute analytical covariance matrix using NaMaster fonctions from theoretical power spectra and noise model.
+    Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
+    :param A,B,C,D: The quadruplet of frequency bands (A,B),(C,D) for which the covariance should be computed.
+    :param Cls_cmb_EE: CMB EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Cls_cmb_BB: CMB BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Cls_fg_EE: Foregrounds EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Cls_fg_BB: Foregrounds BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Nls_EE: Noise EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Nls_BB: Noise BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param mask: Mask used for computing the power spectra.
+    :param w: NmtWorkspace used for computing the power spectra.
+    :param corrfog: If True, correct for the cosmic variance of foregrounds. Default: True.
+    :param output: If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
+    """
+    Nfreqs = int((np.sqrt(1 + 8*Cls_cmb_EE.shape[0]) - 1) / 2)
+    
+    f = nmt.NmtField(mask, None, spin=2)
+    cw = nmt.NmtCovarianceWorkspace()
+    cw.compute_coupling_coefficients(f, f)
+    lmax = cw.wsp.lmax
+            
+    crossAC = cross_index(A, C, Nfreqs)
+    crossBD = cross_index(B, D, Nfreqs)
+    crossAD = cross_index(A, D, Nfreqs)
+    crossBC = cross_index(B, C, Nfreqs)
+            
+    bands = np.array([bandA, bandB, bandC, bandD])
+    counter = Counter(bands)
+            
+    if A == C and B == D:
+        if A == B:
+            EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + 2*Nls_EE[crossAC]
+            EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
+            EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
+            EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + 2*Nls_EE[crossBD]
+                    
+            BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + 2*Nls_BB[crossAC]
+            BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
+            BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
+            BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + 2*Nls_BB[crossBD]
+                    
+        else:
+            EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
+            EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
+            EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
+            EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + Nls_EE[crossBD]
+                    
+            BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
+            BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
+            BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
+            BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + Nls_BB[crossBD]
+                    
+    elif max(counter.values()) == 2 and A != B and C != D:
+        rep_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 2)][0]
+        rep_ind = np.where(bands == rep_band)[0]
+                    
+        if all(rep_ind == [1,2]):
+            bands[0], bands[1] = bands[1], bands[0]
+                    
+        elif all(rep_ind == [0,3]):
+            bands[2], bands[3] = bands[3], bands[2]
+                    
+        elif all(rep_ind == [1,3]):
+            bands[0], bands[1] = bands[1], bands[0]
+            bands[2], bands[3] = bands[3], bands[2]
+                    
+        A, B, C, D = bands
+                
+        crossAC = cross_index(A, C, Nfreqs)
+        crossBD = cross_index(B, D, Nfreqs)
+        crossAD = cross_index(A, D, Nfreqs)
+        crossBC = cross_index(B, C, Nfreqs)
+                
+        EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
+        EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
+        EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
+        EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+                
+        BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
+        BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
+        BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
+        BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+                
+    else:
+        EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC]
+        EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
+        EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
+        EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+                
+        BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC]
+        BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
+        BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
+        BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+                
+    Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+    Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+    Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+    Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+            
+    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+            
+    if corrfog:
+        EE_a1b1 = Cls_cmb_EE[crossAC]
+        EE_a1b2 = Cls_cmb_EE[crossAD]
+        EE_a2b1 = Cls_cmb_EE[crossBC]
+        EE_a2b2 = Cls_cmb_EE[crossBD]
+                
+        BB_a1b1 = Cls_cmb_BB[crossAC]
+        BB_a1b2 = Cls_cmb_BB[crossAD]
+        BB_a2b1 = Cls_cmb_BB[crossBC]
+        BB_a2b2 = Cls_cmb_BB[crossBD]
+                
+        Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+        Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+        Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+        Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+                
+        covmat -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+            
+    covmat = cov.reshape([Nbins, 4, Nbins, 4])
+            
+    if output == 'EE':
+        return covmat[:, 0, :, 0]
+            
+    elif output == 'BB':
+        return covmat[:, 3, :, 3]
+            
+    else:
+        return covmat
+    
+def cov_NaMaster_signal(A, B, C, D, Cls_EE, Cls_BB, mask, w, output='all'):
+    """
+    Compute analytical covariance matrix using NaMaster fonctions directly from signal.
+    Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
+    :param A,B,C,D: The quadruplet of frequency bands (A,B),(C,D) for which the covariance should be computed.
+    :param Cls_EE: EE cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param Cls_BB: BB cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param mask: Mask used for computing the power spectra.
+    :param w: NmtWorkspace used for computing the power spectra.
+    :param output: If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
+    """
+    Nfreqs = int((np.sqrt(1 + 8*Cls_EE.shape[0]) - 1) / 2)
+    
+    f = nmt.NmtField(mask, None, spin=2)
+    cw = nmt.NmtCovarianceWorkspace()
+    cw.compute_coupling_coefficients(f, f)
+    lmax = cw.wsp.lmax
+            
+    crossAC = cross_index(A, C, Nfreqs)
+    crossBD = cross_index(B, D, Nfreqs)
+    crossAD = cross_index(A, D, Nfreqs)
+    crossBC = cross_index(B, C, Nfreqs)
+            
+    EE_a1b1 = Cls_EE[crossAC]
+    EE_a1b2 = Cls_EE[crossAD]
+    EE_a2b1 = Cls_EE[crossBC]
+    EE_a2b2 = Cls_EE[crossBD]
+            
+    BB_a1b1 = Cls_BB[crossAC]
+    BB_a1b2 = Cls_BB[crossAD]
+    BB_a2b1 = Cls_BB[crossBC]
+    BB_a2b2 = Cls_BB[crossBD]
+            
+    Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+    Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+    Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+    Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+            
+    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+    covmat = cov.reshape([Nbins, 4, Nbins, 4])
+            
+    if output == 'EE':
+        return = covmat[:, 0, :, 0]
+            
+    elif output == 'BB':
+        return covmat[:, 3, :, 3]
+            
+    else:
+        return covmat
+
 def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,type='signal',ell=None,Nlbin=None,mask=None,Linv=True):
     """
     compute an analytical estimate of the covariance matrix in different fashion (see Tristram+2004 arxiv:0405575 Eq.28).
