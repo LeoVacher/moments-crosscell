@@ -155,7 +155,7 @@ samples1 = MCSamples(samples=flat_samples1[:,(ndim-4):], names=param_names[(ndim
 g = plots.get_subplot_plotter()
 g.triangle_plot(samples1, 
                 filled=True, 
-                contour_colors="darkblue", 
+                #contour_colors="darkblue", 
                 contour_levels=[0.68, 0.95],
                 title_limit=1,
                 )

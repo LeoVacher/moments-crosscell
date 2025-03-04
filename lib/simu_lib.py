@@ -38,8 +38,49 @@ def downgrade_map(input_map,nside_out,nside_in):
     output_map = hp.alm2map(output_alm,nside=nside_out)#  output alm → output map
     return output_map
 
-def compute_master(f_a, f_b, wsp):
+def compute_master(f_a, f_b, wsp,coupled=False):
     cl_coupled = nmt.compute_coupled_cell(f_a, f_b)
     cl_decoupled = wsp.decouple_cell(cl_coupled)
-    return cl_decoupled
-   
+    if coupled==False:
+        return cl_decoupled
+    elif coupled==True:
+        return cl_coupled
+
+def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
+    N_freqs=len(map_HM1)
+    wsp=[]
+    for i in range(0,N_freqs): 
+        for j in range(i,N_freqs):
+            w_temp = nmt.NmtWorkspace()
+            if i != j :
+                w_temp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask,1*map_FM2[j],purify_e=False, purify_b=True), b)
+            if i==j :
+                w_temp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), b)
+            wsp.append(w_temp)
+    wsp=np.array(wsp)
+
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_DL=1.,coupled=False,modes='BB'):
+    N_freqs=len(map_HM1)
+    Ncross=int(N_freqs*(N_freqs+1)/2)
+    CLcross=np.zeros((Ncross,19))
+    z=0
+    sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
+    sp = sp_dict.get(mode, None)
+    if sp!=None:
+        for i in range(0,N_freqs):
+            for j in range(i,N_freqs):
+                if i != j :
+                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
+                if i==j :
+                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
+                z = z +1
+    elif sp==None:
+        for i in range(0,N_freqs):
+            for j in range(i,N_freqs):
+                if i != j :
+                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
+                if i==j :
+                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
+                z = z +1
+
+    return fact_Dl*CLcross

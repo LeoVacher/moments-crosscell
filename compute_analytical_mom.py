@@ -31,11 +31,12 @@ def compute_cross_cl(mapd1,mapd2,mask,b):
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 
 
-#choose frequency range
+instr_name='litebird_full'
+instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
+freq= instr['frequencies']
 
 dusttype=[1,10,12]
 syncrotype=[1,5,7]
-instr= 'LiteBIRD'
 nside=64
 scale=10
 fsky=0.7
@@ -49,11 +50,6 @@ else:
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
-
-if instr=='Planck':
-    freq=np.array([100,143,217,353])
-if instr=='LiteBIRD':
-    freq=np.array([ 40.,  50.,  60.,  68.,  78.,  89., 100., 119., 140., 166., 195.,235., 280., 337., 402.])
 
 def getmom_downgr(mom):
     momarr=np.array([np.zeros(hp.nside2npix(512)),mom.real,mom.imag])

@@ -9,14 +9,19 @@ import basicfunc as func
 
 #contains all the models to be fitted by mpfit 
 
-def getDL_cmb(nside=64,Nlbin=10):
+def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     lmax = nside*3-1
     b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
     l = b.get_effective_ells()
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
     CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
-    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[2,:lmax+1])/2/np.pi
-    DL_tens = l*(l+1)*b.bin_cell(CL_tens[2,:lmax+1])/2/np.pi
+    sp_dict = {'TT': 0, 'EE': 1, 'BB': 2, 'TE': 3}
+    sp = sp_dict.get(mode, None)
+    if sp is None:
+        raise ValueError("Unknown mode")
+    
+    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[sp,:lmax+1])/2/np.pi
+    DL_tens = l*(l+1)*b.bin_cell(CL_tens[sp,:lmax+1])/2/np.pi
     return DL_lensbin, DL_tens
 
 #Likelihoods##########################################################

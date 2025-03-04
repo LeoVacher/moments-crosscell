@@ -1,7 +1,11 @@
 import numpy as np
+import healpy as hp
 import scipy
 from collections import Counter
-
+import fitlib as ftl
+import simu_lib as sim
+import pysm3.units as u
+import pymaster as nmt 
 
 #contains all function for covariance computations, develloped in collaboration with S. Vinzl.
 
@@ -144,9 +148,9 @@ def cov_analytic(A,B,C,D,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,
     
     if A ==C and B == D:
         if A==B:
-            DLAB =  DL_cross_lens[poscrossAA] + DLcross_fg[poscrossAA]
-            DLAA =  DL_cross_lens[poscrossAA] + 2*DL_cross_noise[poscrossAA] + DLcross_fg[poscrossAA] 
-            DLBB =  DLAA
+            DLAB = DL_cross_lens[poscrossAA] + DLcross_fg[poscrossAA]
+            DLAA = DL_cross_lens[poscrossAA] + 2*DL_cross_noise[poscrossAA] + DLcross_fg[poscrossAA] 
+            DLBB = DLAA
         else:
             DLAB = DLcross_fg[poscrossAB] + DL_cross_lens[poscrossAB]
             DLAA = DL_cross_lens[poscrossAA] + DL_cross_noise[poscrossAA] +DLcross_fg[poscrossAA]
@@ -206,38 +210,38 @@ def cov_analytic_signal(A,B,C,D,DL_signal=None,ell=None,Nlbin=None,mask=None):
     :param DL_signal: The signal binned DL array should be of the shape (Nsim, Ncross, Nell).
     """
     Nf= int((np.sqrt(1 + 8 * DL_signal.shape[1])-1)/2) 
-    poscrossAC= cross_index(A, C, Nf)
-    poscrossBD= cross_index(B, D, Nf)
-    poscrossAD= cross_index(A, D, Nf)
-    poscrossBC= cross_index(B, C, Nf)
+    poscrossAC = cross_index(A, C, Nf)
+    poscrossBD = cross_index(B, D, Nf)
+    poscrossAD = cross_index(A, D, Nf)
+    poscrossBC = cross_index(B, C, Nf)
 
     v_l = (2*ell+1)*Nlbin*np.mean(mask**2)**2/np.mean(mask**4)
 
-    DLAC= DL_signal[0,poscrossAC] 
-    DLBD= DL_signal[0,poscrossBD]
-    DLAD= DL_signal[0,poscrossAD]
-    DLBC= DL_signal[0,poscrossBC]
+    DLAC = DL_signal[0,poscrossAC] 
+    DLBD = DL_signal[0,poscrossBD]
+    DLAD = DL_signal[0,poscrossAD]
+    DLBC = DL_signal[0,poscrossBC]
     
-    covmat= (DLAC*DLBD+DLAD*DLBC)/v_l
+    covmat = (DLAC*DLBD+DLAD*DLBC)/v_l
     return covmat 
 
-def cov_NaMaster(A, B, C, D, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, mask, w, corrfog=True, output='all'):
+def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='all'):
     """
     Compute analytical covariance matrix using NaMaster fonctions from theoretical power spectra and noise model.
-    Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
+    DL can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-DL divided by fsky.
     :param A,B,C,D: The quadruplet of frequency bands (A,B),(C,D) for which the covariance should be computed.
-    :param Cls_cmb_EE: CMB EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Cls_cmb_BB: CMB BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Cls_fg_EE: Foregrounds EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Cls_fg_BB: Foregrounds BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Nls_EE: Noise EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Nls_BB: Noise BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_cmb_EE: CMB EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_cmb_BB: CMB BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_fg_EE: Foregrounds EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_fg_BB: Foregrounds BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param Nls_EE: Noise EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param Nls_BB: Noise BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
     :param mask: Mask used for computing the power spectra.
-    :param w: NmtWorkspace used for computing the power spectra.
+    :param wsp: NmtWorkspace used for computing the power spectra.
     :param corrfog: If True, correct for the cosmic variance of foregrounds. Default: True.
     :param output: If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
     """
-    Nfreqs = int((np.sqrt(1 + 8*Cls_cmb_EE.shape[0]) - 1) / 2)
+    Nfreqs = int((np.sqrt(1 + 8*DL_cmb_EE.shape[0]) - 1) / 2)
     
     f = nmt.NmtField(mask, None, spin=2)
     cw = nmt.NmtCovarianceWorkspace()
@@ -254,26 +258,26 @@ def cov_NaMaster(A, B, C, D, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_E
             
     if A == C and B == D:
         if A == B:
-            EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + 2*Nls_EE[crossAC]
-            EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-            EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-            EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + 2*Nls_EE[crossBD]
+            EE_a1b1 = DL_cmb_EE[crossAC] + DL_fg_EE[crossAC] + 2*Nls_EE[crossAC]
+            EE_a1b2 = DL_cmb_EE[crossAD] + DL_fg_EE[crossAD]
+            EE_a2b1 = DL_cmb_EE[crossBC] + DL_fg_EE[crossBC]
+            EE_a2b2 = DL_cmb_EE[crossBD] + DL_fg_EE[crossBD] + 2*Nls_EE[crossBD]
                     
-            BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + 2*Nls_BB[crossAC]
-            BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-            BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-            BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + 2*Nls_BB[crossBD]
+            BB_a1b1 = DL_cmb_BB[crossAC] + DL_fg_BB[crossAC] + 2*Nls_BB[crossAC]
+            BB_a1b2 = DL_cmb_BB[crossAD] + DL_fg_BB[crossAD]
+            BB_a2b1 = DL_cmb_BB[crossBC] + DL_fg_BB[crossBC]
+            BB_a2b2 = DL_cmb_BB[crossBD] + DL_fg_BB[crossBD] + 2*Nls_BB[crossBD]
                     
         else:
-            EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
-            EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-            EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-            EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + Nls_EE[crossBD]
+            EE_a1b1 = DL_cmb_EE[crossAC] + DL_fg_EE[crossAC] + Nls_EE[crossAC]
+            EE_a1b2 = DL_cmb_EE[crossAD] + DL_fg_EE[crossAD]
+            EE_a2b1 = DL_cmb_EE[crossBC] + DL_fg_EE[crossBC]
+            EE_a2b2 = DL_cmb_EE[crossBD] + DL_fg_EE[crossBD] + Nls_EE[crossBD]
                     
-            BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
-            BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-            BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-            BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + Nls_BB[crossBD]
+            BB_a1b1 = DL_cmb_BB[crossAC] + DL_fg_BB[crossAC] + Nls_BB[crossAC]
+            BB_a1b2 = DL_cmb_BB[crossAD] + DL_fg_BB[crossAD]
+            BB_a2b1 = DL_cmb_BB[crossBC] + DL_fg_BB[crossBC]
+            BB_a2b2 = DL_cmb_BB[crossBD] + DL_fg_BB[crossBD] + Nls_BB[crossBD]
                     
     elif max(counter.values()) == 2 and A != B and C != D:
         rep_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 2)][0]
@@ -296,51 +300,51 @@ def cov_NaMaster(A, B, C, D, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_E
         crossAD = cross_index(A, D, Nfreqs)
         crossBC = cross_index(B, C, Nfreqs)
                 
-        EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
-        EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-        EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-        EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+        EE_a1b1 = DL_cmb_EE[crossAC] + DL_fg_EE[crossAC] + Nls_EE[crossAC]
+        EE_a1b2 = DL_cmb_EE[crossAD] + DL_fg_EE[crossAD]
+        EE_a2b1 = DL_cmb_EE[crossBC] + DL_fg_EE[crossBC]
+        EE_a2b2 = DL_cmb_EE[crossBD] + DL_fg_EE[crossBD]
                 
-        BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
-        BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-        BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-        BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+        BB_a1b1 = DL_cmb_BB[crossAC] + DL_fg_BB[crossAC] + Nls_BB[crossAC]
+        BB_a1b2 = DL_cmb_BB[crossAD] + DL_fg_BB[crossAD]
+        BB_a2b1 = DL_cmb_BB[crossBC] + DL_fg_BB[crossBC]
+        BB_a2b2 = DL_cmb_BB[crossBD] + DL_fg_BB[crossBD]
                 
     else:
-        EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC]
-        EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-        EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-        EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+        EE_a1b1 = DL_cmb_EE[crossAC] + DL_fg_EE[crossAC]
+        EE_a1b2 = DL_cmb_EE[crossAD] + DL_fg_EE[crossAD]
+        EE_a2b1 = DL_cmb_EE[crossBC] + DL_fg_EE[crossBC]
+        EE_a2b2 = DL_cmb_EE[crossBD] + DL_fg_EE[crossBD]
                 
-        BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC]
-        BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-        BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-        BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+        BB_a1b1 = DL_cmb_BB[crossAC] + DL_fg_BB[crossAC]
+        BB_a1b2 = DL_cmb_BB[crossAD] + DL_fg_BB[crossAD]
+        BB_a2b1 = DL_cmb_BB[crossBC] + DL_fg_BB[crossBC]
+        BB_a2b2 = DL_cmb_BB[crossBD] + DL_fg_BB[crossBD]
                 
-    Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-    Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-    Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-    Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+    DL_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+    DL_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+    DL_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+    DL_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
             
-    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
             
     if corrfog:
-        EE_a1b1 = Cls_cmb_EE[crossAC]
-        EE_a1b2 = Cls_cmb_EE[crossAD]
-        EE_a2b1 = Cls_cmb_EE[crossBC]
-        EE_a2b2 = Cls_cmb_EE[crossBD]
+        EE_a1b1 = DL_cmb_EE[crossAC]
+        EE_a1b2 = DL_cmb_EE[crossAD]
+        EE_a2b1 = DL_cmb_EE[crossBC]
+        EE_a2b2 = DL_cmb_EE[crossBD]
                 
-        BB_a1b1 = Cls_cmb_BB[crossAC]
-        BB_a1b2 = Cls_cmb_BB[crossAD]
-        BB_a2b1 = Cls_cmb_BB[crossBC]
-        BB_a2b2 = Cls_cmb_BB[crossBD]
+        BB_a1b1 = DL_cmb_BB[crossAC]
+        BB_a1b2 = DL_cmb_BB[crossAD]
+        BB_a2b1 = DL_cmb_BB[crossBC]
+        BB_a2b2 = DL_cmb_BB[crossBD]
                 
-        Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-        Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-        Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-        Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+        DL_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+        DL_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+        DL_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+        DL_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
                 
-        covmat -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+        covmat -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
             
     covmat = cov.reshape([Nbins, 4, Nbins, 4])
             
@@ -353,18 +357,18 @@ def cov_NaMaster(A, B, C, D, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_E
     else:
         return covmat
     
-def cov_NaMaster_signal(A, B, C, D, Cls_EE, Cls_BB, mask, w, output='all'):
+def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all'):
     """
     Compute analytical covariance matrix using NaMaster fonctions directly from signal.
-    Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
+    DL can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-DL divided by fsky.
     :param A,B,C,D: The quadruplet of frequency bands (A,B),(C,D) for which the covariance should be computed.
-    :param Cls_EE: EE cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    :param Cls_BB: BB cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_EE: EE cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_BB: BB cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
     :param mask: Mask used for computing the power spectra.
-    :param w: NmtWorkspace used for computing the power spectra.
+    :param wsp: NmtWorkspace used for computing the power spectra.
     :param output: If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
     """
-    Nfreqs = int((np.sqrt(1 + 8*Cls_EE.shape[0]) - 1) / 2)
+    Nfreqs = int((np.sqrt(1 + 8*DL_EE.shape[0]) - 1) / 2)
     
     f = nmt.NmtField(mask, None, spin=2)
     cw = nmt.NmtCovarianceWorkspace()
@@ -376,26 +380,26 @@ def cov_NaMaster_signal(A, B, C, D, Cls_EE, Cls_BB, mask, w, output='all'):
     crossAD = cross_index(A, D, Nfreqs)
     crossBC = cross_index(B, C, Nfreqs)
             
-    EE_a1b1 = Cls_EE[crossAC]
-    EE_a1b2 = Cls_EE[crossAD]
-    EE_a2b1 = Cls_EE[crossBC]
-    EE_a2b2 = Cls_EE[crossBD]
+    EE_a1b1 = DL_EE[crossAC]
+    EE_a1b2 = DL_EE[crossAD]
+    EE_a2b1 = DL_EE[crossBC]
+    EE_a2b2 = DL_EE[crossBD]
             
-    BB_a1b1 = Cls_BB[crossAC]
-    BB_a1b2 = Cls_BB[crossAD]
-    BB_a2b1 = Cls_BB[crossBC]
-    BB_a2b2 = Cls_BB[crossBD]
+    BB_a1b1 = DL_BB[crossAC]
+    BB_a1b2 = DL_BB[crossAD]
+    BB_a2b1 = DL_BB[crossBC]
+    BB_a2b2 = DL_BB[crossBD]
             
-    Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-    Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-    Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-    Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+    DL_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+    DL_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+    DL_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+    DL_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
             
-    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+    covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
     covmat = cov.reshape([Nbins, 4, Nbins, 4])
             
     if output == 'EE':
-        return = covmat[:, 0, :, 0]
+        return covmat[:, 0, :, 0]
             
     elif output == 'BB':
         return covmat[:, 3, :, 3]
@@ -403,37 +407,99 @@ def cov_NaMaster_signal(A, B, C, D, Cls_EE, Cls_BB, mask, w, output='all'):
     else:
         return covmat
 
-def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_cross_noise=None,type='signal',ell=None,Nlbin=None,mask=None,Linv=True):
+def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',type='signal',ell=None,Nlbin=10,mask=None,Linv=True,use_nmt=True,nside=64):
     """
     compute an analytical estimate of the covariance matrix in different fashion (see Tristram+2004 arxiv:0405575 Eq.28).
     :param DL_signal: The signal binned DL array should be of the shape (Nsim, Ncross, Nell). Needed only to compute Knox formula from the signal (type=signal)
-    :param DLcross_fg: The foreground binned DL array should be of the shape (Ncross, Nell). Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
-    :param DL_cross_lens: The cmb binned DL array should be of the shape (Ncross, Nell). Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
-    :param DL_cross_noise: The noise binned DL array should be of the shape (Ncross, Nell). Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
+    :param sky: pysm sky object. Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
+    :param instr: string with the instrument name. Needed only to compute the analytical Knox formula (type=Knox-fg and type=Knox+fg)
     :param type: type of estimate of the covariance. Can be "signal", "Knox-fg" or "Knox+fg"
     :param Linv: If true return the Cholesky matrix computed from the inverse cov. If false return the covariance matrix. 
+    :param nmt: If true compute the full covariance matrix using namaster
     """
     N, Ncross, Nell= DL_signal.shape
     N_freqs= int((np.sqrt(1 + 8*Ncross)-1)/2)
-    covmat = np.zeros((Nell,Ncross,Ncross))
-    doublets = {}
+    fact_Dl= ell*(ell+1)/2/np.pi
+    b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
     
+    covmat = np.zeros((Nell,Ncross,Ncross))
+
+    doublets = {}
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
             doublets[z]=(i, j)
             z=z+1
+
+    instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
+    sens_P= instr['sens_P']
+    freq= instr['frequencies']
+    Npix = hp.nside2npix(nside)
+    sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
+    if use_nmt==True:
+        #get noise spectra
+        DL_cross_noise=np.ones((Ncross,Nell))
+        z=0
+        for i in range(0,N_freqs): 
+            for j in range(i,N_freqs):
+                DL_cross_noise[z]= fact_Dl*4*np.pi*sigpix[i]*sigpix[j]/Npix*DL_cross_noise[z]
+                z=z+1
+
+        #get fg spectra
+        mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
+        mapfg=mapfg[:,1:]
+        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask)
+        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,fact_Dl=fact_Dl,coupled=True,modes='all')
+        DL_fg_EE = DLcross_fg[0]
+        DL_fg_BB = DLcross_fg[3]
+
+        #get cmb spectra
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin) 
+        DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
+
+    elif use_nmt==False:
+        #get noise spectra
+        DL_cross_noise=np.ones((Ncross,Nell))
+        z=0
+        for i in range(0,N_freqs): 
+            for j in range(i,N_freqs):
+                DL_cross_noise[z]= fact_Dl*4*np.pi*sigpix[i]*sigpix[j]/Npix*DL_cross_noise[z]
+                z=z+1
+
+        #get fg spectra
+        mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
+        mapfg=mapfg[:,1:]
+        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,fact_Dl=fact_Dl)
+
+        #get cmb spectra
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin) 
+        DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
         
-    for i in range(0,Ncross):
-        for j in range(0,Ncross):
-            A,B= doublets[i]
-            C,D= doublets[j]
-            if type=='signal':
-                covmat[:,i,j]= cov_analytic_signal(A,B,C,D,DL_signal,ell=ell,Nlbin=Nlbin,mask=mask)
-            if type=='Knox+fg':
-                covmat[:,i,j]= cov_analytic(A,B,C,D,DL_cross_lens=DL_cross_lens,DLcross_fg=DLcross_fg,DL_cross_noise=DL_cross_noise,ell=ell,Nlbin=Nlbin,mask=mask,corrfog=False)
-            if type=='Knox-fg':
-                covmat[:,i,j]= cov_analytic(A,B,C,D,DL_cross_lens=DL_cross_lens,DLcross_fg=DLcross_fg,DL_cross_noise=DL_cross_noise,ell=ell,Nlbin=Nlbin,mask=mask,corrfog=True)
+    if use_nmt==True:
+        for i in range(0,Ncross):
+            for j in range(0,Ncross):
+                A,B= doublets[i]
+                C,D= doublets[j]
+                if type=='signal':
+                    covmat[:,i,j]= cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='BB')
+                if type=='Knox+fg':
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB')
+                if type=='Knox-fg':
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB')
+            
+    elif use_nmt==False:
+        for i in range(0,Ncross):
+            for j in range(0,Ncross):
+                A,B= doublets[i]
+                C,D= doublets[j]
+                if type=='signal':
+                    covmat[:,i,j]= cov_analytic_signal(A,B,C,D,DL_signal,ell=ell,Nlbin=Nlbin,mask=mask)
+                if type=='Knox+fg':
+                    covmat[:,i,j]= cov_analytic(A,B,C,D,DL_cross_lens=DL_cross_lens,DLcross_fg=DLcross_fg,DL_cross_noise=DL_cross_noise,ell=ell,Nlbin=Nlbin,mask=mask,corrfog=False)
+                if type=='Knox-fg':
+                    covmat[:,i,j]= cov_analytic(A,B,C,D,DL_cross_lens=DL_cross_lens,DLcross_fg=DLcross_fg,DL_cross_noise=DL_cross_noise,ell=ell,Nlbin=Nlbin,mask=mask,corrfog=True)
+    
     if Linv==True:
         Linv = np.zeros((Nell,Ncross,Ncross))
         invcov = np.zeros((Nell,Ncross,Ncross))
@@ -463,3 +529,5 @@ def compute_analytical_cov(DL_signal=None,DLcross_fg=None,DL_cross_lens=None,DL_
         return Linv, invcov
     else:
         return covmat
+
+
