@@ -83,7 +83,6 @@ else:
     CLcross=np.zeros((N,Ncross,len(leff)))
 
 for k in tqdm(range(kini,N)):
-    print('k=',k)
     noisemaps= np.zeros((3,N_freqs,2,Npix))
 
     for p in range(3):

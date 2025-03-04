@@ -1,6 +1,7 @@
 import healpy as hp
 import numpy as np
 import pymaster as nmt
+from tqdm import tqdm
 
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
@@ -104,16 +105,13 @@ for i in range(len(beam)):
     BL.append(bl)
 BL = np.array(BL)
 
-for k in range(kini,N):
+for k in tqdm(range(kini,N)):
     a='000'+"%s"%k
     if len(a)>4:
         a=a.replace("000","00")
     if k>=100:
         a='0'+str(k)
-    print(a)
     
-    #gérer list et concatenate
-
     for i in range(N_freqs):
         maptotf= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%s_full.fits"%(bands[i],complexity,a),field=(0,1,2))
         maptot_f1= hp.read_map(folder+"/%s/"%a+"coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%s_splitA.fits"%(bands[i],complexity,a),field=(0,1,2))
