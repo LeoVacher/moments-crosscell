@@ -423,7 +423,6 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     ell= b.get_effective_ells()
     ell=ell[:Nell]
     fact_Dl= ell*(ell+1)/2/np.pi
-    print(Nell)
     covmat = np.zeros((Nell,Ncross,Ncross))
 
     doublets = {}
@@ -456,8 +455,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_fg_BB = DLcross_fg[3]
 
         #get cmb spectra
-        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)[:Nell]
-        DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
+        DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
 
     elif use_nmt==False:
         #get noise spectra
