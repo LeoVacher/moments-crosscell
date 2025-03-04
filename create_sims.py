@@ -23,14 +23,13 @@ nside = 64
 Npix = hp.nside2npix(nside)
 N=500 
 lmax = nside*3-1
-#lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.8
-dusttype = 10
-syncrotype = 5
+dusttype = 0
+syncrotype = 1
 kw = ''
-load=True
+load=False
 
 # instr param
 
@@ -44,6 +43,7 @@ sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
 fact_DL= leff*(leff+1)/2/np.pi
+
 #mask
 
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
@@ -66,9 +66,11 @@ else:
 
 CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
 
-#Initialise workspaces :
+#Initialise workspace:
 
 wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+
+#compute sims:
 
 if load ==True:
     if syncrotype==None:
