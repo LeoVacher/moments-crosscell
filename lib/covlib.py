@@ -419,9 +419,9 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     """
     N, Ncross, Nell= DL_signal.shape
     N_freqs= int((np.sqrt(1 + 8*Ncross)-1)/2)
-    fact_Dl= ell*(ell+1)/2/np.pi
     b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
     ell= b.get_effective_ells()
+    fact_Dl= ell*(ell+1)/2/np.pi
 
     covmat = np.zeros((Nell,Ncross,Ncross))
 
