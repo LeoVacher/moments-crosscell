@@ -47,6 +47,9 @@ def compute_master(f_a, f_b, wsp,coupled=False):
         return cl_coupled
 
 def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
+    """
+    Get an array of namaster working spaces
+    """
     N_freqs=len(map_HM1)
     wsp=[]
     for i in range(0,N_freqs): 
@@ -59,7 +62,7 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
             wsp.append(w_temp)
     wsp=np.array(wsp)
 
-def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_DL=1.,coupled=False,modes='BB'):
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_Dl=1.,coupled=False,modes='BB'):
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
     CLcross=np.zeros((Ncross,19))

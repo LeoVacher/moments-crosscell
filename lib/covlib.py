@@ -232,10 +232,10 @@ def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, N
     :param A,B,C,D: The quadruplet of frequency bands (A,B),(C,D) for which the covariance should be computed.
     :param DL_cmb_EE: CMB EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
     :param DL_cmb_BB: CMB BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
-    :param DL_fg_EE: Foregrounds EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
-    :param DL_fg_BB: Foregrounds BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
-    :param Nls_EE: Noise EE power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
-    :param Nls_BB: Noise BB power spectra, must be coupled and not binned. Must be of dimension (Ncross, 3*NSIDE).
+    :param DL_fg_EE: Foregrounds EE power spectra, must be coupled and not binned, of dimension (Ncross, 3*NSIDE).
+    :param DL_fg_BB: Foregrounds BB power spectra, must be coupled and not binned, of dimension (Ncross, 3*NSIDE).
+    :param Nls_EE: Noise EE power spectra, must be coupled and not binned, of dimension (Ncross, 3*NSIDE).
+    :param Nls_BB: Noise BB power spectra, must be coupled and not binned, of dimension (Ncross, 3*NSIDE).
     :param mask: Mask used for computing the power spectra.
     :param wsp: NmtWorkspace used for computing the power spectra.
     :param corrfog: If True, correct for the cosmic variance of foregrounds. Default: True.
