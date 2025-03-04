@@ -94,7 +94,7 @@ for k in tqdm(range(kini,N)):
     mapcmb = mapcmb[:,1:]
 
     #add noise to maps
-    maptotaldc1 = mapfg  + noisemaps[0] + mapcmb
+    maptotaldc1  = mapfg  + noisemaps[0] + mapcmb
     maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
