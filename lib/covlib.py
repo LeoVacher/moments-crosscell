@@ -407,7 +407,7 @@ def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all'):
     else:
         return covmat
 
-def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',type='signal',ell=None,Nlbin=10,mask=None,Linv=True,use_nmt=True,nside=64):
+def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',type='signal',mask=None,Linv=True,use_nmt=True,nside=64,Nlbin=10):
     """
     compute an analytical estimate of the covariance matrix in different fashion (see Tristram+2004 arxiv:0405575 Eq.28).
     :param DL_signal: The signal binned DL array should be of the shape (Nsim, Ncross, Nell). Needed only to compute Knox formula from the signal (type=signal)
@@ -421,7 +421,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     N_freqs= int((np.sqrt(1 + 8*Ncross)-1)/2)
     fact_Dl= ell*(ell+1)/2/np.pi
     b = nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=Nlbin)
-    
+    ell= b.get_effective_ells()
+
     covmat = np.zeros((Nell,Ncross,Ncross))
 
     doublets = {}
@@ -448,7 +449,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get fg spectra
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
-        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask)
+        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,fact_Dl=fact_Dl,coupled=True,modes='all')
         DL_fg_EE = DLcross_fg[0]
         DL_fg_BB = DLcross_fg[3]
@@ -473,7 +474,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl)
 
         #get cmb spectra
-        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin) 
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)[:Nell] 
         DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
         
     if use_nmt==True:
@@ -506,7 +507,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         for L in range(Nell):
             cov = np.copy(covmat[L])
             mean_diag = np.mean(np.diag(cov))
-            offset_L=np.log10(mean_diag)-15
+            offset_L=np.log10(mean_diag) - 15
             while is_cholesky_possible(cov)==False:
                 cov= cov+ 10**(offset_L)*np.identity(len(cov))
                 offset_L=offset_L+1
