@@ -433,13 +433,13 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
             z=z+1
 
     instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
-    sens_P= instr['sens_P']
-    freq= instr['frequencies']
+    sens_P = instr['sens_P']
+    freq = instr['frequencies']
     Npix = hp.nside2npix(nside)
     sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
     if use_nmt==True:
         #get noise spectra
-        DL_cross_noise=np.ones((Ncross,Nell))
+        DL_cross_noise = np.ones((Ncross,Nell))
         z=0
         for i in range(0,N_freqs): 
             for j in range(i,N_freqs):
@@ -474,8 +474,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl)
 
         #get cmb spectra
-        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)[:Nell] 
-        DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
+        DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
     if use_nmt==True:
         for i in range(0,Ncross):
             for j in range(0,Ncross):
