@@ -126,6 +126,7 @@ for k in range(kini,N):
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
+            #to be update with simlib functions
             if i!=j:
                 CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptotfull[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptotfull[j,1:],purify_e=False, purify_b=True), wsp))[3])
                 CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]
