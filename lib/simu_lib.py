@@ -62,7 +62,7 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
             wsp.append(w_temp)
     wsp=np.array(wsp)
 
-def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_Dl=1.,coupled=False,modes='BB'):
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_Dl=1.,coupled=False,mode='BB'):
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
     CLcross=np.zeros((Ncross,19))
