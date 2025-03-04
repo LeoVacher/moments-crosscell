@@ -329,15 +329,15 @@ def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, N
     covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
             
     if corrfog:
-        EE_a1b1 = DL_cmb_EE[crossAC]
-        EE_a1b2 = DL_cmb_EE[crossAD]
-        EE_a2b1 = DL_cmb_EE[crossBC]
-        EE_a2b2 = DL_cmb_EE[crossBD]
+        EE_a1b1 = DL_fg_EE[crossAC]
+        EE_a1b2 = DL_fg_EE[crossAD]
+        EE_a2b1 = DL_fg_EE[crossBC]
+        EE_a2b2 = DL_fg_EE[crossBD]
                 
-        BB_a1b1 = DL_cmb_BB[crossAC]
-        BB_a1b2 = DL_cmb_BB[crossAD]
-        BB_a2b1 = DL_cmb_BB[crossBC]
-        BB_a2b2 = DL_cmb_BB[crossBD]
+        BB_a1b1 = DL_fg_BB[crossAC]
+        BB_a1b2 = DL_fg_BB[crossAD]
+        BB_a2b1 = DL_fg_BB[crossBC]
+        BB_a2b2 = DL_fg_BB[crossBD]
                 
         DL_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
         DL_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
