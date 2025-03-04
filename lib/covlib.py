@@ -253,7 +253,7 @@ def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, N
     crossAD = cross_index(A, D, Nfreqs)
     crossBC = cross_index(B, C, Nfreqs)
             
-    bands = np.array([bandA, bandB, bandC, bandD])
+    bands = np.array([A, B, C, D])
     counter = Counter(bands)
             
     if A == C and B == D:
