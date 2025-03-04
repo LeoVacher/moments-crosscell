@@ -58,7 +58,7 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
     """
     Compute the cross-spectra
     """
-    
+
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
     CLcross=np.zeros((Ncross,19))
@@ -81,5 +81,4 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
                 if i==j :
                     CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
                 z = z +1
-
-    return fact_Dl*CLcross
+    return fact_Dl*CLcross[:,:len(fact_Dl)]

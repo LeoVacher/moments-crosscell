@@ -68,8 +68,7 @@ CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
 
 #Initialise workspaces :
 
-wsp = nmt.NmtWorkspace()
-wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[0],purify_e=False, purify_b=True), nmt.NmtField(mask,1*mapfg[0],purify_e=False, purify_b=True), b)
+wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 
 if load ==True:
     if syncrotype==None:
@@ -99,7 +98,7 @@ for k in range(kini,N):
     maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
-
+    # to be replaced by sim.computecross
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
