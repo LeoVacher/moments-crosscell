@@ -454,7 +454,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_fg_BB = DLcross_fg[3]
 
         #get cmb spectra
-        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin) 
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)[:Nell]
         DL_cross_lens = np.array([DL_lens for i in range(N_freqs) for j in range(i, N_freqs)])
 
     elif use_nmt==False:
