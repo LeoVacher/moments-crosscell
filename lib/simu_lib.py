@@ -73,17 +73,17 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,fact_Dl=1.,coupled=False,mo
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
+                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
                 if i==j :
-                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
+                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled))[sp])
                 z = z +1
     elif sp==None:
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
+                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
                 if i==j :
-                    CLcross[z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
+                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp[z],coupled=coupled)))
                 z = z +1
 
     return fact_Dl*CLcross
