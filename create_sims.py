@@ -17,6 +17,7 @@ import basicfunc as func
 import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
+from tqdm import tqdm
 
 r = 0
 nside = 64
@@ -43,7 +44,7 @@ sens_P= instr['sens_P']
 sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
-
+fact_DL= leff*(leff+1)/2/np.pi
 #mask
 
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
@@ -80,7 +81,7 @@ else:
     kini=0
     CLcross=np.zeros((N,Ncross,len(leff)))
 
-for k in range(kini,N):
+for k in tqdm(range(kini,N)):
     print('k=',k)
     noisemaps= np.zeros((3,N_freqs,2,Npix))
 
@@ -99,32 +100,26 @@ for k in range(kini,N):
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
     # to be replaced by sim.computecross
-    z=0
-    for i in range(0,N_freqs):
-        for j in range(i,N_freqs):
-            if i != j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc1[j],purify_e=False, purify_b=True), wsp))[3])
-            if i==j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp))[3])
-            z = z +1  
+    CLcross[k]= computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,fact_Dl=fact_Dl,coupled=False,mode='BB')
+
     if syncrotype==None and dusttype==None:
         if r ==0:
-            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
+            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),CLcross/2/np.pi)
         else :
-            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),leff*(leff+1)*CLcross/2/np.pi)
+            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),CLcross)
     elif syncrotype==None:
     	if r ==0:
-    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
+    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),CLcross)
     	else :
-    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),leff*(leff+1)*CLcross/2/np.pi)
+    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),CLcross)
     elif dusttype==None:
         if r ==0:
-            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+            np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),CLcross)
         else :
-            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+            np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),CLcross)
     elif syncrotype!=None and dusttype!=None:
     	if r ==0:
-    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+    		np.save("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),CLcross)
     	else :
-    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype),leff*(leff+1)*CLcross/2/np.pi)
+    		np.save("./CLsimus/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype),CLcross)
 
