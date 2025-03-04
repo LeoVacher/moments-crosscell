@@ -42,7 +42,7 @@ sens_P= instr['sens_P']
 sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
-fact_DL= leff*(leff+1)/2/np.pi
+fact_Dl= leff*(leff+1)/2/np.pi
 
 #mask
 
