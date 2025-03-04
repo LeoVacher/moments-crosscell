@@ -68,17 +68,8 @@ CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
 
 #Initialise workspaces :
 
-wsp_dc=[]
-for i in range(0,N_freqs): 
-    for j in range(i,N_freqs):
-        w_dc = nmt.NmtWorkspace()
-        if i != j :
-            w_dc.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask,1*mapfg[j],purify_e=False, purify_b=True), b)
-        if i==j :
-            w_dc.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*mapfg[j],purify_e=False, purify_b=True), b)
-        wsp_dc.append(w_dc)
- 
-wsp_dc=np.array(wsp_dc)
+wsp = nmt.NmtWorkspace()
+wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*mapfg[0],purify_e=False, purify_b=True), nmt.NmtField(mask,1*mapfg[0],purify_e=False, purify_b=True), b)
 
 if load ==True:
     if syncrotype==None:
@@ -103,20 +94,19 @@ for k in range(kini,N):
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
     mapcmb = mapcmb[:,1:]
 
-    #addition du bruit aux cartes
+    #add noise to maps
     maptotaldc1 = mapfg  + noisemaps[0] + mapcmb
     maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
-    #gérer list et concatenate
 
     z=0
     for i in range(0,N_freqs):
         for j in range(i,N_freqs):
             if i != j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc1[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc1[j],purify_e=False, purify_b=True), wsp))[3])
             if i==j :
-                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp_dc[z]))[3])
+                CLcross[k,z]=np.array((sim.compute_master(nmt.NmtField(mask, 1*maptotaldc21[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*maptotaldc22[j],purify_e=False, purify_b=True), wsp))[3])
             z = z +1  
     if syncrotype==None and dusttype==None:
         if r ==0:
