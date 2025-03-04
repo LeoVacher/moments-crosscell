@@ -7,7 +7,6 @@ import pymaster as nmt
 import pysm3
 import time
 from mpfit import mpfit
-import mpfitlib as mpl
 import scipy
 #from Nearest_Positive_Definite import *
 from matplotlib.backends.backend_pdf import PdfPages
