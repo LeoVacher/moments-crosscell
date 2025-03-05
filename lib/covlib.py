@@ -31,17 +31,10 @@ def cross_index(A, B, Nf):
         Index of the associated cross-spectrum.
 
     """
-    for i in range(Nf):
-        for j in range(i, Nf):
-            try:
-                cross = np.vstack((cross, np.array([i, j])))
-            except:
-                cross = np.array([i, j])
-    
     if A > B:
-        A, B = B, A
-        
-    return np.where(np.logical_and(cross[:,0] == A, cross[:,1] == B))[0][0]
+        A, B = B, A 
+    return int((A * (2 * Nf - A + 1)) // 2 + (B - A))
+
 
 def band_doublet(index, Nf):
     """
@@ -168,6 +161,56 @@ def compute_inverse(M):
 """
 Covariance computations
 """
+
+def getLinvdiag(DL,printdiag=False,offset=0):
+    # old function to be improved
+    """
+    Compute inverse of the covariance matrix used for the fit assuming it is block-diagonal in ell. 
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param print: if true, print the diagonal of cov.invcov to evaluate the quality of the inversion.
+    :return Linv: Cholesky matrix in the shape (Nell,ncross,ncross)
+    """
+    _, _, Nell = DL.shape
+    DLtempo = np.swapaxes(DL, 0, 1)
+    Linvdc = []
+    for L in range(Nell):
+        cov = np.cov(DLtempo[:,:,L])
+        invcov = np.linalg.inv(cov + offset * np.identity(len(cov)))        
+        if printdiag:
+            print(np.diag(np.dot(cov, invcov)))            
+        Linvdc.append(np.linalg.cholesky(invcov))
+    return np.array(Linvdc)
+
+def getLinv_all_ell(DL,printdiag=False,offset=0,Ncrdiag=0):
+    # old function to be improved
+    """
+    Compute inverse of the covariance matrix used for the fit assuming it is block-diagonal in ell. 
+    :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
+    :param print: if true, print the diagonal of cov.invcov to evaluate the quality of the inversion.
+    :return Linv: Cholesky matrix in the shape (Nellxncross,Nellxncross)
+    """
+    N,Ncross,Nell = DL.shape
+    DLswap = np.swapaxes(DL,1,2)
+    DLflat = np.zeros([Nell*Ncross,N])
+    for i in range(N):
+        DLflat[:,i] = DLswap[i,:,:].flatten()
+    id = []
+    for L in range(Nell):
+        id.append(np.ones((Ncross,Ncross)))
+    ident = np.zeros((Nell*Ncross,Nell*Ncross))
+    for i in range(Nell):
+        ident[i*Ncross:Ncross*(i+1),i*Ncross:Ncross*(i+1)]=id[i]
+    for j in range(Ncrdiag):
+           ident[j*Ncross:Ncross*(j+1),(j+1)*Ncross:Ncross*(j+2)]=id[i]
+           ident[(j+1)*Ncross:Ncross*(j+2),j*Ncross:Ncross*(j+1)]=id[i]
+    covtot = np.cov(DLflat)
+    covtot = covtot*ident
+    invcovtot = np.linalg.inv(covtot)
+    if printdiag ==True:
+        print(np.diag(np.dot(invcovtot,covtot)))
+    Linvdc = np.linalg.cholesky(invcovtot)
+    return Linvdc
+
 
 def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     """
