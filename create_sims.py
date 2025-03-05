@@ -19,15 +19,15 @@ import pysm3.units as u
 from tqdm import tqdm
 
 r = 0
-nside = 64
+nside = 32
 Npix = hp.nside2npix(nside)
 N=500 
 lmax = nside*3-1
 scale = 10
 Nlbin = 10
-fsky = 0.8
+fsky = 0.7
 dusttype = 0
-syncrotype = 1
+syncrotype = 0
 kw = ''
 load=False
 
