@@ -32,7 +32,8 @@ ELLBOUND = 15
 dusttype = 0
 synctype = 0
 kw=''
- 
+use_nmt=True
+
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
 leff = leff[:ELLBOUND]
