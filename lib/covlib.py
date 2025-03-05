@@ -466,8 +466,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         Nls_BB=np.array(Nls_BB)
 
         #get cmb spectra
-        DL_lens_EE, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='EE')
-        DL_lens_BB, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='BB')
+        DL_lens_EE, _ = ftl.getDL_cmb(nside=nside,Nlbin=1,mode='EE')
+        DL_lens_BB, _ = ftl.getDL_cmb(nside=nside,Nlbin=1,mode='BB')
         DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
         DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
         print(DL_lens_EE.shape)
