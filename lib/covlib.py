@@ -225,7 +225,7 @@ def cov_analytic_signal(A,B,C,D,DL_signal=None,ell=None,Nlbin=None,mask=None):
     covmat = (DLAC*DLBD+DLAD*DLBC)/v_l
     return covmat 
 
-def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='all',Nell=15):
+def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='all',Nell=15,Nbin_max=19):
     """
     Compute analytical covariance matrix using NaMaster fonctions from theoretical power spectra and noise model.
     DL can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-DL divided by fsky.
@@ -346,18 +346,18 @@ def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, N
                 
         covmat -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
             
-    covmat = covmat.reshape([Nell, 4, Nell, 4])
+    covmat = covmat.reshape([Nbin_max, 4, Nbin_max, 4])
             
     if output == 'EE':
-        return covmat[:, 0, :, 0]
+        return covmat[:Nell, 0, :Nell, 0]
             
     elif output == 'BB':
-        return covmat[:, 3, :, 3]
+        return covmat[:Nell, 3, :Nell, 3]
             
     else:
         return covmat
     
-def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all',Nell=15):
+def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all',Nell=15,Nbin_max=19):
     """
     Compute analytical covariance matrix using NaMaster fonctions directly from signal.
     DL can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-DL divided by fsky.
@@ -396,13 +396,13 @@ def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all',Nell=1
     DL_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
             
     covmat = nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
-    covmat = covmat.reshape([Nell, 4, Nell, 4])
+    covmat = covmat.reshape([Nbin_max, 4, Nbin_max, 4])
             
     if output == 'EE':
-        return covmat[:, 0, :, 0]
+        return covmat[:Nell, 0, :Nell, 0]
             
     elif output == 'BB':
-        return covmat[:, 3, :, 3]
+        return covmat[:Nell, 3, :Nell, 3]
             
     else:
         return covmat
@@ -500,11 +500,11 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
                 A,B= doublets[i]
                 C,D= doublets[j]
                 if type=='signal':
-                    covmat[:,i,j]= cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='BB')
+                    covmat[:,i,j]= cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells()))
                 if type=='Knox+fg':
-                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB',Nell=Nell)
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells()))
                 if type=='Knox-fg':
-                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB',Nell=Nell)
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells()))
             
     elif use_nmt==False:
         for i in range(0,Ncross):
