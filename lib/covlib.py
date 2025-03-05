@@ -423,6 +423,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     ell= b.get_effective_ells()
     ell=ell[:Nell]
     fact_Dl= ell*(ell+1)/2/np.pi
+    wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+
     covmat = np.zeros((Nell,Ncross,Ncross))
 
     doublets = {}
@@ -471,13 +473,9 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_lens_BB = fact_Dl_ub%CLcmb_or[3,:len(fact_Dl_ub)]
         DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
         DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
-        print(DL_lens_EE.shape)
-        print(DL_lens_BB.shape)
         coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
         DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-        print(DL_cmb_EE.shape)
-        print(DL_cmb_BB.shape)
 
     elif use_nmt==False:
         #get noise spectra
@@ -491,7 +489,6 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get fg spectra
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
-        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl)
 
         #get cmb spectra
