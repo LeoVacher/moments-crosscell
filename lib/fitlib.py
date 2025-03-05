@@ -18,8 +18,7 @@ def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     sp_dict = {'TT': 0, 'EE': 1, 'BB': 2, 'TE': 3}
     sp = sp_dict.get(mode, None)
     if sp is None:
-        raise ValueError("Unknown mode")
-    
+        raise ValueError("Unknown mode")    
     DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[sp,:lmax+1])/2/np.pi
     DL_tens = l*(l+1)*b.bin_cell(CL_tens[sp,:lmax+1])/2/np.pi
     return DL_lensbin, DL_tens
