@@ -59,10 +59,10 @@ else:
 
 
 if nmt==False:
-    Linv_sg, invcov_sg =cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='signal',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10)
+    Linv_sg, invcov_sg =cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='signal',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='BB')
 
-Linv_an, invcov_an = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox-fg',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10)
-Linv_anfg, invcov_anfg = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox+fg',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10)
+Linv_an, invcov_an = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox-fg',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='BB')
+Linv_anfg, invcov_anfg = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox+fg',mask=mask,Linv=True,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='BB')
 
 if use_nmt==False:
     np.save('./covariances/Linv_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)

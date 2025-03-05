@@ -6,6 +6,7 @@ import fitlib as ftl
 import simu_lib as sim
 import pysm3.units as u
 import pymaster as nmt 
+from tqdm import tqdm
 
 #contains all function for covariance computations, develloped in collaboration with S. Vinzl.
 
@@ -407,7 +408,7 @@ def cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='all',Nell=1
     else:
         return covmat
 
-def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',type='signal',mask=None,Linv=True,use_nmt=True,nside=64,Nlbin=10):
+def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',type='signal',mask=None,Linv=True,use_nmt=True,nside=64,Nlbin=10,mode_cov='BB'):
     """
     compute an analytical estimate of the covariance matrix in different fashion (see Tristram+2004 arxiv:0405575 Eq.28).
     :param DL_signal: The signal binned DL array should be of the shape (Nsim, Ncross, Nell). Needed only to compute Knox formula from the signal (type=signal)
@@ -416,6 +417,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     :param type: type of estimate of the covariance. Can be "signal", "Knox-fg" or "Knox+fg"
     :param Linv: If true return the Cholesky matrix computed from the inverse cov. If false return the covariance matrix. 
     :param nmt: If true compute the full covariance matrix using namaster
+    :param mode_cov: 'EE', 'BB' or 'all'
     """
     N, Ncross, Nell= DL_signal.shape
     N_freqs= int((np.sqrt(1 + 8*Ncross)-1)/2)
@@ -456,7 +458,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         z=0
         Nls_EE=[]
         Nls_BB=[]
-        for i in range(0,N_freqs): 
+        for i in tqdm(range(0,N_freqs)): 
             for j in range(i,N_freqs): 
                 DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
                 coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
@@ -489,22 +491,23 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
         wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
-        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl)
+        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl,mode=mode_cov)
 
         #get cmb spectra
-        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
+        DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode=mode_cov)
         DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
+    
     if use_nmt==True:
-        for i in range(0,Ncross):
+        for i in tqdm(range(0,Ncross)):
             for j in range(0,Ncross):
                 A,B= doublets[i]
                 C,D= doublets[j]
                 if type=='signal':
                     covmat[:,i,j]= np.diag(cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells())))
                 if type=='Knox+fg':
-                    covmat[:,i,j]= np.diag(cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells())))
+                    covmat[:,i,j]= np.diag(cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output=mode_cov,Nell=Nell,Nbin_max=len(b.get_effective_ells())))
                 if type=='Knox-fg':
-                    covmat[:,i,j]= np.diag(cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB',Nell=Nell,Nbin_max=len(b.get_effective_ells())))
+                    covmat[:,i,j]= np.diag(cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output=mode_cov,Nell=Nell,Nbin_max=len(b.get_effective_ells())))
             
     elif use_nmt==False:
         for i in range(0,Ncross):
@@ -547,5 +550,4 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         return Linv, invcov
     else:
         return covmat
-
 
