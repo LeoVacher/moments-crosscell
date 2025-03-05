@@ -423,8 +423,6 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     ell= b.get_effective_ells()
     ell=ell[:Nell]
     fact_Dl= ell*(ell+1)/2/np.pi
-    wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
-
     covmat = np.zeros((Nell,Ncross,Ncross))
 
     doublets = {}
@@ -445,6 +443,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         mapfg=mapfg[:,1:]
         b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1)
         wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
+        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)        
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
@@ -489,6 +488,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get fg spectra
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
+        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl)
 
         #get cmb spectra
