@@ -346,7 +346,7 @@ def cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, N
                 
         covmat -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, DL_a1b1, DL_a1b2, DL_a2b1, DL_a2b2, wsp)
             
-    covmat = cov.reshape([Nbins, 4, Nbins, 4])
+    covmat = covmat.reshape([Nbins, 4, Nbins, 4])
             
     if output == 'EE':
         return covmat[:, 0, :, 0]
