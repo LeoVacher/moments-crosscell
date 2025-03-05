@@ -448,7 +448,6 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
-        print(DLcross_fg.shape)
         DL_fg_EE = DLcross_fg[0]
         DL_fg_BB = DLcross_fg[3]
         
@@ -470,13 +469,13 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get cmb spectra
         CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
         DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
-        DL_lens_BB = fact_Dl_ub%CLcmb_or[3,:len(fact_Dl_ub)]
+        DL_lens_BB = fact_Dl_ub*CLcmb_or[3,:len(fact_Dl_ub)]
         DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
         DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
         coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
         DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-        
+
     elif use_nmt==False:
         #get noise spectra
         DL_cross_noise=np.ones((Ncross,Nell))
