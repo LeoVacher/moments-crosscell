@@ -443,7 +443,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         mapfg=mapfg[:,1:]
         b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1)
         wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
-        ell_unbined= np.arange(3*nside)
+        #ell_unbined= np.arange(3*nside)
+        ell_unbined= b_unbined.get_effective_ells()
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')

@@ -58,10 +58,13 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
     """
     Compute the cross-spectra
     """
-
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
-    CLcross=np.zeros((Ncross,19))
+    Nell=len(fact_Dl)
+    if sp!=None:
+        CLcross=np.zeros((Ncross,Nell))
+    if sp==None:
+        CLcross=np.zeros((4,Ncross,Nell))
     z=0
     sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
     sp = sp_dict.get(mode, None)
@@ -77,8 +80,8 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
+                    CLcross[:,z]=np.array((compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
                 if i==j :
-                    CLcross[z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
+                    CLcross[:,z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
                 z = z +1
-    return fact_Dl*CLcross[:,:len(fact_Dl)]
+    return fact_Dl*CLcross[:,:Nell]
