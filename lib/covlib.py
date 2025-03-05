@@ -453,26 +453,29 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get noise spectra
         DL_cross_noise = np.ones((Ncross,3*nside))
         z=0
+        Nls_EE=[]
+        Nls_BB=[]
         for i in range(0,N_freqs): 
             for j in range(i,N_freqs): 
                 DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
+                coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
+                Nls_EE.append(coupled_noise[0])
+                Nls_BB.append(coupled_noise[3])
                 z=z+1
-        print(DL_cross_noise.shape)
-        print(np.shape([DL_cross_noise, np.zeros_like(DL_cross_noise), np.zeros_like(DL_cross_noise), DL_cross_noise]))
-        coupled_noise = wsp_unbined.couple_cell([DL_cross_noise, np.zeros_like(DL_cross_noise), np.zeros_like(DL_cross_noise), DL_cross_noise])
-        Nls_BB=coupled_noise[0]
-        Nls_BB = coupled_noise[3]
-
+        Nls_EE=np.array(Nls_EE)
+        Nls_BB=np.array(Nls_BB)
+        print(NLs_EE.shape)
+        print(NLs_BB.shape)
 
         #get cmb spectra
         DL_lens_EE, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='EE')
         DL_lens_BB, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='BB')
-        DL_cross_lens_EE = np.array([DL_lens_EE[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
-        DL_cross_lens_BB = np.array([DL_lens_BB[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
-        coupled_cmb=wsp.couple_cell([DL_cross_lens_EE, np.zeros(DL_cross_lens_EE), np.zeros(DL_cross_lens_EE), DL_cross_lens_BB])
-        DL_cmb_EE = coupled_cmb[0]
-        DL_cmb_BB = coupled_cmb[3]
-
+        coupled_cmb=wsp.couple_cell([DL_lens_EE, np.zeros(DL_lens_EE), np.zeros(DL_lens_EE), DL_lens_BB])
+        DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+        DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+        print(DL_cmb_EE.shape)
+        print(DL_cmb_BB.shape)
+        
     elif use_nmt==False:
         #get noise spectra
         DL_cross_noise=np.ones((Ncross,Nell))
