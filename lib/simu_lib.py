@@ -63,7 +63,7 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
     Nell=len(fact_Dl)
     sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
     sp = sp_dict.get(mode, None)
-
+    print(Ncross)
     if sp!=None:
         CLcross=np.zeros((Ncross,Nell))
     if sp==None:
