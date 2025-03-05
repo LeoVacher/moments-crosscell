@@ -446,7 +446,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
-        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,fact_Dl=fact_Dl_ub,coupled=True,modes='all')
+        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
         DL_fg_EE = DLcross_fg[0]
         DL_fg_BB = DLcross_fg[3]
         
