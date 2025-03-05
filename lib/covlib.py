@@ -440,7 +440,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     if use_nmt==True:
         #get noise spectra
         b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3,nlb=1)
-        wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
+        wsp_unbined = sim.get_wsp(None,None,None,None,mask,b_unbined)
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
         DL_cross_noise = np.ones((Ncross,3*nside))
@@ -457,9 +457,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get fg spectra
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
-        wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
         DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,fact_Dl=fact_Dl_ub,coupled=True,modes='all')
-        coupled_fg = wsp_unbined.couple_cell([DLcross_fg[0], np.zeros(Nell), np.zeros(Nell), mDLcross_fg[3]]) 
+        coupled_fg = wsp_unbined.couple_cell([DLcross_fg[0], np.zeros(Nell), np.zeros(Nell), DLcross_fg[3]]) 
         DL_fg_EE = coupled_fg[0]
         DL_fg_BB = coupled_fg[3]
 
