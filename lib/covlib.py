@@ -253,10 +253,10 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
     
     if progress:
-        pbar = tqdm(desc='Estimating covariance matrix', total=Ncross**2)
+        pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
     
     for crossAB in range(Ncross):
-        for crossCD in range(Ncross):
+        for crossCD in range(crossAB, Ncross):
             A, B = band_doublet(crossAB, Nfreqs)
             C, D = band_doublet(crossCD, Nfreqs)
             
@@ -320,6 +320,9 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
 
             for i in range(Nbins):
                 covmat[i*Ncross + crossAB, i*Ncross + crossCD] = cov[i]
+                
+                if crossAB != crossCD:
+                    covmat[i*Ncross + crossCD, i*Ncross + crossAB] = cov[i]
                     
             if progress:
                 pbar.update(1)
@@ -364,10 +367,10 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
     covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
     
     if progress:
-        pbar = tqdm(desc='Estimating covariance matrix', total=Ncross**2)
+        pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
     
     for crossAB in range(Ncross):
-        for crossCD in range(Ncross):
+        for crossCD in range(crossAB, Ncross):
             A, B = band_doublet(crossAB, Nfreqs)
             C, D = band_doublet(crossCD, Nfreqs)
             
@@ -380,6 +383,9 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
             
             for i in range(Nbins):
                 covmat[i*Ncross + crossAB, i*Ncross + crossCD] = cov[i]
+                
+                if crossAB != crossCD:
+                    covmat[i*Ncross + crossCD, i*Ncross + crossAB] = cov[i]
                 
             if progress:
                 pbar.update(1)
@@ -440,10 +446,10 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
         covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
     
     if progress:
-        pbar = tqdm(desc='Estimating covariance matrix', total=Ncross**2)
+        pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
     
     for crossAB in range(Ncross):
-        for crossCD in range(Ncross):
+        for crossCD in range(crossAB, Ncross):
             A, B = band_doublet(crossAB, Nfreqs)
             C, D = band_doublet(crossCD, Nfreqs)
             
@@ -551,11 +557,17 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
                 for i in range(Nbins):
                     for j in range(Nbins):
                         covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 0, j, 0]
+                        
+                        if crossAB != crossCD:
+                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 0, j, 0]
             
             elif output == 'BB':
                 for i in range(Nbins):
                     for j in range(Nbins):
                         covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 3, j, 3]
+                        
+                        if crossAB != crossCD:
+                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 3, j, 3]
             
             else:
                 for WX in range(4):
@@ -563,6 +575,9 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
                         for i in range(Nbins):
                             for j in range(Nbins):
                                 covmat[(WX*Nbins + i) * Ncross + crossAB, (YZ*Nbins + j) * Ncross + crossCD] = cov[i, WX, j, YZ]
+                                
+                                if crossAB != crossCD:
+                                    covmat[(WX*Nbins + i) * Ncross + crossCD, (YZ*Nbins + j) * Ncross + crossAB] = cov[i, WX, j, YZ]
                     
             if progress:
                 pbar.update(1)
@@ -615,10 +630,10 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
         covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
     
     if progress:
-        pbar = tqdm(desc='Estimating covariance matrix', total=Ncross**2)
+        pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
     
     for crossAB in range(Ncross):
-        for crossCD in range(Ncross):
+        for crossCD in range(crossAB, Ncross):
             A, B = band_doublet(crossAB, Nfreqs)
             C, D = band_doublet(crossCD, Nfreqs)
             
@@ -649,11 +664,17 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
                 for i in range(Nbins):
                     for j in range(Nbins):
                         covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 0, j, 0]
+                        
+                        if crossAB != crossCD:
+                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 0, j, 0]
             
             elif output == 'BB':
                 for i in range(Nbins):
                     for j in range(Nbins):
                         covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 3, j, 3]
+                        
+                        if crossAB != crossCD:
+                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 3, j, 3]
             
             else:
                 for WX in range(4):
@@ -661,6 +682,9 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
                         for i in range(Nbins):
                             for j in range(Nbins):
                                 covmat[(WX*Nbins + i) * Ncross + crossAB, (YZ*Nbins + j) * Ncross + crossCD] = cov[i, WX, j, YZ]
+                                
+                                if crossAB != crossCD:
+                                    covmat[(WX*Nbins + i) * Ncross + crossCD, (YZ*Nbins + j) * Ncross + crossAB] = cov[i, WX, j, YZ]
                     
             if progress:
                 pbar.update(1)
