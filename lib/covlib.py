@@ -440,7 +440,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
     if use_nmt==True:
         #get noise spectra
         b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3,nlb=1)
-        wsp_unbined = sim.get_wsp(None,None,None,None,mask,b_unbined)
+        wsp_unbined = sim.get_wsp(np.ones(Npix),np.ones(Npix),np.ones(Npix),np.ones(Npix),mask,b_unbined)
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
         DL_cross_noise = np.ones((Ncross,3*nside))
