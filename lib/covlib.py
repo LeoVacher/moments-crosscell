@@ -502,9 +502,9 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
                 if type=='signal':
                     covmat[:,i,j]= cov_NaMaster_signal(A, B, C, D, DL_EE, DL_BB, mask, wsp, output='BB')
                 if type=='Knox+fg':
-                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB',Nell)
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=False, output='BB',Nell=Nell)
                 if type=='Knox-fg':
-                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB',Nell)
+                    covmat[:,i,j]= cov_NaMaster(A, B, C, D, DL_cmb_EE, DL_cmb_BB, DL_fg_EE, DL_fg_BB, Nls_EE, Nls_BB, mask, wsp, corrfog=True, output='BB',Nell=Nell)
             
     elif use_nmt==False:
         for i in range(0,Ncross):
