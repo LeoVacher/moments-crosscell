@@ -446,7 +446,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
-        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
+        DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
         DL_fg_EE = DLcross_fg[0]
         DL_fg_BB = DLcross_fg[3]
         
@@ -454,7 +454,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_cross_noise = np.ones((Ncross,3*nside))
         z=0
         for i in range(0,N_freqs): 
-            for j in range(i,N_freqs):
+            for j in range(i,N_freqs): 
                 DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
                 z=z+1
 
