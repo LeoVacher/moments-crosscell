@@ -476,6 +476,10 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
 
+        print(DL_cmb_EE.shape)
+        print(DL_fg_EE.shape)
+        print(Nls_EE.shape)
+
     elif use_nmt==False:
         #get noise spectra
         DL_cross_noise=np.ones((Ncross,Nell))
