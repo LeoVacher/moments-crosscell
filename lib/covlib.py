@@ -442,7 +442,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
         mapfg=mapfg[:,1:]
         b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3,nlb=1)
-        wsp_unbined = sim.get_wsp(mapfg[0],mapfg[0],mapfg[0],mapfg[0],mask,b_unbined)
+        wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
         ell_unbined= np.arange(3*nside)
         fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
