@@ -464,8 +464,8 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
                 z=z+1
         Nls_EE=np.array(Nls_EE)
         Nls_BB=np.array(Nls_BB)
-        print(NLs_EE.shape)
-        print(NLs_BB.shape)
+        print(Nls_EE.shape)
+        print(Nls_BB.shape)
 
         #get cmb spectra
         DL_lens_EE, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='EE')
@@ -475,7 +475,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         print(DL_cmb_EE.shape)
         print(DL_cmb_BB.shape)
-        
+
     elif use_nmt==False:
         #get noise spectra
         DL_cross_noise=np.ones((Ncross,Nell))
