@@ -470,7 +470,7 @@ def compute_analytical_cov(DL_signal=None,sky=None,instr_name='litebird_full',ty
         #get cmb spectra
         DL_lens_EE, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='EE')
         DL_lens_BB, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode='BB')
-        coupled_cmb=wsp.couple_cell([DL_lens_EE, np.zeros(DL_lens_EE), np.zeros(DL_lens_EE), DL_lens_BB])
+        coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros(DL_lens_EE), np.zeros(DL_lens_EE), DL_lens_BB])
         DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
         print(DL_cmb_EE.shape)
