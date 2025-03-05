@@ -22,7 +22,7 @@ import pysm3.units as u
 import covlib as cvl 
 
 r=0.
-nside = 64
+nside = 32
 lmax = nside*3-1
 #lmax=850
 scale = 10
@@ -58,14 +58,11 @@ else:
         sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%synctype])
 
 
-if nmt==False:
-    cov_sg =cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='signal',mask=mask,Linv=False,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='all')
-cov_an = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox-fg',mask=mask,Linv=False,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='all')
-cov_anfg = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox+fg',mask=mask,Linv=False,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='all')
+cov_an = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox-fg',mask=mask,Linv=False,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='BB')
+cov_anfg = cvl.compute_analytical_cov(DL_signal=DLdc[:,:,:ELLBOUND],sky=sky,instr_name=instr_name,type='Knox+fg',mask=mask,Linv=False,use_nmt=use_nmt,nside=nside,Nlbin=10,mode_cov='BB')
 
 np.save('./covariances/invcov_nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_an)
 np.save('./covariances/invcov_nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_anfg)
-
 
 binell=0
 
