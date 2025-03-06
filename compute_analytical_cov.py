@@ -127,7 +127,8 @@ if use_nmt==False:
     covinv_sg= inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False)
     Linv_sg=inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=True, return_new=False)
 
-cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
+if namaster==True:
+    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
 covinv_an= inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
 Linv_an=inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
@@ -142,8 +143,14 @@ if use_nmt==False:
     np.save('./covariances/invcov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_an)
     np.save('./covariances/invcov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_sg)
     np.save('./covariances/invcov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_anfg)
+    np.save('./covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_an)
+    np.save('./covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_sg)
+    np.save('./covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_anfg)
+
 if use_nmt==True:
     np.save('./covariances/Linv_nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)
     np.save('./covariances/Linv_nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_anfg)
     np.save('./covariances/invcov_nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_an)
     np.save('./covariances/invcov_nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),invcov_anfg)
+    np.save('./covariances/cov_nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_an)
+    np.save('./covariances/cov_nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_anfg)
