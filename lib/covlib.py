@@ -50,7 +50,6 @@ def band_doublet(Nf):
     np.array
         Band doublet associated to all cross-spectra indices.
     """
-    doublets = {}
     doublets = [(i, j) for i in range(Nf) for j in range(i, Nf)]
     return doublets
 
