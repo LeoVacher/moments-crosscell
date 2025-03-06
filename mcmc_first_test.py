@@ -17,12 +17,11 @@ import fitlib as ftl
 from getdist import plots, MCSamples
 r=0.
 nside = 64
-lmax = nside*3-1
+lmax = nside*2-1
 #lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
-ELLBOUND = 15
 dusttype = 0
 synctype = 0
 Pathload='./'
@@ -95,10 +94,13 @@ for k in range(len(res1.keys())-1):
         p0.append(res1[list(res1.keys())[k]][L,n])
 
 y = DLdc[n,:,L]
-yerr1 = np.cov(np.swapaxes(DLdc[:,:,L],0,1))
+cov1 = np.cov(np.swapaxes(DLdc[:,:,L],0,1))
+cov2 = np.load(Pathload+"/covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+cov3 = np.load(Pathload+"/covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+
 invcov1 = np.linalg.inv(yerr1)
-invcov2 = np.load(Pathload+"/covariances/invcov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))[L]
-invcov3 = np.load(Pathload+"/covariances/invcov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))[L]
+invcov2= cvl.inverse_covmat(cov2, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)[L]
+invcov3= cvl.inverse_covmat(cov3, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)[L]
 
 thetafit = p0
 model0 = ftl.func_ds_o0(p0, x1=nu_i, x2=nu_j,nuref=353.,nurefs=23.,ell=L,DL_lensbin=DL_lensbin, DL_tens=DL_tens)

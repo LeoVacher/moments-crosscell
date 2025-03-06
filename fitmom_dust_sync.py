@@ -22,6 +22,9 @@ Nlbin = 10
 fsky = 0.7
 dusttype = 0
 synctype = 0
+dusttype_cov = 0
+synctype_cov = 0
+
 Pathload='./'
 all_ell=False #all ell or each ell independently
 fix= 0 #fix beta and T ?
@@ -78,12 +81,15 @@ if all_ell==True:
     if cov_type=='sim':
         Linvdc= cvl.getLinv_all_ell(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
     else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
+        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
+
 else:
     if cov_type=='sim':
         Linvdc= cvl.getLinvdiag(DLdc[:Ncov,:,:ELLBOUND],printdiag=True)
     else:
-        Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
+        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc=DLdc[:N,:,:Nell]
