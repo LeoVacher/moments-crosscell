@@ -36,7 +36,7 @@ def cross_index(A, B, Nf):
     return int((A * (2 * Nf - A + 1)) // 2 + (B - A))
 
 
-def band_doublet(index, Nf):
+def band_doublet(Nf):
     """
     Find the band doublet associated to the input cross-spectrum index.
 
@@ -50,17 +50,16 @@ def band_doublet(index, Nf):
     Returns
     -------
     np.array
-        Band doublet associated to the cross-spectrum index.
+        Band doublet associated to all cross-spectra indices.
 
     """
-    for i in range(Nf):
-        for j in range(i, Nf):
-            try:
-                cross = np.vstack((cross, np.array([i, j])))
-            except:
-                cross = np.array([i, j])
-                
-    return cross[index]
+    doublets = {}
+        z=0
+        for i in range(0,Nf):
+            for j in range(i,Nf):
+                doublets[z]=(i, j)
+                z=z+1
+    return doublets
 
 def is_positive_definite(M):
     """
@@ -244,7 +243,8 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     Ncross, Nbins = Cls_cmb.shape
     delta_l = int(lmax / Nbins)
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    
+    doublets=band_doublet(Nfreqs)
+
     b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     leff = b.get_effective_ells()
     
@@ -257,8 +257,8 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     
     for crossAB in range(Ncross):
         for crossCD in range(crossAB, Ncross):
-            A, B = band_doublet(crossAB, Nfreqs)
-            C, D = band_doublet(crossCD, Nfreqs)
+            A, B = doublets[crossAB]
+            C, D = doublets[crossCD]
             
             crossAC = cross_index(A, C, Nfreqs)
             crossBD = cross_index(B, D, Nfreqs)
@@ -358,7 +358,7 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
     Ncross, Nbins = Cls.shape
     delta_l = int(lmax / Nbins)
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    
+    doublets=band_doublet(Nfreqs)
     b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     leff = b.get_effective_ells()
     
@@ -371,9 +371,9 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
     
     for crossAB in range(Ncross):
         for crossCD in range(crossAB, Ncross):
-            A, B = band_doublet(crossAB, Nfreqs)
-            C, D = band_doublet(crossCD, Nfreqs)
-            
+            A, B = doublets[crossAB]
+            C, D = doublets[crossCD]
+        
             crossAC = cross_index(A, C, Nfreqs)
             crossBD = cross_index(B, D, Nfreqs)
             crossAD = cross_index(A, D, Nfreqs)
@@ -434,6 +434,7 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
     Ncross = Cls_cmb_EE.shape[0]
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
     Nbins = w.wsp.bin.n_bands
+    doublets=band_doublet(Nfreqs)
     
     f = nmt.NmtField(mask, None, spin=2)
     cw = nmt.NmtCovarianceWorkspace()
@@ -450,8 +451,8 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
     
     for crossAB in range(Ncross):
         for crossCD in range(crossAB, Ncross):
-            A, B = band_doublet(crossAB, Nfreqs)
-            C, D = band_doublet(crossCD, Nfreqs)
+            A, B = doublets[crossAB]
+            C, D = doublets[crossCD]
             
             crossAC = cross_index(A, C, Nfreqs)
             crossBD = cross_index(B, D, Nfreqs)
@@ -618,7 +619,8 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
     Ncross = Cls_EE.shape[0]
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
     Nbins = w.wsp.bin.n_bands
-    
+    doublets=band_doublet(Nfreqs)
+
     f = nmt.NmtField(mask, None, spin=2)
     cw = nmt.NmtCovarianceWorkspace()
     cw.compute_coupling_coefficients(f, f)
@@ -634,8 +636,8 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
     
     for crossAB in range(Ncross):
         for crossCD in range(crossAB, Ncross):
-            A, B = band_doublet(crossAB, Nfreqs)
-            C, D = band_doublet(crossCD, Nfreqs)
+            A, B = doublets[crossAB]
+            C, D = doublets[crossCD]
             
             crossAC = cross_index(A, C, Nfreqs)
             crossBD = cross_index(B, D, Nfreqs)
