@@ -125,7 +125,7 @@ elif use_nmt==False:
     DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
     
 if use_nmt==False:
-    cov_sg =cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0], Cls_cmb_EE=None, Cls_cmb_BB=DLdc, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='signal', output=mode_cov, progress=True)
+    cov_sg =cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0], Cls_cmb_EE=None, Cls_cmb_BB=DLdc, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
     covinv_sg= inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False)
     Linv_sg=inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=True, return_new=False)
 
