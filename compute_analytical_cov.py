@@ -20,6 +20,7 @@ import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
 import covlib as cvl 
+import fitlib as ftl 
 
 r=0.
 nside = 64
@@ -32,7 +33,7 @@ ELLBOUND = 15
 dusttype = 0
 synctype = 0
 kw=''
-use_nmt=True
+use_nmt=False
 mode_cov='BB'
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
