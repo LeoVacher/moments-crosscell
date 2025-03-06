@@ -127,8 +127,7 @@ if use_nmt==False:
     covinv_sg= inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False)
     Linv_sg=inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=True, return_new=False)
 
-if use_nmt==True:
-    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
+cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
 covinv_an= inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
 Linv_an=inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
