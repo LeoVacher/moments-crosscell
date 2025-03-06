@@ -39,7 +39,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
     :param: nucross, array of the cross-frequencies
     :param DL: The input binned DL array should be of the shape (Nsim, Ncross, Nell)
-    :param Linv: inverse of the Cholesky matrix
+    :param Linv: Cholesky of the inverse covariance matrix
     :param quiet: display output of the fit for debugging
     :param: parallel, if true use mpi to parallelise the computation on number of simulations.
     :param nside: nside of the simulations
