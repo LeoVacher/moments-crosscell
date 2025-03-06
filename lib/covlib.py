@@ -68,8 +68,8 @@ def block_diag(diaglist):
     Build a covariance matrix with diaglist in each block diagonal
     '''
     return np.block([[diaglist[i] if i == j else np.zeros_like(diaglist[0]) 
-                      for j in range(len(a_list))] 
-                      for i in range(len(a_list))])
+                      for j in range(len(diaglist))] 
+                      for i in range(len(diaglist))])
 
 def is_positive_definite(M):
     """
