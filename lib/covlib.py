@@ -51,11 +51,7 @@ def band_doublet(Nf):
         Band doublet associated to all cross-spectra indices.
     """
     doublets = {}
-        z=0
-        for i in range(0,Nf):
-            for j in range(i,Nf):
-                doublets[z]=(i, j)
-                z=z+1
+    doublets = [(i, j) for i in range(Nf) for j in range(i, Nf)]
     return doublets
 
 def covtocorr(cov):
