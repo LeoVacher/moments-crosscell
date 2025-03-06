@@ -10,7 +10,7 @@ import basicfunc as func
 #contains all the models to be fitted by mpfit 
 
 def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
-    lmax = nside*3-1
+    lmax = nside*2-1
     b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
     l = b.get_effective_ells()
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE

@@ -29,16 +29,14 @@ lmax = nside*2-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-ELLBOUND = 15
 dusttype = 0
 synctype = 0
 kw=''
-use_nmt=False
+use_nmt=True
 mode_cov='BB'
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
-leff = leff[:ELLBOUND]
 fact_Dl= leff*(leff+1)/2/np.pi
 Nell = len(leff)
 instr_name='litebird_full'
@@ -125,17 +123,26 @@ elif use_nmt==False:
     DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
     
 if use_nmt==False:
-    cov_sg =cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0], Cls_cmb_EE=None, Cls_cmb_BB=DLdc, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
-    covinv_sg= inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False)
-    Linv_sg=inverse_covmat(cov_sg, Nspec, neglect_corbins=True, return_cholesky=True, return_new=False)
+    cov_sg =cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0,:,:Nell], Cls_cmb_EE=None, Cls_cmb_BB=DLdc, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
+    covinv_sg= cvl.inverse_covmat(cov_sg, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
+    Linv_sg=cvl.inverse_covmat(cov_sg, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
-cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
-covinv_an= inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
-Linv_an=inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cross_lens, Cls_fg_EE=None, Cls_fg_BB=DLcross_fg, Nls_EE=None, Nls_BB=DL_cross_noise, type='Knox-fg', output=mode_cov, progress=True)
+    covinv_an= cvl.inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
+    Linv_an=cvl.inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)    
 
-cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt+fg', output=mode_cov, progress=True)
-covinv_anfg= inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
-Linv_anfg=inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cross_lens, Cls_fg_EE=None, Cls_fg_BB=DLcross_fg, Nls_EE=None, Nls_BB=DL_cross_noise, type='Knox+fg', output=mode_cov, progress=True)
+    covinv_anfg= cvl.inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
+    Linv_anfg=cvl.inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+
+if use_nmt==True:
+    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
+    covinv_an= cvl.inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
+    Linv_an=cvl.inverse_covmat(cov_an, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)    
+
+    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt+fg', output=mode_cov, progress=True)
+    covinv_anfg= cvl.inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=False, return_new=False)
+    Linv_anfg=cvl.inverse_covmat(cov_anfg, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
 if use_nmt==False:
     np.save('./covariances/Linv_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),Linv_an)

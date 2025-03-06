@@ -18,12 +18,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 r=0.
 nside = 64
-lmax = nside*3-1
+lmax = nside*2-1
 #lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
-ELLBOUND = 15
 dusttype = 0
 synctype = 0
 fix=0

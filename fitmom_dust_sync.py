@@ -15,12 +15,11 @@ import covlib as cvl
 
 r=0.
 nside = 64
-lmax = nside*3-1
+lmax = nside*2-1
 #lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
-ELLBOUND = 15
 dusttype = 0
 synctype = 0
 Pathload='./'
@@ -49,7 +48,6 @@ else:
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
-l = l[:ELLBOUND]
 Nell = len(l)
 
 #instrument informations:
@@ -88,7 +86,7 @@ else:
         Linvdc = np.load(Pathload+"/covariances/Linv_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype,synctype))
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
-DLdc=DLdc[:N,:,:ELLBOUND]
+DLdc=DLdc[:N,:,:Nell]
 
 # fit MBB and PL, get results, save and plot
 
