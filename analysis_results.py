@@ -37,9 +37,9 @@ Nell = len(l)
 
 #res1=np.load('Best-fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
 res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-#res2=np.load('Best-fits/results_d%ss%s_0.7_Knox-fg_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-#res3=np.load('Best-fits/results_d%ss%s_0.7_Knox+fg_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-#res4=np.load('Best-fits/results_d%ss%s_0.7_signal_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res2=np.load('Best-fits/results_d%ss%s_0.7_Nmt-fg_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res3=np.load('Best-fits/results_d%ss%s_0.7_Nmt+fg_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res4=np.load('Best-fits/results_d%ss%s_0.7_signal_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
 
 legs1= 'sims'
 legs2= 'Knox-fg'

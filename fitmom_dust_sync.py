@@ -22,17 +22,19 @@ Nlbin = 10
 fsky = 0.7
 dusttype = 0
 synctype = 0
-dusttype_cov = 0
-synctype_cov = 0
-
 Pathload='./'
 all_ell=False #all ell or each ell independently
 fix= 0 #fix beta and T ?
 adaptative=False
 N=500
 parallel=False
-cov_type='sim' #choices: sim, Knox-fg, Knox+fg, signal.
+cov_type='Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
+if cov_type='sim':
+    dusttype_cov = 0
+    synctype_cov = 0
+
+
 if cov_type!='sim':
     kw+='_%s'%cov_type
 
