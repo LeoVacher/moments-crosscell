@@ -23,7 +23,7 @@ import covlib as cvl
 
 r=0.
 nside = 64
-lmax = nside*3-1
+lmax = nside*2-1
 #lmax=850
 scale = 10
 Nlbin = 10
@@ -38,6 +38,7 @@ mode_cov='BB'
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
 leff = leff[:ELLBOUND]
+fact_Dl= leff*(leff+1)/2/np.pi
 Nell = len(leff)
 instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
