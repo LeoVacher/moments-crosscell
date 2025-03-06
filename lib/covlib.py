@@ -38,12 +38,10 @@ def cross_index(A, B, Nf):
 
 def band_doublet(Nf):
     """
-    Find the band doublet associated to the input cross-spectrum index.
+    Find the band doublet associated to all the input cross-spectrum indices.
 
     Parameters
     ----------
-    index : int
-        Index of the cross-spectrum.
     Nf : int
         Number of frequency bands.
 
