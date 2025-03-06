@@ -98,7 +98,7 @@ if use_nmt==True:
     #get cmb spectra
     CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
     DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
-    DL_lens_BB = fact_Dl_ub*CLcmb_or[3,:len(fact_Dl_ub)]
+    DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
     DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
     DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
     coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
