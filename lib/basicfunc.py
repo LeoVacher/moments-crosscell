@@ -6,6 +6,112 @@ import pysm3.units as u
 import pysm_common as psm 
 import sympy as sp
 
+
+# Convert units
+
+def uK_RJ_to_MJy_sr(nu):
+    """
+    Compute factors to convert brightness from uK_RJ to MJy/sr for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    k = const.k_B.value
+    c = const.c.value
+    
+    return 2*k * (nu*1e9 / c)**2 * 1e11
+
+def uK_RJ_to_uK_CMB(nu):
+    """
+    Compute factors to convert brightness from uK_RJ to uK_CMB for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    h = const.h.value
+    k = const.k_B.value
+    Tcmb = cosmo.Tcmb0.value
+    
+    x = h*nu*1e9 / (k*Tcmb)
+    return (np.exp(x) - 1)**2 / (x**2 * np.exp(x))
+
+def unit_conversion(nu, input_unit, output_unit):
+    """
+    Compute factors to convert brightness from input_unit to output_unit for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+    input_unit : string
+        Unit from which conversion factors should be computed. Can be 'MJy_sr', 'uK_RJ' or 'uK_CMB'.
+    output_unit : string
+        Unit to which conversion factors should be computed. Can be 'MJy_sr', 'uK_RJ' or 'uK_CMB'.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    if input_unit == 'uK_CMB':
+        if output_unit == 'uK_CMB':
+            return np.ones(len(nu))
+        
+        elif output_unit == 'uK_RJ':
+            return 1 / uK_RJ_to_uK_CMB(nu)
+        
+        elif output_unit == 'MJy_sr':
+            return uK_RJ_to_MJy_sr(nu) / uK_RJ_to_uK_CMB(nu)
+        
+        else:
+            raise ValueError('Incorrect output unit')
+            
+    elif input_unit == 'uK_RJ':
+        if output_unit == 'uK_CMB':
+            return uK_RJ_to_uK_CMB(nu)
+        
+        elif output_unit == 'uK_RJ':
+            return np.ones(len(nu))
+        
+        elif output_unit == 'MJy_sr':
+            return uK_RJ_to_MJy_sr(nu)
+        
+        else:
+            raise ValueError('Incorrect output unit')
+            
+    elif input_unit == 'MJy_sr':
+        if output_unit == 'uK_CMB':
+            return uK_RJ_to_uK_CMB(nu) / uK_RJ_to_MJy_sr(nu)
+        
+        elif output_unit == 'uK_RJ':
+            return 1 / uK_RJ_to_MJy_sr(nu)
+        
+        elif output_unit == 'MJy_sr':
+            return np.ones(len(nu))
+        
+        else:
+            raise ValueError('Incorrect output unit')
+    
+    else:
+        raise ValueError('Incorrect input unit')
+
 #FONCTIONS
 
 def B(nu,b_T):
@@ -48,7 +154,7 @@ def mbb_uK(nu,beta,b_T,nu0=353.):
     :return: float -- modified black body brightness.
 
     """    
-    return (mbb(nu,beta,b_T)/mbb(nu0,beta,b_T))*psm.convert_units('MJysr','uK_CMB',nu)/psm.convert_units('MJysr','uK_CMB',nu0)
+    return (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * unit_conversion(nu, 'MJy_sr', 'uK_CMB') / unit_conversion(nu0, 'MJy_sr', 'uK_CMB')
 
 def PL_uK(nu,beta,nu0=23.):
     """Power law.
@@ -60,7 +166,7 @@ def PL_uK(nu,beta,nu0=23.):
     :return: float -- power law brightness.
 
     """    
-    return psm.convert_units('uK_RJ','uK_CMB',nu)/psm.convert_units('uK_RJ','uK_CMB',nu0)*(nu/nu0)**beta
+    return unit_convertion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB') * (nu/nu0)**beta
 
 def dmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
