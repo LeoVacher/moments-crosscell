@@ -719,21 +719,21 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
     w : nmt.NmtWorkspace
         Workspace used for computing the power spectra.
     Cls_signal_EE : np.array, optional
-        Signal EE power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Default: None.
+        Signal EE power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE) except for type 'Knox_signal' for which Cls can be binned. Default: None.
     Cls_signal_BB : np.array, optional
-        Signal BB power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Default: None.
+        Signal BB power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE) except for type 'Knox_signal' for which Cls can be binned. Default: None.
     Cls_cmb_EE : np.array, optional
-        CMB EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        CMB EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     Cls_cmb_BB : np.array, optional
-        CMB BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        CMB BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     Cls_fg_EE : np.array, optional
-        Foregrounds EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        Foregrounds EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     Cls_fg_BB : np.array, optional
-        Foregrounds BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        Foregrounds BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     Nls_EE : np.array, optional
-        Noise EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        Noise EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     Nls_BB : np.array, optional
-        Noise BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Default: None.
+        Noise BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
     type : string, optional
         Type of the estimate. Can be 'Knox-fg', 'Knox+fg', 'Knox_signal', 'Nmt-fg', 'Nmt+fg', 'Nmt_signal'.
         Default: 'Nmt-fg'.
@@ -748,18 +748,20 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         Computed covariance matrix.
 
     """
-    if type in ['Knox-fg', 'Knox+fg', 'Knox_signal']:
+    lmax, Nbins = w.wsp.lmax, w.wsp.bin.n_bands
+    delta_l = int(lmax / Nbins)
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
+    
+    if type in ['Knox-fg', 'Knox+fg']:
         if output == 'EE':
-            Cls_signal = Cls_signal_EE
-            Cls_cmb = Cls_cmb_EE
-            Cls_fg = Cls_fg_EE
-            Nls = Nls_EE
+            Cls_cmb = b.bin_cell(Cls_cmb_EE[:lmax+1])
+            Cls_fg = b.bin_cell(Cls_fg_EE[:lmax+1])
+            Nls = b.bin_cell(Nls_EE[:lmax+1])
             
         elif output == 'BB':
-            Cls_signal = Cls_signal_BB
-            Cls_cmb = Cls_cmb_BB
-            Cls_fg = Cls_fg_BB
-            Nls = Nls_BB
+            Cls_cmb = b.bin_cell(Cls_cmb_BB[:lmax+1])
+            Cls_fg = b.bin_cell(Cls_fg_BB[:lmax+1])
+            Nls = b.bin_cell(Nls_BB[:lmax+1])
             
         else:
             raise ValueError("Incorrect type for output 'all'")
@@ -769,22 +771,33 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         
         elif type == 'Knox+fg':
             return cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, progress=progress)
-            
-        elif type == 'Knox_signal':
-            return cov_Knox_signal(mask, Cls_signal, w, progress=progress)
-            
-    else:
-        if type == 'Nmt-fg':
-            return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=True, output=output, progress=progress)
         
-        elif type == 'Nmt+fg':
-            return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=False, output=output, progress=progress)
+    elif type == 'Knox_signal':
+        if output = 'EE':
+            Cls_signal = np.copy(Cls_signal_EE)
             
-        elif type == 'Nmt_signal':
-            return cov_NaMaster_signal(mask, Cls_signal_EE, Cls_signal_BB, w, output=output, progress=progress)
+        elif output='BB':
+            Cls_signal = np.copy(Cls_signal_BB)
             
         else:
-            raise ValueError("Unknown type of estimate")
+            raise ValueError("Incorrect type for output 'all'")
+            
+        if Cls_signal.shape[1] > Nbins:
+            Cls_signal = b.bin_cell(Cls_signal[:lmax+1])
+            
+        return cov_Knox_signal(mask, Cls_signal, w, progress=progress)
+            
+    elif type == 'Nmt-fg':
+        return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=True, output=output, progress=progress)
+        
+    elif type == 'Nmt+fg':
+        return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=False, output=output, progress=progress)
+            
+    elif type == 'Nmt_signal':
+        return cov_NaMaster_signal(mask, Cls_signal_EE, Cls_signal_BB, w, output=output, progress=progress)
+            
+    else:
+        raise ValueError('Unknown type of estimate')
 
 def inverse_covmat(covmat, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False):
     """

@@ -20,7 +20,6 @@ import analys_lib as an
 import simu_lib as sim
 import pysm3.units as u
 import covlib as cvl 
-import fitlib as ftl 
 
 r=0.
 nside = 64
@@ -68,64 +67,46 @@ else:
 mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
 mapfg=mapfg[:,1:]
 
-if use_nmt==True:
-    #get fg spectra
-    b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1)
-    wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
-    wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)        
-    ell_unbined= np.arange(3*nside)
-    fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
+#get fg spectra
+b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1)
+wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
+wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+ell_unbined= np.arange(3*nside)
+fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
-    DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
-    DL_fg_EE = DLcross_fg[0]
-    DL_fg_BB = DLcross_fg[3]
-        
-    #get noise spectra
-    DL_cross_noise = np.ones((Ncross,3*nside))
-    z=0
-    Nls_EE=[]
-    Nls_BB=[]
-    for i in range(0,N_freqs): 
-        for j in range(i,N_freqs): 
-            DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
-            coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
-            Nls_EE.append(coupled_noise[0])
-            Nls_BB.append(coupled_noise[3])
-            z=z+1
-    Nls_EE=np.array(Nls_EE)
-    Nls_BB=np.array(Nls_BB)
+DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
+DL_fg_EE = DLcross_fg[0]
+DL_fg_BB = DLcross_fg[3]
+  
+#get noise spectra
+DL_cross_noise = np.ones((Ncross,3*nside))
+z=0
+Nls_EE=[]
+Nls_BB=[]
+for i in range(0,N_freqs): 
+    for j in range(i,N_freqs): 
+        DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
+        coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
+        Nls_EE.append(coupled_noise[0])
+        Nls_BB.append(coupled_noise[3])
+        z=z+1
+Nls_EE=np.array(Nls_EE)
+Nls_BB=np.array(Nls_BB)
 
-    #get cmb spectra
-    CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
-    DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
-    DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
-    DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
-    DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
-    coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
-    DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-    DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-
-elif use_nmt==False:
-    #get noise spectra
-    DL_cross_noise=np.ones((Ncross,Nell))
-    z=0
-    for i in range(0,N_freqs): 
-        for j in range(i,N_freqs):
-            DL_cross_noise[z]= fact_Dl*4*np.pi*sigpix[i]*sigpix[j]/Npix
-            z=z+1
-
-    #get fg spectra
-    wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
-    DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp,mask=mask,fact_Dl=fact_Dl,mode=mode_cov)
-
-    #get cmb spectra
-    DL_lens, _ = ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,mode=mode_cov)
-    DL_cross_lens = np.array([DL_lens[:Nell] for i in range(N_freqs) for j in range(i, N_freqs)])
+#get cmb spectra
+CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
+DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
+DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
+DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
+DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
+coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
+DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
     
 if use_nmt==False:
-    cov_sg =cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0,:,:Nell], Cls_cmb_EE=None, Cls_cmb_BB=DLdc, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
-    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cross_lens, Cls_fg_EE=None, Cls_fg_BB=DLcross_fg, Nls_EE=None, Nls_BB=DL_cross_noise, type='Knox-fg', output=mode_cov, progress=True)
-    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cross_lens, Cls_fg_EE=None, Cls_fg_BB=DLcross_fg, Nls_EE=None, Nls_BB=DL_cross_noise, type='Knox+fg', output=mode_cov, progress=True)
+    cov_sg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0,:,:Nell], Cls_cmb_EE=None, Cls_cmb_BB=None, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
+    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=None, Cls_fg_BB=DL_fg_BB, Nls_EE=None, Nls_BB=Nls_BB, type='Knox-fg', output=mode_cov, progress=True)
+    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=None, Cls_fg_BB=DL_fg_BB, Nls_EE=None, Nls_BB=Nls_BB, type='Knox+fg', output=mode_cov, progress=True)
 
 if use_nmt==True:
     cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=DL_fg_EE, Cls_fg_BB=DL_fg_BB, Nls_EE=Nls_EE, Nls_BB=Nls_BB, type='Nmt-fg', output=mode_cov, progress=True)
