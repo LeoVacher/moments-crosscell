@@ -752,6 +752,10 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
     delta_l = int(lmax / Nbins)
     b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     
+    if type != 'Knox_signal':
+		if Cls_signal_EE.shape[1] == Nbins or Cls_signal_BB.shape[1] == Nbins or Cls_cmb_EE.shape[1] == Nbins or Cls_cmb_BB.shape[1] == Nbins or Cls_fg_EE.shape[1] == Nbins or Cls_fg_BB.shape[1] == Nbins or Nls_EE.shape[1] == Nbins or Nls_BB.shape[1] == Nbins:
+			raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
+    
     if type in ['Knox-fg', 'Knox+fg']:
         if output == 'EE':
             Cls_cmb = b.bin_cell(Cls_cmb_EE[:lmax+1])
