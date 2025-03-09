@@ -72,7 +72,7 @@ def unit_conversion(nu, input_unit, output_unit):
     """
     if input_unit == 'uK_CMB':
         if output_unit == 'uK_CMB':
-            return np.ones(len(nu))
+            return np.ones_like(nu)
         
         elif output_unit == 'uK_RJ':
             return 1 / uK_RJ_to_uK_CMB(nu)
@@ -88,7 +88,7 @@ def unit_conversion(nu, input_unit, output_unit):
             return uK_RJ_to_uK_CMB(nu)
         
         elif output_unit == 'uK_RJ':
-            return np.ones(len(nu))
+            return np.ones_like(nu)
         
         elif output_unit == 'MJy_sr':
             return uK_RJ_to_MJy_sr(nu)
@@ -104,7 +104,7 @@ def unit_conversion(nu, input_unit, output_unit):
             return 1 / uK_RJ_to_MJy_sr(nu)
         
         elif output_unit == 'MJy_sr':
-            return np.ones(len(nu))
+            return np.ones_like(nu)
         
         else:
             raise ValueError('Incorrect output unit')
