@@ -751,7 +751,7 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
     lmax, Nbins = w.wsp.lmax, w.wsp.bin.n_bands
     delta_l = int(lmax / Nbins)
     b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
-    
+
     if type != 'Knox_signal':
         if type == 'Nmt_signal':
             if Cls_signal_EE.shape[1] == Nbins or Cls_signal_BB.shape[1] == Nbins:
@@ -760,17 +760,27 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         else:
             if Cls_cmb_EE.shape[1] == Nbins or Cls_cmb_BB.shape[1] == Nbins or Cls_fg_EE.shape[1] == Nbins or Cls_fg_BB.shape[1] == Nbins or Nls_EE.shape[1] == Nbins or Nls_BB.shape[1] == Nbins:
                 raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
-    
-    if type in ['Knox-fg', 'Knox+fg']:
-        if output == 'EE':
-            Cls_cmb = b.bin_cell(Cls_cmb_EE[:lmax+1])
-            Cls_fg = b.bin_cell(Cls_fg_EE[:lmax+1])
-            Nls = b.bin_cell(Nls_EE[:lmax+1])
+
+    if type in ['Knox-fg', 'Knox+fg']:        
+        if output == 'EE':            
+            Cls_cmb = np.zeros((Cls_cmb_EE.shape[0], Nbins))
+            Cls_fg = np.zeros((Cls_fg_EE.shape[0], Nbins))
+            Nls = np.zeros((Nls_EE.shape[0], Nbins))
+            
+            for i in range(Cls_cmb_EE.shape[0]):
+                Cls_cmb[i] = b.bin_cell(Cls_cmb_EE[i, :lmax+1])
+                Cls_fg[i] = b.bin_cell(Cls_fg_EE[i, :lmax+1])
+                Nls[i] = b.bin_cell(Nls_EE[i, :lmax+1])
             
         elif output == 'BB':
-            Cls_cmb = b.bin_cell(Cls_cmb_BB[:lmax+1])
-            Cls_fg = b.bin_cell(Cls_fg_BB[:lmax+1])
-            Nls = b.bin_cell(Nls_BB[:lmax+1])
+            Cls_cmb = np.zeros((Cls_cmb_BB.shape[0], Nbins))
+            Cls_fg = np.zeros((Cls_fg_BB.shape[0], Nbins))
+            Nls = np.zeros((Nls_BB.shape[0], Nbins))
+            
+            for i in range(Cls_cmb_EE.shape[0]):
+                Cls_cmb[i] = b.bin_cell(Cls_cmb_BB[i, :lmax+1])
+                Cls_fg[i] = b.bin_cell(Cls_fg_BB[i, :lmax+1])
+                Nls[i] = b.bin_cell(Nls_BB[i, :lmax+1])
             
         else:
             raise ValueError("Incorrect type for output 'all'")
@@ -783,20 +793,25 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         
     elif type == 'Knox_signal':
         if output == 'EE':
-            Cls_signal = np.copy(Cls_signal_EE)
+            Cls_signal = Cls_signal_EE
             
         elif output == 'BB':
-            Cls_signal = np.copy(Cls_signal_BB)
+            Cls_signal = Cls_signal_BB
             
         else:
             raise ValueError("Incorrect type for output 'all'")
             
         if Cls_signal.shape[1] > Nbins:
-            Cls_signal = b.bin_cell(Cls_signal[:lmax+1])
+            Cls_signal_binned = np.zeros((Cls_signal.shape[0], Nbins))
+            
+            for i in range(Cls_signal.shape[0]):
+                Cls_signal_binned[i] = b.bin_cell(Cls_signal[i, :lmax+1])
+                
+            Cls_signal = Cls_signal_binned
             
         return cov_Knox_signal(mask, Cls_signal, w, progress=progress)
             
-    elif type == 'Nmt-fg':
+    if type == 'Nmt-fg':
         return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=True, output=output, progress=progress)
         
     elif type == 'Nmt+fg':
