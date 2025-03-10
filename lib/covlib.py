@@ -753,8 +753,13 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
     b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     
     if type != 'Knox_signal':
-		if Cls_signal_EE.shape[1] == Nbins or Cls_signal_BB.shape[1] == Nbins or Cls_cmb_EE.shape[1] == Nbins or Cls_cmb_BB.shape[1] == Nbins or Cls_fg_EE.shape[1] == Nbins or Cls_fg_BB.shape[1] == Nbins or Nls_EE.shape[1] == Nbins or Nls_BB.shape[1] == Nbins:
-			raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
+        if type == 'Nmt_signal':
+            if Cls_signal_EE.shape[1] == Nbins or Cls_signal_BB.shape[1] == Nbins:
+                raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
+
+        else:
+            if Cls_cmb_EE.shape[1] == Nbins or Cls_cmb_BB.shape[1] == Nbins or Cls_fg_EE.shape[1] == Nbins or Cls_fg_BB.shape[1] == Nbins or Nls_EE.shape[1] == Nbins or Nls_BB.shape[1] == Nbins:
+                raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
     
     if type in ['Knox-fg', 'Knox+fg']:
         if output == 'EE':
@@ -777,10 +782,10 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
             return cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, progress=progress)
         
     elif type == 'Knox_signal':
-        if output = 'EE':
+        if output == 'EE':
             Cls_signal = np.copy(Cls_signal_EE)
             
-        elif output='BB':
+        elif output == 'BB':
             Cls_signal = np.copy(Cls_signal_BB)
             
         else:
