@@ -4,7 +4,6 @@ import pysm3
 import healpy as hp
 import pymaster as nmt
 import numpy as np
-import pysm_common as psm 
 import basicfunc as func
 
 #contains all the models to be fitted by mpfit 
