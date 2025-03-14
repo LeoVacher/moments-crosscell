@@ -84,24 +84,24 @@ Nls_EE=[]
 Nls_BB=[]
 for i in range(0,N_freqs): 
     for j in range(i,N_freqs): 
-        DL_cross_noise[z]= fact_Dl_ub*4*np.pi*sigpix[i]*sigpix[j]/Npix
+        DL_cross_noise[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix
         coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
-        Nls_EE.append(coupled_noise[0])
-        Nls_BB.append(coupled_noise[3])
+        Nls_EE.append(fact_Dl_ub*coupled_noise[0])
+        Nls_BB.append(fact_Dl_ub*coupled_noise[3])
         z=z+1
 Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
 CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
-DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
-DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
+DL_lens_EE = CLcmb_or[1,:len(fact_Dl_ub)]
+DL_lens_BB = CLcmb_or[2,:len(fact_Dl_ub)]
 DL_lens_EE = DL_lens_EE[:len(ell_unbined)]
 DL_lens_BB = DL_lens_BB[:len(ell_unbined)]
 
 coupled_cmb = wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
-DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+DL_cmb_EE = np.array([fact_Dl_ub * coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+DL_cmb_BB = np.array([fact_Dl_ub * coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
 
 fsky_eff = np.mean(mask**2)
 

@@ -28,11 +28,10 @@ fix= 0 #fix beta and T ?
 adaptative=False
 N=500
 parallel=False
-cov_type='Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
+cov_type='Nmt-fg-samy' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
-if cov_type=='sim':
-    dusttype_cov = 0
-    synctype_cov = 0
+dusttype_cov = 0
+synctype_cov = 0
 
 if cov_type!='sim':
     kw+='_%s'%cov_type
@@ -44,9 +43,9 @@ if parallel==True:
 # Call C_ell of simulation
 
 if synctype==None:
-    DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
 else:
-    DLdc = np.load(Pathload+"/CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
