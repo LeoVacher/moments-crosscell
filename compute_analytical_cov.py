@@ -24,7 +24,6 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*2-1
-#lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
@@ -94,12 +93,13 @@ Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
-CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
 DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
-DL_lens_EE=DL_lens_EE[:len(ell_unbined)]
-DL_lens_BB=DL_lens_BB[:len(ell_unbined)]
-coupled_cmb=wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
+DL_lens_EE = DL_lens_EE[:len(ell_unbined)]
+DL_lens_BB = DL_lens_BB[:len(ell_unbined)]
+
+coupled_cmb = wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
 DL_cmb_EE = np.array([coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
 DL_cmb_BB = np.array([coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
 
