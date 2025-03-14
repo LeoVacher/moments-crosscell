@@ -2,11 +2,9 @@ from astropy import constants as const
 import numpy as np
 import healpy as hp
 import pysm3.units as u
-import pysm_common as psm 
 import sympy as sp
 import sympy as sym
 import scipy.constants as constants
-
 
 # Convert units
 
