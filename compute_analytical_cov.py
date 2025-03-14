@@ -51,7 +51,7 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 
 #signal
 
-DLdc = np.load("./CLsimus/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+DLdc = np.load("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
 
 #foreground
 
@@ -94,7 +94,7 @@ Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
-CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 DL_lens_EE = fact_Dl_ub*CLcmb_or[1,:len(fact_Dl_ub)]
 DL_lens_BB = fact_Dl_ub*CLcmb_or[2,:len(fact_Dl_ub)]
 DL_lens_EE=DL_lens_EE[:len(ell_unbined)]

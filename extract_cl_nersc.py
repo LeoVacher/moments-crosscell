@@ -46,7 +46,7 @@ def compute_master(f_a, f_b, wsp):
    
 
 Pr = "/global/homes/l/leovchr/"
-Pathsave=Pr+ '/codes/moments-crosscell/CLsimus/'
+Pathsave=Pr+ '/codes/moments-crosscell/power_spectra/'
 
 load=True
 nside = 64

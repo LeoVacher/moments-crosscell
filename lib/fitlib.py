@@ -13,8 +13,8 @@ def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     lmax = nside*2-1
     b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
     l = b.get_effective_ells()
-    CLcmb_or=hp.read_cl('./CLsimus/Cls_Planck2018_r0.fits') #TT EE BB TE
-    CL_tens=hp.read_cl('./CLsimus/Cls_Planck2018_tensor_r1.fits')
+    CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+    CL_tens=hp.read_cl('./power_spectra/Cls_Planck2018_tensor_r1.fits')
     sp_dict = {'TT': 0, 'EE': 1, 'BB': 2, 'TE': 3}
     sp = sp_dict.get(mode, None)
     if sp is None:

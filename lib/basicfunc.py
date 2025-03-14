@@ -1,10 +1,11 @@
 from astropy import constants as const
-#import scipy.constants as constants
 import numpy as np
 import healpy as hp
 import pysm3.units as u
 import pysm_common as psm 
 import sympy as sp
+import sympy as sym
+import scipy.constants as constants
 
 
 # Convert units
@@ -116,6 +117,7 @@ def unit_conversion(nu, input_unit, output_unit):
 
 def B(nu,b_T):
     """Planck function.
+
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
@@ -260,9 +262,6 @@ def dBnu_dT(nu,T):
 
 #compute automatically moment's SEDs
 
-import sympy as sym
-import scipy.constants as constants
-
 def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=3,nside_moments=512,mult_factor=1.):
     npix_moments = hp.nside2npix(nside_moments)
     map3D = np.zeros([3,npix_moments])
@@ -302,7 +301,7 @@ def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=
 
 def symbolic_derivative_mbb(order, var):
     """
-    Calcule les dérivées analytiques du corps noir modifié (MBB).
+    Compute the analytical derivatives of modified black body function 
     Parameters:
         order : int
             Ordre de la dérivée (1, 2, ...).
@@ -311,36 +310,29 @@ def symbolic_derivative_mbb(order, var):
     Returns:
         sympy expression : Dérivée symbolique normalisée du MBB.
     """
-    # Définir les variables symboliques
     nu, T, beta, nu0 = sp.symbols('nu T beta nu0', real=True, positive=True)
     h, c, k = sp.symbols('h c k', real=True, positive=True)
-
-    # Corps noir modifié
-    x = h * nu / (k * T)  # Argument sans dimension
-    x0 = h * nu0 / (k * T)  # Argument sans dimension
+    x = h * nu / (k * T)  
+    x0 = h * nu0 / (k * T)  
     Bnu = (2 * h * nu**3 / c**2) / (sp.exp(x) - 1)
     Bnu0 = (2 * h * nu0**3 / c**2) / (sp.exp(x0) - 1)
 
-    # Intensité normalisée
     if var in ['T', '1/T']:
         I_nu = Bnu / Bnu0
     elif var == 'beta':
         I_nu = (nu / nu0)**beta
     else:
-        raise ValueError("La variable doit être 'T', '1/T', ou 'beta'.")
+        raise ValueError("The variable must be 'T', '1/T', or 'beta'.")
 
-    # Calcul des dérivées selon la variable spécifiée
     if var == 'T':
         variable = T
         derivative = sp.diff(I_nu, variable, order)
     elif var == '1/T':
-        y = sp.symbols('y', real=True, positive=True)  # Définir y = 1/T
-        I_nu_y = I_nu.subs(T, 1 / y)  # Substituer T par 1/y
-        derivative = sp.diff(I_nu_y, y, order).subs(y, 1 / T)  # Revenir à T
+        y = sp.symbols('y', real=True, positive=True)  
+        I_nu_y = I_nu.subs(T, 1 / y)  
+        derivative = sp.diff(I_nu_y, y, order).subs(y, 1 / T)  
     elif var == 'beta':
         variable = beta
         derivative = sp.diff(I_nu, variable, order)
-
-    # Normalisation par l'intensité I_nu
     return sp.simplify(derivative / I_nu)
     

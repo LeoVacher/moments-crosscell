@@ -30,10 +30,9 @@ N=500
 parallel=False
 cov_type='Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
-if cov_type='sim':
+if cov_type=='sim':
     dusttype_cov = 0
     synctype_cov = 0
-
 
 if cov_type!='sim':
     kw+='_%s'%cov_type

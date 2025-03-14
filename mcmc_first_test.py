@@ -85,7 +85,7 @@ L=3
 
 DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
 
-res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res1=np.load('best_fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
 p0=[]
 for k in range(len(res1.keys())-1):
     if list(res1.keys())[k]=='temp':

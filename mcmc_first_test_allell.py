@@ -86,7 +86,7 @@ n=0
 
 DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
 
-res1=np.load('Best-fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res1=np.load('best_fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
 p0_ell = []
 p0_ell.extend(res1['A'][:,n]) 
 p0_ell.extend(res1['A_s'][:,n]) 

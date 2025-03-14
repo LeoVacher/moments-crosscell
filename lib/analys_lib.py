@@ -47,7 +47,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param fix: fix or fit the spectral parameters. fix=0 fit them, fix=1 keep them fixed to the values contained in p0.
     :param all_ell: fit each multipole independently (False) or perform a single (longer) fit over all the multipole range (True).
     :param adaptive: if True use the results of a previous run to fit only the detected moments. 
-    :param kwsave: keyword to save the results in the folder "Best-fits".
+    :param kwsave: keyword to save the results in the folder "best_fits".
     :return results: dictionnary containing A, beta, temp, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -66,7 +66,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #create folder for parallel    
     if parallel==True:
-        pathlib.Path('./Best-fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
+        pathlib.Path('./best_fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
     DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
@@ -107,7 +107,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
         parinfopl = np.array([parinfopl for i in range(Nell)])
         if adaptative==True:
-            res0=np.load('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
+            res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
             for k in range(6,len(res0.keys())-2):
                 for L in range(Nell):
@@ -208,9 +208,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     #save and plot results
     
     if parallel==True:
-        np.save('Best-fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
+        np.save('best_fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
     else:
-        np.save('./Best-fits/results_%s_%s.npy'%(kwsave,kwf),results)
+        np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
         plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
         if all_ell==True:
             plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))

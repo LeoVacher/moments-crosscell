@@ -87,3 +87,11 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,fact_Dl=1.,coupled=Fal
                     CLcross[:,z]=np.array((compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True), wsp,coupled=coupled)))
                 z = z +1
         return fact_Dl*CLcross[:,:,:Nell]
+
+
+def compute_cross_simple(mapd1,mapd2,mask,b):
+    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True)
+    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True)
+    wsp = nmt.NmtWorkspace()
+    wsp.compute_coupling_matrix(fa1, fa2, b)
+    return sim.compute_master(fa1,fa2,wsp) 
