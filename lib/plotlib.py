@@ -267,7 +267,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     pdf.savefig()
     
     if plot_contours:
-    for ell in range(len(l)):
+        for ell in range(len(l)):
             if len(list(resi.keys())[:-1])==7:
                 param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
             elif len(list(resi.keys())[:-1])==11:
