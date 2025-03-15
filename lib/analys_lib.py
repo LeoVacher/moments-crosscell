@@ -33,7 +33,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave=""):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -211,9 +211,11 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         np.save('best_fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
     else:
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
-        plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
-        if all_ell==True:
-            plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
-        else:
-            plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
+        
+        if plotres:
+            plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'])
+            if all_ell:
+                plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
+            else:
+                plib.plotr_gaussproduct(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
     return results
