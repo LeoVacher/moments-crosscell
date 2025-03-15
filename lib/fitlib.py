@@ -231,7 +231,7 @@ def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=
         Asw1t = np.repeat(p[9*Nell:10*Nell],Ncross)
 
     temp = ampl * (Ad + (lognui+lognuj) * Aw1b + lognui * lognuj * w1bw1b)
-    temp2= ampl * ((dxi+dxj-2*dx0) * Aw1t +(lognuj*(dxi-dx0)+lognui * (dxj-dx0)) * w1bw1t + (dxi-dx0)*(dxj-dx0) * w1tw1t)
+    temp2= ampl * ((dxi+dxj-2*dx0) * Aw1t + (lognuj*(dxi-dx0)+lognui * (dxj-dx0)) * w1bw1t + (dxi-dx0)*(dxj-dx0) * w1tw1t)
     crossdustsync2 = Asw1b * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognuj)
     crossdustsync3 = Asw1t * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxj-dx0))
     model = temp + temp2 + sync + crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin + p[ellim + 4]*DL_tens
