@@ -244,7 +244,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
             plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
         
         pdf.savefig()
-    
+        plt.close()
     # Plot unique keys
     for i, resi in enumerate(res):
         for k in unique_keys:
@@ -258,14 +258,16 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
                     if mom_an != None and k in mom_an:
                         plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
                 pdf.savefig()
-    
+                plt.close()
+
     # Plot additional Gaussian product analyses if applicable
     fig, ax = plt.subplots(figsize=(10, 7))  
     for i, resi in enumerate(res):
         if 'r' in resi and resi['r'].ndim != 1:
             plotr_gaussproduct(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
     pdf.savefig()
-    
+    plt.close()
+
     if plot_contours:
         for ell in range(len(l)):
             if len(list(resi.keys())[:-1])==7:
@@ -295,5 +297,6 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
             plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
             plt.savefig('./param_testplot.pdf')
             pdf.savefig()
-    pdf.close()
+            plt.close()
+    pdf.clf()
 
