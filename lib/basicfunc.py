@@ -5,6 +5,7 @@ import pysm3.units as u
 import sympy as sp
 import sympy as sym
 import scipy.constants as constants
+from astropy.cosmology import Planck18 as cosmo
 
 # Convert units
 
@@ -166,7 +167,7 @@ def PL_uK(nu,beta,nu0=23.):
     :return: float -- power law brightness.
 
     """    
-    return unit_convertion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB') * (nu/nu0)**beta
+    return unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB') * (nu/nu0)**beta
 
 def dmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
