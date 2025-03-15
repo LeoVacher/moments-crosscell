@@ -238,14 +238,15 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
                     if mom_an != None and k in mom_an:
                         plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
         
-        if k in {'A', 'A_s'}:
-            plt.loglog()
-        elif k in {'X2red', 'r', 'beta_s', 'temp', 'beta'}:
-            ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3, 'temp': 20, 'beta': 1.54}
-            plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
-        else:
-            plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
-        
+        if res[0][k].ndim != 1:
+            if k in {'A', 'A_s'}:
+                plt.loglog()
+            elif k in {'X2red', 'r', 'beta_s', 'temp', 'beta'}:
+                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3, 'temp': 20, 'beta': 1.54}
+                plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
+            else:
+                plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
+                
         pdf.savefig()
         plt.close()
     # Plot unique keys
