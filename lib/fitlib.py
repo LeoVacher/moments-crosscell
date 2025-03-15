@@ -173,7 +173,7 @@ def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=N
 
 #all_ell
 
-def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i = x1
     nu_j = x2
