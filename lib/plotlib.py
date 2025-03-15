@@ -27,10 +27,10 @@ def plotr_hist(results,color='darkblue',debug=False,r=0,quiet=True,save=False,kw
     seaborn.histplot(chi2,stat="probability",kde=True,ax=ax[1])
     ax[1].text(0.95, 0.95, r"$\chi^2_{\rm red}=%s\pm%s$"%(np.round(np.mean(chi2),6), np.round(np.std(chi2),6)), transform=ax[1].transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
     plt.tight_layout()
-    if save==True:
-        show=False
+    if save == True:
+        show = False
         plt.savefig("./plot-gauss/"+kwsave+".pdf")
-    if show==True:
+    if show == True:
         plt.show()
  
 def getr_analytical(results,Nmin=0,Nmax=20):
@@ -67,10 +67,10 @@ def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=
     ax.legend()
     ax.set_xlabel(r"$\hat{r}$")
     ax.set_ylim([0,1.03])
-    if save==True:
-        show=False
+    if save == True:
+        show = False
         plt.savefig("./plot-gauss/"+kwsave+"_analytical.pdf")
-    if show==True:
+    if show == True:
         plt.show()
  
 def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False,ax=None,alpha=1):
@@ -147,10 +147,10 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     ax.legend()
     ax.set_xlabel(r"$\hat{r}$")
     ax.set_ylim([0,1.03])
-    if save==True:
-        show=False
+    if save == True:
+        show = False
         plt.savefig("./plot-gauss/"+kwsave+".pdf")
-    if show==True:
+    if show == True:
         plt.show()
  
 # Plot results
@@ -166,7 +166,7 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
     legend: legend to add to the plot
     """
     ellbound=ell.shape[0]
-    name={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
+    name = {'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
 
     edge_colors = {'darkblue': "#80AAF3",'darkred': "#FF7F7F",'darkorange': "#FED8B1",'forestgreen': "#D1FFBD"}
     edgecolor = edge_colors.get(color, "white")
@@ -182,11 +182,11 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
 def plothist(label,res,colors='darkblue',r=0):
     
     #legends:
-    nameo0={'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
-    namemom={'Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
-    keyspl=['alpha_'+s for s in list(namemom.keys())]
-    valuespl=[s.replace('mathcal{D}_\\ell','alpha') for s in list(namemom.values())]
-    namepl=dict(zip(keyspl, valuespl))
+    nameo0 = {'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
+    namemom = {'Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
+    keyspl = ['alpha_'+s for s in list(namemom.keys())]
+    valuespl = [s.replace('mathcal{D}_\\ell','alpha') for s in list(namemom.values())]
+    namepl = dict(zip(keyspl, valuespl))
     name = {**nameo0,**namemom,**namepl}
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
@@ -198,7 +198,7 @@ def plothist(label,res,colors='darkblue',r=0):
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
 
-def plotrespdf(l, res, legs, colors,mom_an=None):
+def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     """
     Generate a PDF with plots for all quantities of interest.
     :param l: Bandpower array
@@ -266,23 +266,34 @@ def plotrespdf(l, res, legs, colors,mom_an=None):
             plotr_gaussproduct(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
     pdf.savefig()
     
+    if plot_contours:
     for ell in range(len(l)):
-        
-        param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
-        samples = []
+            if len(list(resi.keys())[:-1])==7:
+                param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
+            elif len(list(resi.keys())[:-1])==11:
+                param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "A\\omega_1^\\beta","\\omega_1^\\beta\\omega_1^\\beta" , "A\\omega_1^\\tau","\\omega_1^\\tau\\omega_1^\\tau",  "r"]
+            else:
+                param_names = list(resi.keys())[:-1]
 
-        for i, resi in enumerate(res):
-            data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
-            samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
+            samples = []
 
-        g = plots.get_subplot_plotter()
-        g.settings.lab_fontsize = 20
-        g.settings.legend_fontsize = 20
-        g.settings.alpha_filled_add=0.6
-        g.triangle_plot(samples, filled=True)
-        plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
-        plt.savefig('./param_testplot.pdf')
-        pdf.savefig()
+            for i, resi in enumerate(res):
+                data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
+                samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
 
+            g = plots.get_subplot_plotter()
+            g.settings.lab_fontsize = 20
+            g.settings.legend_fontsize = 20
+            g.settings.alpha_filled_add=0.6
+            g.triangle_plot(samples, 
+                filled=True, 
+                contour_colors=colors, 
+                contour_levels=[0.68, 0.95],
+                title_limit=1,
+                legend_labels=[],
+                )
+            plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
+            plt.savefig('./param_testplot.pdf')
+            pdf.savefig()
     pdf.close()
 

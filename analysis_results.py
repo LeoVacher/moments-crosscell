@@ -56,4 +56,4 @@ reslist = [res1,res2,res3]
 leglist = [legs1,legs2,legs3]
 collist = [c1,c2,c3]
 
-plotrespdf(l,reslist,leglist,collist,mom_an)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=True)
