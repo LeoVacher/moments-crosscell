@@ -32,29 +32,28 @@ Pathload='./'
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
-l = l[:ELLBOUND]
 Nell = len(l)
 
 #res1=np.load('best_fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
-res1=np.load('best_fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-res2=np.load('best_fits/results_d%ss%s_0.7_Nmt-fg_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-res3=np.load('best_fits/results_d%ss%s_0.7_Nmt+fg_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
-res4=np.load('best_fits/results_d%ss%s_0.7_signal_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res1 = np.load('best_fits/results_d%ss%s_0.7_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res2 = np.load('best_fits/results_d%ss%s_0.7_Nmt-fg_ds_o0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res3 = np.load('best_fits/results_d%ss%s_0.7_Nmt+fg_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
+res4 = np.load('best_fits/results_d%ss%s_0.7_signal_ds_0_fix%s.npy'%(dusttype,synctype,fix),allow_pickle=True).item()
 
-legs1= 'sims'
-legs2= 'Knox-fg'
-legs3= 'Knox+fg'
-legs4= 'signal'
+legs1 = 'sims'
+legs2 = 'Knox-fg'
+legs3 = 'Knox+fg'
+legs4 = 'signal'
 
-c1='darkblue'
-c2='darkorange'
-c3='forestgreen'
-c4='darkred'
+c1 = 'darkblue'
+c2 = 'darkorange'
+c3 = 'forestgreen'
+c4 = 'darkred'
 
-mom_an=np.load('./analytical_mom/analytical_mom_nside64_fsky0.7_scale10_Nlbin10_d%ss%s.npy'%(dusttype,synctype),allow_pickle=True).item()
+mom_an = np.load('./analytical_mom/analytical_mom_nside64_fsky0.7_scale10_Nlbin10_d%ss%s.npy'%(dusttype,synctype),allow_pickle=True).item()
 
-reslist= [res1]
-leglist= [legs1]
-collist= [c1]
+reslist = [res1,res2,res3]
+leglist = [legs1,legs2,legs3]
+collist = [c1,c2,c3]
 
 plotrespdf(l,reslist,leglist,collist,mom_an)
