@@ -269,14 +269,10 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     plt.close()
 
     if plot_contours:
+        param_names = list(resi.keys())[:-1]
+        nameo0 = {'A':"A_d",'beta':"\\beta_d",'temp':"T_d",'beta_s':"\\beta_s",'A_s':"A_s",'A_sd':"A_{sd}",'r':'r'}
+        parnames = [nameo0.get(name, name) for name in parnames]
         for ell in range(len(l)):
-            if len(list(resi.keys())[:-1])==7:
-                param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
-            elif len(list(resi.keys())[:-1])==11:
-                param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "A\\omega_1^\\beta","\\omega_1^\\beta\\omega_1^\\beta" , "A\\omega_1^\\tau","\\omega_1^\\tau\\omega_1^\\tau",  "r"]
-            else:
-                param_names = list(resi.keys())[:-1]
-
             samples = []
 
             for i, resi in enumerate(res):
