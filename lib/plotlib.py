@@ -297,5 +297,5 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
             plt.savefig('./param_testplot.pdf')
             pdf.savefig()
             plt.close()
-    pdf.clf()
+    pdf.close()
 
