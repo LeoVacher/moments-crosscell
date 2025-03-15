@@ -19,17 +19,16 @@ from matplotlib.backends.backend_pdf import PdfPages
 r=0.
 nside = 64
 lmax = nside*2-1
-#lmax=850
 scale = 10
 Nlbin = 10
 fsky = 0.7
 dusttype = 0
 synctype = 0
 fix=0
-order='1bt' #0 or 1bt
-kw=''
-kwsim=''
-Pathload='./'
+order = '1bt' #0 or 1bt
+kw = ''
+kwsim = ''
+Pathload = './'
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()

@@ -6,7 +6,7 @@ import pymaster as nmt
 import numpy as np
 import basicfunc as func
 
-#contains all the models to be fitted by mpfit 
+###contains all the models to be fitted by mpfit ###
 
 def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     lmax = nside*2-1
@@ -52,7 +52,7 @@ def lnlike(p, y, invcov, model_func=None, **kwargs):
         return -np.inf  
     return -0.5 * np.sum(chi2)
 
-def lnprior(p,all_ell=True):
+def lnprior(p, all_ell=True):
     """Prior function to prevent extreme values in MCMC"""
     if all_ell==True:
         A_d = p[:15]     
@@ -91,9 +91,9 @@ def lnprob(p, y, invcov, model_func=None, all_ell=True, **kwargs):
 
     return lp + lnlike(p, y, invcov, model_func=model_func, **kwargs)
 
-#Models##########################################################
+#models##########################################################
 
-def Gaussian(p,fjac=None, x=None, y=None, err=None):
+def Gaussian(p, fjac=None, x=None, y=None, err=None):
     # Gaussian curve with mpfit
     model = func.Gaussian(x,p[0],p[1])
     status = 0
@@ -105,16 +105,16 @@ def PL_ell(ell,alpha):
 
 def func_d_o0(p, x1=None, x2=None,nuref=353.,DL_lensbin=None, DL_tens=None):
     #fit function dust, order 0
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     mbb = p[0] * func.mbb_uK(nu_i, p[1], p[2]) * func.mbb_uK(nu_j, p[1], p[2])
     model = mbb  + DL_lensbin[int(p[4])] + p[3] * DL_tens[int(p[4])]
     return model
 
 def func_ds_o0(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     mbb = p[0]*func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref)
     sync = p[3]*func.PL_uK(nu_i, p[4],nu0=nurefs) * func.PL_uK(nu_j, p[4],nu0=nurefs)
     normcorr= np.sqrt(abs(p[0]*p[3]))
@@ -125,8 +125,8 @@ def func_ds_o0(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=Non
 
 def func_ds_o1bt(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and 1/T
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
     sync= p[3]*func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
     normcorr= np.sqrt(abs(p[0]*p[3]))
@@ -146,11 +146,11 @@ def func_ds_o1bt(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=No
 
 def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta, beta_s and 1/T
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
-    sync= func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
-    normcorr= np.sqrt(abs(p[0]*p[3]))
+    sync = func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
+    normcorr = np.sqrt(abs(p[0]*p[3]))
     #normcorr= 1
     crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref))
     lognui = np.log(nu_i/nuref)
@@ -175,8 +175,8 @@ def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=N
 
 def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     ellim=3*Nell-1
     Ncross=len(nu_i)/Nell
     mbb = np.repeat(p[:Nell],Ncross)*func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
@@ -189,8 +189,8 @@ def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,Nell=None,DL_le
 
 def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and T
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     ellim=3*Nell-1
     Ncross=len(nu_i)/Nell
     ampl = func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
@@ -211,8 +211,8 @@ def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=
     return model
 
 def func_ds_o1bts_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
-    nu_i=x1
-    nu_j=x2
+    nu_i = x1
+    nu_j = x2
     ellim=3*Nell-1
     Ncross=len(nu_i)/Nell
     ampl = func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref)
@@ -220,8 +220,8 @@ def func_ds_o1bts_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell
     normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
     crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim+1], p[ellim+2],nu0=nuref) * func.PL_uK(nu_j, p[ellim+3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim+3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim+1], p[ellim+2],nu0=nuref))
-    lognui =  np.log(nu_i/nuref)
-    lognuj =  np.log(nu_j/nuref)
+    lognui = np.log(nu_i/nuref)
+    lognuj = np.log(nu_j/nuref)
     lognuis = np.log(nu_i/nurefs)
     lognujs = np.log(nu_j/nurefs)
     dx0 = func.dmbb_bT(nuref,p[ellim+2])
