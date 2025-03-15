@@ -272,18 +272,17 @@ def plotrespdf(l, res, legs, colors,mom_an=None):
         samples = []
 
         for i, resi in enumerate(res):
+            data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
+            samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
 
-                data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
-                samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
-
-            g = plots.get_subplot_plotter()
-            g.settings.lab_fontsize = 20
-            g.settings.legend_fontsize = 20
-            g.settings.alpha_filled_add=0.6
-            g.triangle_plot(samples, filled=True)
-            plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
-            plt.savefig('./param_testplot.pdf')
-            pdf.savefig()
+        g = plots.get_subplot_plotter()
+        g.settings.lab_fontsize = 20
+        g.settings.legend_fontsize = 20
+        g.settings.alpha_filled_add=0.6
+        g.triangle_plot(samples, filled=True)
+        plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
+        plt.savefig('./param_testplot.pdf')
+        pdf.savefig()
 
     pdf.close()
 
