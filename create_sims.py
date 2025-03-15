@@ -33,13 +33,13 @@ load=False
 
 # instr param
 
-instr_name='litebird_full'
+instr_name ='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
-freq= instr['frequencies']
-N_freqs =len(freq)
-Ncross=int(N_freqs*(N_freqs+1)/2)
-sens_P= instr['sens_P']
-sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
+freq = instr['frequencies']
+N_freqs = len(freq)
+Ncross = int(N_freqs*(N_freqs+1)/2)
+sens_P = instr['sens_P']
+sigpix = sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 leff = b.get_effective_ells()
 fact_Dl= leff*(leff+1)/2/np.pi
@@ -50,21 +50,21 @@ mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scal
 
 #call foreground sky
 
-if dusttype==None and syncrotype==None:
+if dusttype == None and syncrotype == None:
     mapfg=np.zeros((N_freqs,2,Npix))
 else:
-    if dusttype==None:
+    if dusttype == None:
         sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
-    if syncrotype==None:
+    if syncrotype == None:
     	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
-    if syncrotype!=None and dusttype!=None:
+    if syncrotype != None and dusttype != None:
     	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
     mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
     mapfg=mapfg[:,1:]
 
 # call cmb
 
-CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 
 #Initialise workspace:
 
@@ -72,25 +72,25 @@ wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 
 #compute sims:
 
-if load ==True:
-    if syncrotype==None:
-        CLcross= 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
+if load == True:
+    if syncrotype == None:
+        CLcross = 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
     else:
-        CLcross= 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))/leff/(leff+1)  
+        CLcross = 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))/leff/(leff+1)  
     kini=np.argwhere(CLcross == 0)[0,0]
 else:
     kini=0
-    CLcross=np.zeros((N,Ncross,len(leff)))
+    CLcross = np.zeros((N,Ncross,len(leff)))
 
 for k in tqdm(range(kini,N)):
-    noisemaps= np.zeros((3,N_freqs,2,Npix))
+    noisemaps = np.zeros((3,N_freqs,2,Npix))
 
     for p in range(3):
         for i in range(N_freqs):
             noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix)
             noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix)
     
-    mapcmb0= hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
+    mapcmb0 = hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
     mapcmb = mapcmb[:,1:]
 

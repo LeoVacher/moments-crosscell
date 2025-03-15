@@ -115,8 +115,11 @@ def unit_conversion(nu, input_unit, output_unit):
 #FONCTIONS
 
 def B(nu,b_T):
-    """Planck function.
+    """
+    Planck function.
 
+    Parameters
+    ----------
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
@@ -170,18 +173,22 @@ def PL_uK(nu,beta,nu0=23.):
     return unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB') * (nu/nu0)**beta
 
 def dmbbT(nu,T):
+    '''first order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x/T)*np.exp(x)/np.expm1(x)
 
 def dmbb_bT(nu,p):
+    '''first order derivative of black body with respect to 1/T '''
     x = const.h.value*nu*1.e9/const.k_B.value
     return -x*np.exp(x*p)/np.expm1(x*p)
 
 def ddmbbT(nu,T):
+    '''second order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
     return (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
 
 def d3mbbT(nu,T):
+    '''third order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
     theta = (x/T)*np.exp(x)/np.expm1(x)
     TR2= x*np.tanh(x/2)-2
@@ -189,6 +196,7 @@ def d3mbbT(nu,T):
     return theta*(TR3+ 6*(1+TR2))/T/T
     
 def Gaussian(x,mu,sigma):
+    '''gaussian curve '''
     coeffnorm = 1/(sigma*np.sqrt(2*np.pi))
     coeffexp = ((x-mu)/sigma)**2
     return coeffnorm*np.exp(-coeffexp/2)
