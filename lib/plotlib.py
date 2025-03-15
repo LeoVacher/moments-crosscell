@@ -29,7 +29,7 @@ def plotr_hist(results,color='darkblue',debug=False,r=0,quiet=True,save=False,kw
     plt.tight_layout()
     if save == True:
         show = False
-        plt.savefig("./plot-gauss/"+kwsave+".pdf")
+        plt.savefig("./plot_gauss/"+kwsave+".pdf")
     if show == True:
         plt.show()
  
@@ -69,7 +69,7 @@ def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=
     ax.set_ylim([0,1.03])
     if save == True:
         show = False
-        plt.savefig("./plot-gauss/"+kwsave+"_analytical.pdf")
+        plt.savefig("./plot_gauss/"+kwsave+"_analytical.pdf")
     if show == True:
         plt.show()
  
@@ -149,7 +149,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     ax.set_ylim([0,1.03])
     if save == True:
         show = False
-        plt.savefig("./plot-gauss/"+kwsave+".pdf")
+        plt.savefig("./plot_gauss/"+kwsave+".pdf")
     if show == True:
         plt.show()
  
