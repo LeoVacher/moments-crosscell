@@ -8,6 +8,7 @@ from tqdm import tqdm
 from matplotlib.backends.backend_pdf import PdfPages 
 import matplotlib
 import seaborn
+from getdist import plots, MCSamples
 
 #contains all function to plot results.
 
@@ -264,5 +265,25 @@ def plotrespdf(l, res, legs, colors,mom_an=None):
         if 'r' in resi and resi['r'].ndim != 1:
             plotr_gaussproduct(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
     pdf.savefig()
+    
+    for ell in range(len(l)):
+        
+        param_names = ["A_d", "\\beta_d", "T_d", "A_s", "\\beta_s", "A_{sd}", "r"]
+        samples = []
+
+        for i, resi in enumerate(res):
+
+                data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
+                samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
+
+            g = plots.get_subplot_plotter()
+            g.settings.lab_fontsize = 20
+            g.settings.legend_fontsize = 20
+            g.settings.alpha_filled_add=0.6
+            g.triangle_plot(samples, filled=True)
+            plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
+            plt.savefig('./param_testplot.pdf')
+            pdf.savefig()
+
     pdf.close()
 
