@@ -223,7 +223,10 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
         plt.figure(figsize=(10, 7))
         if only_common_keys:
             for i, resi in enumerate(res):
-                plotmed(l+i, k, resi, show=False, color=colors[i], legend=legs[i])
+                if resi[k].ndim == 1:
+                    plothist(k, resi)
+                else:
+                    plotmed(l+i, k, resi, show=False, color=colors[i], legend=legs[i])
             if mom_an != None and k in mom_an:
                 plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
         else:
