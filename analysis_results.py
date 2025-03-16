@@ -29,12 +29,12 @@ order = '1bt' #0 or 1bt
 kw = ''
 kwsim = ''
 Pathload = './'
+plot_contours=True
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
 Nell = len(l)
 
-#res1=np.load('best_fits/resultso1bt_PL_d%ss%sc_fix0.npy'%(0,0),allow_pickle=True).item()
 res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
@@ -56,4 +56,4 @@ reslist = [res1,res2,res3]
 leglist = [legs1,legs2,legs3]
 collist = [c1,c2,c3]
 
-plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=True)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours)

@@ -275,7 +275,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     if plot_contours:
         param_names = list(resi.keys())[:-1]
         nameo0 = {'A':"A_d",'beta':"\\beta_d",'temp':"T_d",'beta_s':"\\beta_s",'A_s':"A_s",'A_sd':"A_{sd}",'r':'r'}
-        parnames = [nameo0.get(name, name) for name in parnames]
+        param_names = [nameo0.get(name, name) for name in param_names]
         for ell in range(len(l)):
             samples = []
 
