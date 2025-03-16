@@ -16,7 +16,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from plotlib import plotrespdf
 from matplotlib.backends.backend_pdf import PdfPages 
 
-r=0.
+nres=1
 nside = 64
 lmax = nside*2-1
 scale = 10
@@ -24,8 +24,8 @@ Nlbin = 10
 fsky = 0.7
 dusttype = 0
 synctype = 0
-fix=0
-order = '1bt' #0 or 1bt
+fix=1
+order = '0' #0 or 1bt
 kw = ''
 kwsim = ''
 Pathload = './'
@@ -35,7 +35,7 @@ b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
 Nell = len(l)
 
-res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res4 = np.load('best_fits/results_d%ss%s_%s_signal_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
@@ -52,8 +52,10 @@ c4 = 'darkred'
 
 mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s.npy'%(nside,fsky,dusttype,synctype),allow_pickle=True).item()
 
-reslist = [res1,res2,res3]
-leglist = [legs1,legs2,legs3]
-collist = [c1,c2,c3]
+reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
+leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]
+collist = [globals()[f"c{i}"] for i in range(1, nres + 1)]
 
 plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours)
+
+plotrespdf(l,[b],['d0s0_o0'],['blue'],mom_an,plot_contours=plot_contours)
