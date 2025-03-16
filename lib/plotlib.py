@@ -212,13 +212,11 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     
     # Determine common and unique keys across all dictionaries
     all_keys = [set(resi.keys()) for resi in res]
+    print(all_keys)
     common_keys = set.intersection(*all_keys)
     unique_keys = set.union(*all_keys) - common_keys
-    print(common_keys)
-    print(unique_keys)
     # Check if all dictionaries have only common keys
     only_common_keys = all(len(resi.keys() - common_keys) == 0 for resi in res)
-    print(only_common_keys)
     # Plot common keys
     for k in common_keys:
         plt.figure(figsize=(10, 7))
