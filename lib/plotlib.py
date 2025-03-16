@@ -246,21 +246,21 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
                 plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
             else:
                 plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
-                
+
         pdf.savefig()
         plt.close()
     # Plot unique keys
     for i, resi in enumerate(res):
         for k in unique_keys:
-            if k in r:
+            if k in resi:
                 plt.figure(figsize=(10, 7))
                 if resi[k].ndim == 1:
-                    plothist(k, r)
+                    plothist(k, resi)
                 else:
                     plotmed(l + i, k, resi, show=False, color=colors[i], legend=legs[i])
                     
-                    if mom_an != None and k in mom_an:
-                        plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
+                if mom_an != None and k in mom_an:
+                    plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
                 pdf.savefig()
                 plt.close()
 
