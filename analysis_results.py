@@ -29,7 +29,7 @@ order = '0' #0 or 1bt
 kw = ''
 kwsim = ''
 Pathload = './'
-plot_contours=True
+plot_contours=False
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
