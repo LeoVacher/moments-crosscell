@@ -212,7 +212,6 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     
     # Determine common and unique keys across all dictionaries
     all_keys = [set(resi.keys()) for resi in res]
-    print(all_keys)
     common_keys = set.intersection(*all_keys)
     unique_keys = set.union(*all_keys) - common_keys
     # Check if all dictionaries have only common keys
