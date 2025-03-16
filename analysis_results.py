@@ -57,5 +57,3 @@ leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]
 collist = [globals()[f"c{i}"] for i in range(1, nres + 1)]
 
 plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours)
-
-plotrespdf(l,[b],['d0s0_o0'],['blue'],mom_an,plot_contours=plot_contours)
