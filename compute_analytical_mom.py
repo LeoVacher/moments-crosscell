@@ -12,7 +12,7 @@ import pysm3
 import pysm3.units as u
 import simu_lib as sim
 import scipy.stats as st
-import simulib as sim
+import simu_lib as sim
 
 
 instr_name='litebird_full'
@@ -23,7 +23,7 @@ dusttype=[1,10,12]
 syncrotype=[1,5,7]
 nside=64
 scale=10
-fsky=0.7
+fsky=0.8
 Nlbin = 10
 lmax = nside*3-1
 

@@ -157,13 +157,19 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         [parinfopl.append({'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_s
         [parinfopl.append({'value':p0[5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
         if kw=='ds_o1bt' and mompl==False:
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1b
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1bw1b
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1t
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1bw1t
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1tw1t
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Asw1b
-            [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Asw1t
+            if adaptafix==True:
+                res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
+                keys= res0.keys()
+                #TO DO: write here the update for adaptafix all ell.
+            else:
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1b
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1bw1b
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1t
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1bw1t
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1tw1t
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Asw1b
+                [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Asw1t
+
         parinfopl.append({'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]}) #betad
         parinfopl.append({'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,3]}) #1/Td
         parinfopl.append({'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]}) #betas    
