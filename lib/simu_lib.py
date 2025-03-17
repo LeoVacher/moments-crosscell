@@ -93,4 +93,4 @@ def compute_cross_simple(mapd1,mapd2,mask,b):
     fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True)
     wsp = nmt.NmtWorkspace()
     wsp.compute_coupling_matrix(fa1, fa2, b)
-    return sim.compute_master(fa1,fa2,wsp) 
+    return compute_master(fa1,fa2,wsp) 
