@@ -42,6 +42,7 @@ sens_P = instr['sens_P']
 sigpix = sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
+Nell=len(leff)
 
 #mask
 
@@ -99,7 +100,7 @@ for k in tqdm(range(kini,N)):
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
     # to be replaced by sim.computecross
-    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,coupled=False,mode='BB')
+    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,Nell,mask,coupled=False,mode='BB')
 
     if syncrotype==None and dusttype==None:
         if r ==0:
