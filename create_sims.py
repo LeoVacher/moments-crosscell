@@ -19,15 +19,15 @@ import pysm3.units as u
 from tqdm import tqdm
 
 r = 0
-nside = 32
+nside = 64
 Npix = hp.nside2npix(nside)
 N=500 
 lmax = nside*2-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 0
-syncrotype = 0
+dusttype = 9
+syncrotype = 4
 kw = ''
 load=False
 
@@ -74,9 +74,9 @@ wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 
 if load == True:
     if syncrotype == None:
-        CLcross = 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))/leff/(leff+1)  
+        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))
     else:
-        CLcross = 2*np.pi*np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))/leff/(leff+1)  
+        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))  
     kini=np.argwhere(CLcross == 0)[0,0]
 else:
     kini=0
@@ -104,7 +104,7 @@ for k in tqdm(range(kini,N)):
 
     if syncrotype==None and dusttype==None:
         if r ==0:
-            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),CLcross/2/np.pi)
+            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),CLcross)
         else :
             np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),CLcross)
     elif syncrotype==None:

@@ -19,8 +19,8 @@ instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq= instr['frequencies']
 
-dusttype=[1,10,12]
-syncrotype=[1,5,7]
+dusttype=[9,10,12]
+syncrotype=[4,5,7]
 nside=64
 scale=10
 fsky=0.8
