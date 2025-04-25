@@ -14,7 +14,7 @@ import analys_lib as an
 import covlib as cvl 
 
 r=0.
-nside = 64
+nside = 32
 lmax = nside*2-1
 scale = 10
 Nlbin = 10
