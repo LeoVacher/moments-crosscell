@@ -10,7 +10,7 @@ import basicfunc as func
 
 def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     lmax = nside*2-1
-    b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+    b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
     l = b.get_effective_ells()
     CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
     CL_tens=hp.read_cl('./power_spectra/Cls_Planck2018_tensor_r1.fits')
@@ -18,8 +18,8 @@ def getDL_cmb(nside=64,Nlbin=10,mode='BB'):
     sp = sp_dict.get(mode, None)
     if sp is None:
         raise ValueError("Unknown mode")    
-    DL_lensbin = l*(l+1)*b.bin_cell(CLcmb_or[sp,:lmax+1])/2/np.pi
-    DL_tens = l*(l+1)*b.bin_cell(CL_tens[sp,:lmax+1])/2/np.pi
+    DL_lensbin = b.bin_cell(CLcmb_or[sp,:lmax+1])/2/np.pi
+    DL_tens = b.bin_cell(CL_tens[sp,:lmax+1])/2/np.pi
     return DL_lensbin, DL_tens
 
 #Likelihoods##########################################################
