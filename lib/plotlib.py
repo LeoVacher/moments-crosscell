@@ -240,7 +240,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
             if k in {'A', 'A_s'}:
                 plt.loglog()
             elif k in {'X2red', 'r', 'beta_s', 'temp', 'beta'}:
-                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3, 'temp': 20, 'beta': 1.54}
+                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3.1, 'temp': 19.6, 'beta': 1.48}
                 plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
             else:
                 plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
