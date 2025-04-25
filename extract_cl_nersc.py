@@ -61,7 +61,7 @@ kw=''
 r=0
 
 folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s"%complexity
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 
 bands = ['LFT_L1-040', 'LFT_L2-050', 'LFT_L1-060', 'LFT_L3-068','LFT_L2-068', 'LFT_L4-078', 'LFT_L1-078', 'LFT_L3-089', 'LFT_L2-089','LFT_L4-100', 'LFT_L3-119', 'LFT_L4-140',
@@ -132,4 +132,4 @@ for k in tqdm(range(kini,N)):
                 CLdc[k,z] = np.array((compute_master(nmt.NmtField(mask, 1*maptot_HM1[i,1:],purify_e=False, purify_b=True), nmt.NmtField(mask,1*maptot_HM2[j,1:],purify_e=False, purify_b=True), wsp))[3])
                 CLdc[k,z] = CLdc[k,z]/BL[i]/BL[j]                
             z = z +1
-    np.save(Pathsave+'DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,complexity[0],complexity[0]),leff*(leff+1)*CLdc/2/np.pi) 
+    np.save(Pathsave+'DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,complexity[0],complexity[0]),CLdc) 

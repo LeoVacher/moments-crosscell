@@ -32,7 +32,7 @@ if fsky==1:
 else:
     mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 
 def getmom_downgr(mom):
@@ -41,7 +41,7 @@ def getmom_downgr(mom):
     return momdg
 
 def get_dl_bb_mom(map1,map2):
-    return leff*(leff+1)*sim.compute_cross_simple(getmom_downgr(map1)[1:],getmom_downgr(map2)[1:],mask,b)[3]/2/np.pi
+    return sim.compute_cross_simple(getmom_downgr(map1)[1:],getmom_downgr(map2)[1:],mask,b)[3]
     
 def getmom(dusttype, syncrotype):
     sky = pysm3.Sky(nside=512, preset_strings=['d%s'%(dusttype),'s%s'%(syncrotype)])

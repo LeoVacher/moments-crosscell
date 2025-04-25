@@ -94,7 +94,7 @@ np.save("./lib/instr_dict/PICO",PICO)
 
 #SIMONS///////////////////////////////////////////
 
-sens_P_SO = np.array([52., 27., 5.8, 6.3, 15., 37.])
+sens_P_SO = np.array([35., 21., 2.6, 3.3, 6.3, 16.])
    
 SO_LAT =  {
         'frequencies': np.array([27.,39.,93.,145.,225.,280.]),
