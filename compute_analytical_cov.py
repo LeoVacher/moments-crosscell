@@ -33,9 +33,8 @@ kw=''
 use_nmt=True
 mode_cov='BB'
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
-fact_Dl= leff*(leff+1)/2/np.pi
 Nell = len(leff)
 instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
@@ -67,13 +66,12 @@ mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB
 mapfg=mapfg[:,1:]
 
 #get fg spectra
-b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1)
+b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1,is_Dell=True)
 wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
 wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 ell_unbined= np.arange(3*nside)
-fact_Dl_ub = ell_unbined*(ell_unbined+1)/2/np.pi
 
-DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,fact_Dl=fact_Dl_ub,coupled=True,mode='all')
+DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,coupled=True,mode='all')
 DL_fg_EE = DLcross_fg[0]
 DL_fg_BB = DLcross_fg[3]
   
@@ -86,24 +84,22 @@ for i in range(0,N_freqs):
     for j in range(i,N_freqs): 
         DL_cross_noise[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix
         coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
-        Nls_EE.append(fact_Dl_ub*coupled_noise[0])
-        Nls_BB.append(fact_Dl_ub*coupled_noise[3])
+        Nls_EE.append(coupled_noise[0])
+        Nls_BB.append(coupled_noise[3])
         z=z+1
 Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
 CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
-DL_lens_EE = CLcmb_or[1,:len(fact_Dl_ub)]
-DL_lens_BB = CLcmb_or[2,:len(fact_Dl_ub)]
-DL_lens_EE = DL_lens_EE[:len(ell_unbined)]
-DL_lens_BB = DL_lens_BB[:len(ell_unbined)]
+DL_lens_EE = CLcmb_or[1,:nside*3-1]
+DL_lens_BB = CLcmb_or[2,:nside*3-1]
 
 coupled_cmb = wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
-DL_cmb_EE = np.array([fact_Dl_ub * coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-DL_cmb_BB = np.array([fact_Dl_ub * coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+DL_cmb_EE = np.array([ coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
+DL_cmb_BB = np.array([ coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
 
-fsky_eff = np.mean(mask**2)
+fsky_eff = np.mean(mask**2)**2 / np.mean(mask**4)
 
 if use_nmt==False:
     cov_sg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0,:,:Nell], Cls_cmb_EE=None, Cls_cmb_BB=None, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
