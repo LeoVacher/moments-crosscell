@@ -255,7 +255,7 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
     doublets=band_doublet(Nfreqs)
 
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
     leff = b.get_effective_ells()
     
     nu_l = (2*leff+1) * delta_l * np.mean(mask**2)**2 / np.mean(mask**4)
@@ -369,7 +369,7 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
     delta_l = int(lmax / Nbins)
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
     doublets=band_doublet(Nfreqs)
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
     leff = b.get_effective_ells()
     
     nu_l = (2*leff+1) * delta_l * np.mean(mask**2)**2 / np.mean(mask**4)
@@ -750,7 +750,7 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
     """
     lmax, Nbins = w.wsp.lmax, w.wsp.bin.n_bands
     delta_l = int(lmax / Nbins)
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
 
     if type != 'Knox_signal':
         if type == 'Nmt_signal':

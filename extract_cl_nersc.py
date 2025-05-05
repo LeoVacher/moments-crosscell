@@ -52,7 +52,7 @@ load=True
 nside = 64
 Npix = hp.nside2npix(nside)
 N=249
-lmax = 3*nside-1
+lmax = 2*nside-1
 scale = 10
 Nlbin = 10
 fsky = 0.8
@@ -61,7 +61,7 @@ kw=''
 r=0
 
 folder= "/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s"%complexity
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 
 bands = ['LFT_L1-040', 'LFT_L2-050', 'LFT_L1-060', 'LFT_L3-068','LFT_L2-068', 'LFT_L4-078', 'LFT_L1-078', 'LFT_L3-089', 'LFT_L2-089','LFT_L4-100', 'LFT_L3-119', 'LFT_L4-140',

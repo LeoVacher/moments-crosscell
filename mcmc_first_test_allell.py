@@ -50,7 +50,7 @@ DLdc=DLdc[:N,:,:ELLBOUND]
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 l = l[:ELLBOUND]
 Nell = len(l)

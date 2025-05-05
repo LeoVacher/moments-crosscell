@@ -39,8 +39,8 @@ freq = instr['frequencies']
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
 sens_P = instr['sens_P']
-sigpix = sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
+sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell=len(leff)
 

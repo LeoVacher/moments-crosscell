@@ -50,7 +50,7 @@ else:
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = len(l)
 
@@ -98,18 +98,18 @@ DLdc = DLdc[:N,:,:Nell]
 # fit MBB and PL, get results, save and plot
 
 if '0' in order_to_fit:
-    p0 = [100, 1.48, 19.8, 10, -3.1,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+    p0 = [100, 1.48, 19.6, 10, -3.1,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
     results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 # fit order 1 in beta and T, get results, save and plot
 
 if '1bt' in order_to_fit:
-    p0 = [100, 1.48, 19.8, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+    p0 = [100, 1.48, 19.6, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
     results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 if '1bts' in order_to_fit:
-    p0 = [100, 1.48, 19.8, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+    p0 = [100, 1.48, 19.6, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
     results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 

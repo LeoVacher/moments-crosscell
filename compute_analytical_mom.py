@@ -19,8 +19,8 @@ instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq= instr['frequencies']
 
-dusttype=[9,10,12]
-syncrotype=[4,5,7]
+dusttype=[0,1,9,10,12]
+syncrotype=[0,1,4,5,7]
 nside=64
 scale=10
 fsky=0.8
@@ -32,7 +32,7 @@ if fsky==1:
 else:
     mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 
 def getmom_downgr(mom):
@@ -67,20 +67,20 @@ def getmom(dusttype, syncrotype):
     skyrefcpxd=skyrefd[1]+1j*skyrefd[2]
     skyrefcpxs=skyrefs[1]+1j*skyrefs[2]
     betabar= 1.48
-    tempbar=19.8
+    tempbar=19.6
     betasbar=-3.1
 
     if dusttype ==12:
         mom1b = np.sum(Amplcpxd*(betamap-betabar),axis=0)
         mom2b = np.sum(Amplcpxd*(betamap-betabar)**2,axis=0)
-        pmetbar=1/20
+        pmetbar=1/tempbar
         pmetmap=1/tempmap
         mom1pmet = np.sum(Amplcpxd*(pmetmap-pmetbar),axis=0)
 
     else: 
         mom1b = skyrefcpxd*(betamap-betabar)
         mom2b = skyrefcpxd*(betamap-betabar)**2
-        pmetbar=1/20
+        pmetbar=1/tempbar
         pmetmap=1/tempmap
         mom1pmet = skyrefcpxd*(pmetmap-pmetbar)
     
