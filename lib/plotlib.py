@@ -166,7 +166,7 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
     legend: legend to add to the plot
     """
     ellbound=ell.shape[0]
-    name = {'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
+    name = {'A_d':r'$A^d$','beta_d':r'$\beta^d$','T_d':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$','Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
 
     edge_colors = {'darkblue': "#80AAF3",'darkred': "#FF7F7F",'darkorange': "#FED8B1",'forestgreen': "#D1FFBD"}
     edgecolor = edge_colors.get(color, "white")
@@ -182,7 +182,7 @@ def plotmed(ell,label,res,color='darkblue',marker="D",show=True,legend=''):
 def plothist(label,res,colors='darkblue',r=0):
     
     #legends:
-    nameo0 = {'A':r'$A^d$','beta':r'$\beta^d$','temp':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
+    nameo0 = {'A_d':r'$A^d$','beta_d':r'$\beta^d$','T_d':r'$T^d$','beta_s':r'$\beta^s$','A_s':r'$A^s$','A_sd':r'$A^{sd}$','r':r'$\hat{r}$','X2red':r'$\chi^2$'}
     namemom = {'Aw1b':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta}}$','Aw1t':r'$\mathcal{D}_\ell^{A\times\omega_1^{1/T}}$','Asw1bs':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta^s}}$','w1bw1s':r'$\mathcal{D}_\ell^{\omega_1^{\beta^d}\times\omega_1^{\beta^s}}$','w1sw1T':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{\beta^s}}$','w1bw1b':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^\beta}$','w1tw1t':r'$\mathcal{D}_\ell^{\omega_1^{1/T}\times\omega_1^{1/T}}$','w1bw1t':r'$\mathcal{D}_\ell^{\omega_1^\beta\times\omega_1^{1/T}}$','w1bsw1bs':r'$\mathcal{D}_\ell^{\omega_1^{\beta^s}\times\omega_1^{\beta^s}}$', 'Asw1b':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{\beta}}$','Asw1t':r'$\mathcal{D}_\ell^{A_s\times\omega_1^{1/T}}$','Adw1s':r'$\mathcal{D}_\ell^{A\times\omega_1^{\beta^s}}$'}
     keyspl = ['alpha_'+s for s in list(namemom.keys())]
     valuespl = [s.replace('mathcal{D}_\\ell','alpha') for s in list(namemom.values())]
@@ -193,7 +193,7 @@ def plothist(label,res,colors='darkblue',r=0):
     seaborn.histplot(res[label],stat="probability",kde=True,ax=ax,color=colors)
     plt.text(0.95, 0.95, name[label]+r"$=%s\pm%s$"%(np.round(np.mean(res[label]),6), np.round(np.std(res[label]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
     plt.title("%s"%name[label])
-    if label!='X2red' and label!='beta' and label!='temp' and label!='beta_s':
+    if label!='X2red' and label!='beta_d' and label!='T_d' and label!='beta_s':
         print(1)
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
@@ -237,10 +237,10 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
                         plt.plot(l,mom_an[k][:len(l)],color='k',linestyle="--",linewidth=3)
         
         if res[0][k].ndim != 1:
-            if k in {'A', 'A_s'}:
+            if k in {'A_d', 'A_s'}:
                 plt.loglog()
-            elif k in {'X2red', 'r', 'beta_s', 'temp', 'beta'}:
-                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3.1, 'temp': 19.6, 'beta': 1.48}
+            elif k in {'X2red', 'r', 'beta_s', 'T_d', 'beta_d'}:
+                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3.1, 'T_d': 19.6, 'beta_d': 1.48}
                 plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
             else:
                 plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')
@@ -272,7 +272,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
 
     if plot_contours:
         param_names = list(resi.keys())[:-1]
-        nameo0 = {'A':"A_d",'beta':"\\beta_d",'temp':"T_d",'beta_s':"\\beta_s",'A_s':"A_s",'A_sd':"A_{sd}",'r':'r'}
+        nameo0 = {'A_d':"A_d",'beta_d':"\\beta_d",'T_d':"T_d",'beta_s':"\\beta_s",'A_s':"A_s",'A_sd':"A_{sd}",'r':'r'}
         param_names = [nameo0.get(name, name) for name in param_names]
         for ell in range(len(l)):
             samples = []
