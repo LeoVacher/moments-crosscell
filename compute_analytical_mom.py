@@ -66,9 +66,9 @@ def getmom(dusttype, syncrotype):
     model= np.array([sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)).value for f in range(len(freq))])
     skyrefcpxd=skyrefd[1]+1j*skyrefd[2]
     skyrefcpxs=skyrefs[1]+1j*skyrefs[2]
-    betabar= 1.54
-    tempbar=20
-    betasbar=-3
+    betabar= 1.48
+    tempbar=19.8
+    betasbar=-3.1
 
     if dusttype ==12:
         mom1b = np.sum(Amplcpxd*(betamap-betabar),axis=0)
@@ -103,7 +103,7 @@ def getmom(dusttype, syncrotype):
 
 analytical_mom=np.array([getmom(dusttype[d], syncrotype[d]) for d in range(len(dusttype))])
 
-name=['A','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
+name=['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
 
 for d in range(len(dusttype)):
     arr= analytical_mom[d]

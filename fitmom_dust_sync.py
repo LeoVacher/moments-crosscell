@@ -14,17 +14,17 @@ import analys_lib as an
 import covlib as cvl 
 
 r=0.
-nside = 32
+nside = 64
 lmax = nside*2-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 9
-synctype = 4
-order_to_fit= ['0'] 
+dusttype = 1
+synctype = 1
+order_to_fit= ['1bt'] 
 Pathload = './'
 all_ell = False #all ell or each ell independently
-fix = 0 #fix beta and T ?
+fix = 1 #fix beta and T ?
 adaptative = False
 N = 500
 plotres=True #plot and save pdf?
@@ -50,7 +50,7 @@ else:
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = len(l)
 
