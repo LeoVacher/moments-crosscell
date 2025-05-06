@@ -56,7 +56,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     nparam = len(p0)
 
     #ell array
-    b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
+    b = nmt.NmtBin.from_lmax_linear(lmax=nside*2-1,nlb=Nlbin,is_Dell=True)
     l = b.get_effective_ells()
     l=l[:Nell]
     #update keyword for load and save:
