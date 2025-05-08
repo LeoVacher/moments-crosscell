@@ -1,6 +1,7 @@
 import sys
 sys.path.append("./lib")
 
+import healpy as hp
 import numpy as np
 import pymaster as nmt 
 import pysm3
