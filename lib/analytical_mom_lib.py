@@ -40,7 +40,6 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     skyrefd = skyd.get_emission(nu0d * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(nu0d*u.GHz)).value
     skyrefs = skys.get_emission(nu0s * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(nu0s*u.GHz)).value
 
-    model= np.array([sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)).value for f in range(len(freq))])
     skyrefcpxd=skyrefd[1]+1j*skyrefd[2]
     skyrefcpxs=skyrefs[1]+1j*skyrefs[2]
 
