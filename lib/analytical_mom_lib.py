@@ -15,13 +15,13 @@ import scipy.stats as st
 import simu_lib as sim
 
 
-def getmom_downgr(mom):
+def getmom_downgr(mom,nside):
     momarr=np.array([np.zeros(hp.nside2npix(512)),mom.real,mom.imag])
     momdg=sim.downgrade_map(momarr,nside_in=512,nside_out=nside)
     return momdg
 
-def get_dl_bb_mom(map1,map2):
-    return sim.compute_cross_simple(getmom_downgr(map1)[1:],getmom_downgr(map2)[1:],mask,b)[3]
+def get_dl_bb_mom(map1,map2,nside):
+    return sim.compute_cross_simple(getmom_downgr(map1,nside)[1:],getmom_downgr(map2,nside)[1:],mask,b)[3]
   
 def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.):
     lmax = nside*3-1
@@ -59,17 +59,17 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     
     mom1bs = skyrefcpxs*(betasmap-betasbar)
 
-    Ad= get_dl_bb_mom(skyrefcpxd,skyrefcpxd)
-    As= get_dl_bb_mom(skyrefcpxs,skyrefcpxs)
-    Asd=get_dl_bb_mom(skyrefcpxd,skyrefcpxs)/np.sqrt(Ad*As)
-    w1bw1b = get_dl_bb_mom(mom1b,mom1b)
-    Aw1b= get_dl_bb_mom(skyrefcpxd,mom1b)
-    Asw1b= get_dl_bb_mom(skyrefcpxs,mom1b)
+    Ad= get_dl_bb_mom(skyrefcpxd,skyrefcpxd,nside)
+    As= get_dl_bb_mom(skyrefcpxs,skyrefcpxs,nside)
+    Asd=get_dl_bb_mom(skyrefcpxd,skyrefcpxs,nside)/np.sqrt(Ad*As)
+    w1bw1b = get_dl_bb_mom(mom1b,mom1b,nside)
+    Aw1b= get_dl_bb_mom(skyrefcpxd,mom1b,nside)
+    Asw1b= get_dl_bb_mom(skyrefcpxs,mom1b,nside)
 
-    Aw1p=get_dl_bb_mom(skyrefcpxd,mom1pmet)
-    w1bw1p=get_dl_bb_mom(mom1b,mom1pmet)
-    w1pw1p=get_dl_bb_mom(mom1pmet,mom1pmet)
-    Asw1p= get_dl_bb_mom(skyrefcpxs,mom1pmet)
+    Aw1p=get_dl_bb_mom(skyrefcpxd,mom1pmet,nside)
+    w1bw1p=get_dl_bb_mom(mom1b,mom1pmet,nside)
+    w1pw1p=get_dl_bb_mom(mom1pmet,mom1pmet,nside)
+    Asw1p= get_dl_bb_mom(skyrefcpxs,mom1pmet,nside)
 
     analytical_mom=np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p])
     name=['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
