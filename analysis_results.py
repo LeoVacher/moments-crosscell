@@ -14,7 +14,7 @@ import scipy.stats as st
 import basicfunc as func
 from matplotlib.backends.backend_pdf import PdfPages 
 from plotlib import plotrespdf
-from matplotlib.backends.backend_pdf import PdfPages 
+import analytical_mom_lib as anmomlib
 
 nres=1
 nside = 64
@@ -30,6 +30,11 @@ kw = ''
 kwsim = ''
 Pathload = './'
 plot_contours=False
+
+if fsky==1:
+    mask = np.ones(hp.nside2npix(nside))
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
@@ -50,7 +55,12 @@ c2 = 'darkorange'
 c3 = 'forestgreen'
 c4 = 'darkred'
 
-mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s.npy'%(nside,fsky,dusttype,synctype),allow_pickle=True).item()
+betabar = np.mean(res1['beta_d'])
+tempbar = np.mean(res1['T_d'])
+betasbar= np.mean(res1['beta_s'])
+
+mom_an = anmomlib.getmom(dusttype, syncrotype, betabar, tempbar,betasbar, mask, Nlbin=Nlbin,nside=nside)
+#np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s.npy'%(nside,fsky,dusttype,synctype),allow_pickle=True).item()
 
 reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
 leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]

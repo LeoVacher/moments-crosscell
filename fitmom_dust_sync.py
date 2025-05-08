@@ -29,6 +29,7 @@ adaptative = False
 N = 500
 plotres=True #plot and save pdf?
 parallel = False
+pivot_o0 = True
 cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
@@ -95,21 +96,29 @@ else:
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc = DLdc[:N,:,:Nell]
 
+if pivot_o0:
+    o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+    betabar = np.mean(o0['beta_d'])
+    tempbar = np.mean(o0['T_d'])
+    betasbar = np.mean(o0['beta_s'])
+else:
+    betabar, tempbar, betasbar = 1.5, 20, -3
+
 # fit MBB and PL, get results, save and plot
 
 if '0' in order_to_fit:
-    p0 = [100, 1.48, 19.6, 10, -3.1,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+    p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
     results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 # fit order 1 in beta and T, get results, save and plot
 
 if '1bt' in order_to_fit:
-    p0 = [100, 1.48, 19.6, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+    p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
     results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 if '1bts' in order_to_fit:
-    p0 = [100, 1.48, 19.6, 10, -3.1,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+    p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
     results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
