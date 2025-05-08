@@ -59,8 +59,11 @@ betabar = np.mean(res1['beta_d'])
 tempbar = np.mean(res1['T_d'])
 betasbar= np.mean(res1['beta_s'])
 
-mom_an = anmomlib.getmom(dusttype, syncrotype, betabar, tempbar,betasbar, mask, Nlbin=Nlbin,nside=nside)
-#np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s.npy'%(nside,fsky,dusttype,synctype),allow_pickle=True).item()
+try:
+    mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
+except:
+    mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside)
+    np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), mom_an)
 
 reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
 leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]
