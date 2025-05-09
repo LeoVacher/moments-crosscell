@@ -54,8 +54,6 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
     wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=False, purify_b=True,lmax=b.lmax), b)
     return wsp
 
-wsp.compute_coupling_matrix(nmt.NmtField(mask, [1*mask]), nmt.NmtField(mask,[1*mask]), b)
-
 def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,b,coupled=False,mode='BB'):
     """
     Compute the cross-spectra
