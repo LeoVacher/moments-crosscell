@@ -50,34 +50,32 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
     """
     Get a namaster working space from maps before computation
     """
-    nside = len(mask)
-    lmax = 3*nside-1
     wsp = nmt.NmtWorkspace()
-    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=False, purify_b=True,lmax=lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=False, purify_b=True,lmax=lmax), b)
+    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=False, purify_b=True,lmax=b.lmax), b)
     return wsp
 
-def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,coupled=False,mode='BB'):
+wsp.compute_coupling_matrix(nmt.NmtField(mask, [1*mask]), nmt.NmtField(mask,[1*mask]), b)
+
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,b,coupled=False,mode='BB'):
     """
     Compute the cross-spectra
     """
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
-    nside = len(mask)
-    lmax = 3*nside-1
     sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
     sp = sp_dict.get(mode, None)
     if sp!=None:
-        CLcross=np.zeros((Ncross,Nell))
+        CLcross = np.zeros((Ncross,Nell))
     if sp==None:
-        CLcross=np.zeros((4,Ncross,Nell))
+        CLcross = np.zeros((4,Ncross,Nell))
     z=0
     if sp!=None:
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled)[sp])
                 if i==j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled)[sp])
                 z = z +1
         return CLcross
 
@@ -85,17 +83,17 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,coupled=False,mod
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=lmax), wsp, coupled=coupled))
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled))
                 if i==j :
-                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=lmax), wsp, coupled=coupled))
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled))
                 z = z +1
         return CLcross
 
 def compute_cross_simple(mapd1,mapd2,mask,b):
     nside = len(mask)
     lmax = 3*nside-1
-    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=lmax)
-    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=lmax)
+    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=b.lmax)
+    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=b.lmax)
     wsp = nmt.NmtWorkspace()
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 

@@ -21,7 +21,7 @@ from tqdm import tqdm
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=500 
+N=100 
 lmax = nside*2-1
 scale = 10
 Nlbin = 10
@@ -42,7 +42,7 @@ sens_P = instr['sens_P']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
-Nell=len(leff)
+Nell = len(leff)
 
 #mask
 
@@ -54,7 +54,7 @@ else:
 #call foreground sky
 
 if dusttype == None and syncrotype == None:
-    mapfg=np.zeros((N_freqs,2,Npix))
+    mapfg = np.zeros((N_freqs,2,Npix))
 else:
     if dusttype == None:
         sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
@@ -62,8 +62,8 @@ else:
     	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
     if syncrotype != None and dusttype != None:
     	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
-    mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
-    mapfg=mapfg[:,1:]
+    mapfg = np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
+    mapfg = mapfg[:,1:]
 
 # call cmb
 
@@ -103,25 +103,25 @@ for k in tqdm(range(kini,N)):
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
     # to be replaced by sim.computecross
-    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,Nell,mask,coupled=False,mode='BB')
+    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,Nell,mask,b,coupled=False,mode='BB')
 
     if syncrotype==None and dusttype==None:
-        if r ==0:
+        if r == 0:
             np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin),CLcross)
         else :
             np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin),CLcross)
     elif syncrotype==None:
-    	if r ==0:
+    	if r == 0:
     		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype),CLcross)
     	else :
     		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype),CLcross)
     elif dusttype==None:
-        if r ==0:
+        if r == 0:
             np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype),CLcross)
         else :
             np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype),CLcross)
     elif syncrotype!=None and dusttype!=None:
-    	if r ==0:
+    	if r == 0:
     		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype),CLcross)
     	else :
     		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype),CLcross)
