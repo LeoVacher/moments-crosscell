@@ -53,7 +53,7 @@ else:
 
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
-Nell = len(l)
+Nell = 12#len(l)
 
 #instrument informations:
 

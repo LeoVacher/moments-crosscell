@@ -21,13 +21,13 @@ from tqdm import tqdm
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=100 
+N=500 
 lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 1
-dusttype = None
-syncrotype = None
+dusttype = 9
+syncrotype = 4
 kw = ''
 load=False
 
