@@ -198,7 +198,7 @@ def plothist(label,res,colors='darkblue',r=0):
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
 
-def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
+def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betabar=1.54,tempbar=20.,betasbar=-3.):
     """
     Generate a PDF with plots for all quantities of interest.
     :param l: Bandpower array
@@ -216,6 +216,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
     unique_keys = set.union(*all_keys) - common_keys
     # Check if all dictionaries have only common keys
     only_common_keys = all(len(resi.keys() - common_keys) == 0 for resi in res)
+    
     # Plot common keys
     for k in common_keys:
         plt.figure(figsize=(10, 7))
@@ -240,7 +241,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False):
             if k in {'A_d', 'A_s'}:
                 plt.loglog()
             elif k in {'X2red', 'r', 'beta_s', 'T_d', 'beta_d'}:
-                ref_values = {'X2red': 1, 'r': 0, 'beta_s': -3.1, 'T_d': 19.6, 'beta_d': 1.48}
+                ref_values = {'X2red': 1, 'r': 0, 'beta_s': betasbar, 'T_d': tempbar, 'beta_d': betadbar}
                 plt.plot(l, ref_values[k] * np.ones(len(l)), c='k', linestyle='--')
             else:
                 plt.plot(l, np.zeros(len(l)), c='k', linestyle='--')

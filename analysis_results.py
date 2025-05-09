@@ -31,7 +31,10 @@ kw = ''
 kwsim = ''
 Pathload = './'
 plot_contours=False
+all_ell=True
 
+if all_ell==True:
+	kw=kw+'_all_ell'
 if fsky==1:
     mask = np.ones(hp.nside2npix(nside))
 else:
@@ -41,7 +44,7 @@ b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
 l = b.get_effective_ells()
 Nell = len(l)
 
-res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s'+kw+'.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res4 = np.load('best_fits/results_d%ss%s_%s_signal_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
@@ -70,4 +73,4 @@ reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
 leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]
 collist = [globals()[f"c{i}"] for i in range(1, nres + 1)]
 
-plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betabar,tempbar=tempbar,betasbar=betasbar)
