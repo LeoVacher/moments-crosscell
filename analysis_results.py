@@ -35,6 +35,7 @@ all_ell=True
 
 if all_ell==True:
 	kw=kw+'_all_ell'
+
 if fsky==1:
     mask = np.ones(hp.nside2npix(nside))
 else:
