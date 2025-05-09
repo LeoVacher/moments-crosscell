@@ -15,7 +15,7 @@ import covlib as cvl
 
 r=0.
 nside = 64
-lmax = nside*2-1
+lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
