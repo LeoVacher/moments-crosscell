@@ -25,9 +25,9 @@ N=500
 lmax = nside*2-1
 scale = 10
 Nlbin = 10
-fsky = 0.7
-dusttype = 9
-syncrotype = 4
+fsky = 1
+dusttype = None
+syncrotype = None
 kw = ''
 load=False
 
@@ -46,7 +46,10 @@ Nell=len(leff)
 
 #mask
 
-mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+if fsky==1:
+    mask=np.ones(Npix)
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 #call foreground sky
 
