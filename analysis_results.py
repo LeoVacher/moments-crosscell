@@ -41,16 +41,16 @@ if fsky==1:
 else:
     mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = len(l)
 
-res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s'+kw+'.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res1 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s%s.npy'%(dusttype,synctype,fsky,order,fix,kw),allow_pickle=True).item()
 #res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res4 = np.load('best_fits/results_d%ss%s_%s_signal_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 
-legs1 = 'sims'
+legs1 = 'd%ss%s_fsky%s_full'%(dusttype,synctype,fsky)
 legs2 = 'Knox-fg'
 legs3 = 'Knox+fg'
 legs4 = 'signal'
