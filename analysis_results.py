@@ -31,7 +31,7 @@ kw = ''
 kwsim = ''
 Pathload = './'
 plot_contours=False
-all_ell=True
+all_ell=False
 
 if all_ell==True:
 	kw=kw+'_all_ell'
