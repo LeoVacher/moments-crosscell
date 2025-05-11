@@ -119,6 +119,12 @@ if load:
 else:
     results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 
+
+if fsky==1:
+    mask = np.ones(hp.nside2npix(nside))
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+
 try:
     mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
 except:
@@ -129,9 +135,5 @@ reslist = [results_ds_o1bt]
 leglist = ['d%ss%s_fsky%s_full'%(dusttype,synctype,fsky)]
 collist = ['darkred']
 
-if fsky==1:
-    mask = np.ones(hp.nside2npix(nside))
-else:
-    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betadbar,tempbar=tempbar,betasbar=betasbar)
