@@ -129,4 +129,9 @@ reslist = [results_ds_o1bt]
 leglist = ['d%ss%s_fsky%s_full'%(dusttype,synctype,fsky)]
 collist = ['darkred']
 
+if fsky==1:
+    mask = np.ones(hp.nside2npix(nside))
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+
 plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betadbar,tempbar=tempbar,betasbar=betasbar)
