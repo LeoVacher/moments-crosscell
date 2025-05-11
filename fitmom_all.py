@@ -13,6 +13,7 @@ import basicfunc as func
 import analys_lib as an
 import covlib as cvl 
 from plotlib import plotrespdf
+import analytical_mom_lib as anmomlib
 
 r=0.
 nside = 64
