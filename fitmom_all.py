@@ -14,6 +14,7 @@ import analys_lib as an
 import covlib as cvl 
 from plotlib import plotrespdf
 import analytical_mom_lib as anmomlib
+import healpy as hp
 
 r=0.
 nside = 64
@@ -118,7 +119,6 @@ if load:
         results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 else:
     results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
-
 
 if fsky==1:
     mask = np.ones(hp.nside2npix(nside))
