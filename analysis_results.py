@@ -74,4 +74,4 @@ reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
 leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]
 collist = [globals()[f"c{i}"] for i in range(1, nres + 1)]
 
-plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betabar,tempbar=tempbar,betasbar=betasbar)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)

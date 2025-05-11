@@ -90,9 +90,9 @@ if load:
     try:
         results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
     except:
-        results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
+        results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 else:
-    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
+    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 
 #update with order 0's best fit:
 
@@ -128,4 +128,4 @@ reslist = [results_ds_o1bt]
 leglist = ['d%ss%s_fsky%s_full'%(dusttype,synctype,fsky)]
 collist = ['darkred']
 
-plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betabar,tempbar=tempbar,betasbar=betasbar)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=plot_contours,betabar=betadbar,tempbar=tempbar,betasbar=betasbar)
