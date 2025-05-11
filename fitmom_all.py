@@ -136,4 +136,4 @@ leglist = ['d%ss%s_fsky%s_full'%(dusttype,synctype,fsky)]
 collist = ['darkred']
 
 
-plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=True,betabar=betadbar,tempbar=tempbar,betasbar=betasbar)
+plotrespdf(l,reslist,leglist,collist,mom_an,plot_contours=True,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
