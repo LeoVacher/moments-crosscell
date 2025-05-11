@@ -33,10 +33,6 @@ synctype_cov = synctype
 if cov_type != 'sim':
     kw += '_%s'%cov_type
 
-if parallel:
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-
 # Call C_ell of simulation
 
 if synctype == None:
@@ -96,7 +92,11 @@ DLdc = DLdc[:N,:,:Nell]
 betabar, tempbar, betasbar = 1.5, 20, -3
 
 p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
+
+try:
+    results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+except:
+    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 #update with order 0's best fit:
 
@@ -107,7 +107,11 @@ betasbar = np.mean(results_ds_o0['beta_s'])
 # fit order 1 in beta and T, get results, save and plot
 
 p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+
+try:
+    results_ds_o1bt = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt','1'),allow_pickle=True).item()
+except:
+    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 
 try:
     mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
