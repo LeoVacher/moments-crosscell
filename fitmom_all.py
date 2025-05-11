@@ -23,6 +23,7 @@ fsky = 0.7
 dusttype = 1
 synctype = 1
 Pathload = './'
+load=True
 adaptative = False
 N = 500
 cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
@@ -70,19 +71,11 @@ if np.shape(np.argwhere(DLdc == 0))[0] == 0:
 else:
     Ncov = np.argwhere(DLdc == 0)[0,0]-1
 
-if all_ell:
-    if cov_type == 'sim':
-        Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
-    else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
-        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
-
+if cov_type == 'sim':
+    Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
 else:
-    if cov_type == 'sim':
-        Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
-    else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
-        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+    cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+    Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc = DLdc[:N,:,:Nell]
@@ -93,9 +86,12 @@ betabar, tempbar, betasbar = 1.5, 20, -3
 
 p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
 
-try:
-    results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
-except:
+if load:
+    try:
+        results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+    except:
+        results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
+else:
     results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres)
 
 #update with order 0's best fit:
@@ -106,11 +102,20 @@ betasbar = np.mean(results_ds_o0['beta_s'])
 
 # fit order 1 in beta and T, get results, save and plot
 
+if cov_type == 'sim':
+    Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
+else:
+    cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+    Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+
 p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
-try:
-    results_ds_o1bt = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt','1'),allow_pickle=True).item()
-except:
+if load:
+    try:
+        results_ds_o1bt = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt','1'),allow_pickle=True).item()
+    except:
+        results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+else:
     results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 
 try:
