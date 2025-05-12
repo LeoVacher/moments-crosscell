@@ -19,12 +19,12 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 9
-synctype = 4
-order_to_fit= ['0'] 
+dusttype = 10
+synctype = 5
+order_to_fit= ['1bt'] 
 Pathload = './'
 all_ell = False #all ell or each ell independently
-fix = 0 #fix beta and T ?
+fix = 1 #fix beta and T ?
 adaptative = False
 N = 500
 plotres=True #plot and save pdf?
@@ -38,6 +38,7 @@ iterate = 3
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
+
 if iterate != 0:
     kw+= '_it%s'%iterate
 
