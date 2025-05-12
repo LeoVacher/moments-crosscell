@@ -21,7 +21,7 @@ nside = 64
 lmax = nside*3-1
 scale = 10
 Nlbin = 10
-fsky = 0.7
+fsky = 0.8
 dusttype = 1
 synctype = 1
 Pathload = './'
@@ -32,9 +32,15 @@ cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
+pivot_o0 = False
+iterate = False
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
+if iterate == True :
+    kw+= '_iterate'
+if pivot_o0:
+    kw+= '_pivoto0'
 
 # Call C_ell of simulation
 
@@ -86,21 +92,22 @@ DLdc = DLdc[:N,:,:Nell]
 
 betabar, tempbar, betasbar = 1.5, 20, -3
 
-p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+if pivot_o0:
+    p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
 
-if load:
-    try:
-        results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
-    except:
+    if load:
+        try:
+            results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+        except:
+            results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+    else:
         results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
-else:
-    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
 
-#update with order 0's best fit:
+    #update with order 0's best fit:
 
-betabar = np.mean(results_ds_o0['beta_d'])
-tempbar = np.mean(results_ds_o0['T_d'])
-betasbar = np.mean(results_ds_o0['beta_s'])
+    betabar = np.mean(results_ds_o0['beta_d'])
+    tempbar = np.mean(results_ds_o0['T_d'])
+    betasbar = np.mean(results_ds_o0['beta_s'])
 
 # fit order 1 in beta and T, get results, save and plot
 
@@ -116,9 +123,9 @@ if load:
     try:
         results_ds_o1bt = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt','1'),allow_pickle=True).item()
     except:
-        results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+        results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate)
 else:
-    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate)
 
 if fsky==1:
     mask = np.ones(hp.nside2npix(nside))
