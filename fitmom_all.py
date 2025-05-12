@@ -33,7 +33,7 @@ kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
 pivot_o0 = False
-iterate = True
+iterate = False
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
