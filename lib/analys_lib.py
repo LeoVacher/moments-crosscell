@@ -50,6 +50,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param kwsave: keyword to save the results in the folder "best_fits".
     :param plotres: if true, plot and save the results in pdf format.
     :param mompl: only for allell case, fit moments as power-laws in ell.
+    :param iterate: if 1, iterate to estimate the pivot.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -140,8 +141,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 chi2l[L,n]=m.fnorm/m.dof            
         
         
-        if iterate > 0:
-            for it in range(iterate):
+        if iterate:
+            while adaptafix(paramiterl[0,:,6]):
                 for n in tqdm(range(Nmin,Nmax)):
                     for L in range(Nell):
                         parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
