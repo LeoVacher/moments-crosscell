@@ -33,7 +33,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -115,6 +115,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 for L in range(Nell):
                     fixmom=adaptafix(res0[list(keys)[k]][L])
                     parinfopl[L][k]= {'value':0, 'fixed':fixmom}
+
         #for parallel:
         if parallel==True:
             comm = MPI.COMM_WORLD
@@ -126,27 +127,44 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         else:
             Nmin=0
             Nmax=N
-    
+
+        
         #perform the fit
 
         for n in tqdm(range(Nmin,Nmax)):
             for L in range(Nell):
-                # first o1 fit, dust fixed, mom free, r fixed
+                # first o1 fit, dust fixed, mom free, r free
                 fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit}
                 m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                 paramiterl[L,n]= m.params
                 chi2l[L,n]=m.fnorm/m.dof            
         
+        
+        if iterate > 0:
+            for it in range(iterate):
+                for n in tqdm(range(Nmin,Nmax)):
+                    for L in range(Nell):
+                        parinfopl[L][1] = {'value': paramiterl[:,L,1] + paramiterl[:,L,6]/paramiterl[:,L,0] , 'fixed':1}
+                        parinfopl[L][2] = {'value': paramiterl[:,L,2] + paramiterl[:,L,8]/paramiterl[:,L,0] , 'fixed':1}
+                        if kw=='ds_o1bts':
+                            parinfopl[L][4] = {'value': paramiterl[:,L,4] + paramiterl[:,L,11]/paramiterl[:,L,3], 'fixed':1}
+                        fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit}
+                        m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
+                        paramiterl[L,n]= m.params
+                        chi2l[L,n]=m.fnorm/m.dof            
+        
+
         #return result dictionnary:
 
         if kw=='ds_o0':
             results={'A_d' : paramiterl[:,:,0], 'beta_d' : paramiterl[:,:,1], 'T_d' : 1/paramiterl[:,:,2], 'A_s': paramiterl[:,:,3], 'beta_s': paramiterl[:,:,4],'A_sd' : paramiterl[:,:,5], 'r':paramiterl[:,:,6], 'X2red': chi2l}
         elif kw=='ds_o1bt':
-            results={'A_d' : paramiterl[:,:,0], 'beta_d' : paramiterl[:,:,1], 'T_d' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
+            results={'A_d' : paramiterl[:,:,0], 'beta_d' : paramiterl[:,:,1], 'T_d' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd': paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1b' : paramiterl[:,:,11],'Asw1t' : paramiterl[:,:,12],'r' : paramiterl[:,:,13], 'X2red': chi2l}
         elif kw=='ds_o1bts':
-            results={'A_d' : paramiterl[:,:,0], 'beta_d' : paramiterl[:,:,1], 'T_d' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd':paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1bs' : paramiterl[:,:,11],'w1bsw1bs' : paramiterl[:,:,12],'Asw1b' : paramiterl[:,:,13],'Asw1t' : paramiterl[:,:,14],'Adw1s' : paramiterl[:,:,15],'w1bw1s' : paramiterl[:,:,16],'w1sw1T' : paramiterl[:,:,17],'r' : paramiterl[:,:,18], 'X2red': chi2l}
+            results={'A_d' : paramiterl[:,:,0], 'beta_d' : paramiterl[:,:,1], 'T_d' : 1/paramiterl[:,:,2], 'A_s':paramiterl[:,:,3] , 'beta_s':paramiterl[:,:,4], 'A_sd': paramiterl[:,:,5], 'Aw1b' : paramiterl[:,:,6], 'w1bw1b' : paramiterl[:,:,7],'Aw1t' : paramiterl[:,:,8],'w1bw1t' : paramiterl[:,:,9],'w1tw1t' : paramiterl[:,:,10],'Asw1bs' : paramiterl[:,:,11],'w1bsw1bs' : paramiterl[:,:,12],'Asw1b' : paramiterl[:,:,13],'Asw1t' : paramiterl[:,:,14],'Adw1s' : paramiterl[:,:,15],'w1bw1s' : paramiterl[:,:,16],'w1sw1T' : paramiterl[:,:,17],'r' : paramiterl[:,:,18], 'X2red': chi2l}
         else:
             print('unexisting keyword')
+
 
     if all_ell==True:
         funcfit= eval('ftl.func_'+kw+'_all_ell')
