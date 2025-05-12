@@ -90,7 +90,7 @@ DLdc = DLdc[:N,:,:Nell]
 
 #first guesses:
 
-betabar, tempbar, betasbar = 1.54, 20, -3
+betabar, tempbar, betasbar = 1.5, 20, -3
 
 if pivot_o0:
     p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
