@@ -33,7 +33,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=0):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -141,8 +141,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 chi2l[L,n]=m.fnorm/m.dof            
         
         
-        if iterate==1:
-            while adaptafix(paramiterl[0,:,6])==0 and adaptafix(paramiterl[1,:,6])==0 and adaptafix(paramiterl[2,:,6])==0:
+        if iterate:
+            while any(adaptafix(paramiterl[i, :, 6]) == 0 for i in range(Nell)):
                 for n in tqdm(range(Nmin,Nmax)):
                     for L in range(Nell):
                         parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}

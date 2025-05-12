@@ -34,14 +34,14 @@ cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
-iterate = 1 
+iterate = True 
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
 
-if iterate != 0:
-    kw+= '_it%s'%iterate
-
+if iterate == True :
+    kw+= '_iterate'
+    
 if parallel:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
