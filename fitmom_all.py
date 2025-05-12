@@ -139,7 +139,7 @@ except:
     np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), mom_an)
 
 reslist = [results_ds_o1bt]
-leglist = ['d%ss%s_fsky%s_full'%(dusttype,synctype,fsky)]
+leglist = ['d%ss%s_fsky%s_full%s'%(dusttype,synctype,fsky,kw)]
 collist = ['darkred']
 
 
