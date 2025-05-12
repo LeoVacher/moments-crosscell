@@ -142,7 +142,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         
         
         if iterate==1:
-            while adaptafix(paramiterl[0,:,6]):
+            while adaptafix(paramiterl[0,:,6])!=0 and adaptafix(paramiterl[1,:,6])!=0 and adaptafix(paramiterl[2,:,6])!=0:
                 for n in tqdm(range(Nmin,Nmax)):
                     for L in range(Nell):
                         parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
