@@ -141,7 +141,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 chi2l[L,n]=m.fnorm/m.dof            
         
         
-        if iterate:
+        if iterate==1:
             while adaptafix(paramiterl[0,:,6]):
                 for n in tqdm(range(Nmin,Nmax)):
                     for L in range(Nell):
