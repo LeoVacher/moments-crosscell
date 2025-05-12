@@ -26,7 +26,7 @@ Pathload = './'
 all_ell = False #all ell or each ell independently
 fix = 1 #fix beta and T ?
 adaptative = False
-N = 10
+N = 50
 plotres=True #plot and save pdf?
 parallel = False
 pivot_o0 = True
@@ -34,7 +34,7 @@ cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
-iterate = 3 
+iterate = 10 
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
