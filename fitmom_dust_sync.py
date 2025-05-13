@@ -12,7 +12,6 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 import covlib as cvl 
-import healpy as hp
 
 nside = 64
 lmax = nside*3-1

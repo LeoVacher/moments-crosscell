@@ -12,6 +12,7 @@ import pymaster as nmt
 import pathlib
 import analytical_mom_lib as anmomlib
 import re
+import healpy as hp
 
 #contains all function for moment fitting.
 
