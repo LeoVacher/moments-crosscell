@@ -108,8 +108,14 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
         parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
         parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
-        if fixr==True and kw=='ds_o0':
-            parinfopl[5]= {'value':0, 'fixed':1,'limited':[1,1],'limits':[-5,-2]} #r    
+        if fixr == 1:
+            if kw == 'ds_o0':
+                parinfopl[6] = {'value': 0, 'fixed': fixr}  # r
+            elif kw == 'ds_o1bt':
+                parinfopl[13] = {'value': 0, 'fixed': fixr}  # r
+            elif kw == 'ds_o1bts':
+                parinfopl[18] = {'value': 0, 'fixed': fixr}  # r
+        
         parinfopl = np.array([parinfopl for i in range(Nell)])
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
@@ -196,7 +202,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl.append({'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]}) #betad
         parinfopl.append({'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,3]}) #1/Td
         parinfopl.append({'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]}) #betas    
-        parinfopl.append({'value':p0[5], 'fixed':0}) #r 
+        parinfopl.append({'value':p0[5], 'fixed':fixr}) #r 
         if kw=='ds_o1bt':
             if mompl:
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments and power-law indices 
