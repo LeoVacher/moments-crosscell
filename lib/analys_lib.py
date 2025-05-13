@@ -70,14 +70,14 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     l = b.get_effective_ells()
     l=l[:Nell]
     #update keyword for load and save:
-    kwf=kw+'_fix%s'%fix
-    if all_ell==True:
-        kwf=kwf+"_all_ell"
-    if adaptative==True:
-        kwf=kwf+'_adaptive'
+    kwf =kw + '_fix%s'%fix
+    if all_ell:
+        kwf = kwf + "_all_ell"
+    if adaptative:
+        kwf = kwf + '_adaptive'
 
     #create folder for parallel    
-    if parallel==True:
+    if parallel:
         pathlib.Path('./best_fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
@@ -95,7 +95,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     #select function to fit:
     funcfit= eval('ftl.func_'+kw)
      
-    if all_ell==True:
+    if all_ell:
         #put arrays in NcrossxNell shape for all-ell fit
         nu_i = np.tile(nu_i, Nell)
         nu_j = np.tile(nu_j, Nell)
@@ -110,10 +110,25 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         paramiterl=np.zeros((Nell,N,nparam))
         chi2l=np.zeros((Nell,N))
 
+        #set initial values:   
+        parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
+        parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
+        parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
+        parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
+        parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
+        parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
+        parinfopl = np.array([parinfopl for i in range(Nell)])
+        if adaptative:
+            res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
+            keys= res0.keys()
+            for k in range(6,len(res0.keys())-2):
+                for L in range(Nell):
+                    fixmom=adaptafix(res0[list(keys)[k]][L])
+                    parinfopl[L][k]= {'value':0, 'fixed':fixmom}
 
 
         #for parallel:
-        if parallel==True:
+        if parallel:
             comm = MPI.COMM_WORLD
             rank = comm.Get_rank()
             size = comm.Get_size()
