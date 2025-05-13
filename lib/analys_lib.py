@@ -77,8 +77,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         kwf = kwf + "_all_ell"
     if adaptative:
         kwf = kwf+'_adaptive'
-    if iterative:
-        kwf = kwf+'_iterative'
+    if iterate:
+        kwf = kwf+'_iterate'
 
     #create folder for parallel    
     if parallel == True:
