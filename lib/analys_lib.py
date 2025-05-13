@@ -51,6 +51,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param plotres: if true, plot and save the results in pdf format.
     :param mompl: only for allell case, fit moments as power-laws in ell.
     :param iterate: if 1, iterate to estimate the pivot.
+    :param fixr: if 1, fix the tensor to scalar ratio (r) to zero and does not fit for it.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -127,7 +128,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r        
             parinfopl = np.array([parinfopl for i in range(Nell)])        
-
+        print(parinfopl)
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
@@ -225,6 +226,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #power-law indices 
             else:
                 raise ValueError('Not coded yet!')
+        print(parinfopl)
+
+        #initialize chi2 and best fit array:
         chi2=np.zeros(N)
         paramiter=np.zeros((N,len(parinfopl)))
         
