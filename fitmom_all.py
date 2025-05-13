@@ -100,7 +100,7 @@ else:
 #    Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 
 cov = np.load('/global/u1/l/leovchr/codes/moments-crosscell/fit-Samy/LB_d10s5_nside64_delta10_planck70apo10/covmat_Nmt-fg_all_uK_CMB.npy')
-Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
+Linvdc = cvl.inverse_covmat(cov[2], Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc = DLdc[:N,:,:Nell]
 
