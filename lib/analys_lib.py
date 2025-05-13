@@ -287,6 +287,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
         
         if plotres:
+            dusttype,synctype = kwsave[1], kwsave[3]
             betabar = np.mean(results['beta_d'])
             tempbar = np.mean(results['T_d'])
             betasbar = np.mean(results['beta_s'])
