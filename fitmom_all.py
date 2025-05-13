@@ -92,7 +92,6 @@ if cov_type == 'sim':
         Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
         Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
-
 else:
     cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
     Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
