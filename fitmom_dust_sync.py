@@ -16,12 +16,12 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*3-1
-scale = 10
-Nlbin = 10
-fsky = 0.7
-dusttype = 9
-synctype = 4
-order_to_fit= ['0'] 
+scale = 10 #scale of apodisaton of the mask
+Nlbin = 10 #binning for bandpower
+fsky = 0.7 #sky fraction of the raw mask
+dusttype = 9 #index of Pysm's dust model
+synctype = 4 #index of Pysm's synchrotron model
+order_to_fit= ['0'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './'
 all_ell = False #all ell or each ell independently
 fix = 0 #fix beta and T ?
@@ -64,6 +64,14 @@ else:
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = 12#len(l)
+
+# mask (used to compute theoretical expectations)
+
+if fsky==1:
+    mask = np.ones(hp.nside2npix(nside))
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+
 
 #instrument informations:
 
