@@ -25,14 +25,16 @@ fsky = 0.8
 dusttype = 1
 synctype = 1
 Pathload = './'
+nu0d=353.
+nu0s=23.
 load=False
 adaptative = False
-N = 500
+N = 50
 cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
-pivot_o0 = False
+pivot_o0 = True
 iterate = False
 
 if cov_type != 'sim':
@@ -41,6 +43,10 @@ if iterate == True :
     kw+= '_iterate'
 if pivot_o0:
     kw+= '_pivoto0'
+if nu0d != 353.:
+    kw+= '_nu0d%s'%nu0d
+if nu0s != 23.:
+    kw+= '_nu0s%s'%nu0s
 
 # Call C_ell of simulation
 
@@ -99,9 +105,9 @@ if pivot_o0:
         try:
             results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
         except:
-            results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+            results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,nu0d=nu0d,nu0s=nu0s)
     else:
-        results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False)
+        results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,nu0d=nu0d,nu0s=nu0s)
 
     #update with order 0's best fit:
 
@@ -109,6 +115,23 @@ if pivot_o0:
     tempbar = np.mean(results_ds_o0['T_d'])
     betasbar = np.mean(results_ds_o0['beta_s'])
 
+    if fsky==1:
+        mask = np.ones(hp.nside2npix(nside))
+    else:
+        mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+
+    try:
+        mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
+    except:
+        mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
+        np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
+
+    reslist = [results_ds_o0]
+    leglist = ['d%ss%s_o0_fsky%s_full%s'%(dusttype,synctype,fsky,kw)]
+    collist = ['darkred']
+    plotrespdf(l[:12],reslist,leglist,collist,mom_an,plot_contours=True,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
+
+    
 # fit order 1 in beta and T, get results, save and plot
 
 if cov_type == 'sim':
@@ -123,9 +146,9 @@ if load:
     try:
         results_ds_o1bt = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt','1'),allow_pickle=True).item()
     except:
-        results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate)
+        results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1,all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate,nu0d=nu0d,nu0s=nu0s)
 else:
-    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1, all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate)
+    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=1, all_ell=False,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=iterate,nu0d=nu0d,nu0s=nu0s)
 
 if fsky==1:
     mask = np.ones(hp.nside2npix(nside))
@@ -135,12 +158,11 @@ else:
 try:
     mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
 except:
-    mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside)
-    np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), mom_an)
+    mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
+    np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
 
 reslist = [results_ds_o1bt]
-leglist = ['d%ss%s_fsky%s_full%s'%(dusttype,synctype,fsky,kw)]
+leglist = ['d%ss%s_o1bt_fsky%s_full%s'%(dusttype,synctype,fsky,kw)]
 collist = ['darkred']
-
 
 plotrespdf(l[:12],reslist,leglist,collist,mom_an,plot_contours=True,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)

@@ -103,7 +103,7 @@ def PL_ell(ell,alpha):
     l0=80
     return (ell/l0)**alpha
 
-def func_d_o0(p, x1=None, x2=None,nuref=353.,DL_lensbin=None, DL_tens=None):
+def func_d_o0(p, x1=None, x2=None,nu0d=353.,DL_lensbin=None, DL_tens=None):
     #fit function dust, order 0
     nu_i = x1
     nu_j = x2
@@ -111,83 +111,83 @@ def func_d_o0(p, x1=None, x2=None,nuref=353.,DL_lensbin=None, DL_tens=None):
     model = mbb  + DL_lensbin[int(p[4])] + p[3] * DL_tens[int(p[4])]
     return model
 
-def func_ds_o0(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0(p, x1=None, x2=None,nu0d=353.,nu0s=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i = x1
     nu_j = x2
-    mbb = p[0]*func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref)
-    sync = p[3]*func.PL_uK(nu_i, p[4],nu0=nurefs) * func.PL_uK(nu_j, p[4],nu0=nurefs)
+    mbb = p[0]*func.mbb_uK(nu_i, p[1], p[2],nu0=nu0d) * func.mbb_uK(nu_j, p[1], p[2],nu0=nu0d)
+    sync = p[3]*func.PL_uK(nu_i, p[4],nu0=nu0s) * func.PL_uK(nu_j, p[4],nu0=nu0s)
     normcorr= np.sqrt(abs(p[0]*p[3]))
     #normcorr= 1
-    crossdustsync = p[5]*normcorr*(func.mbb_uK(nu_i, p[1], p[2],nu0=nuref) * func.PL_uK(nu_j, p[4],nu0=nurefs) + func.PL_uK(nu_i, p[4],nu0=nurefs) * func.mbb_uK(nu_j, p[1], p[2],nu0=nuref))
+    crossdustsync = p[5]*normcorr*(func.mbb_uK(nu_i, p[1], p[2],nu0=nu0d) * func.PL_uK(nu_j, p[4],nu0=nu0s) + func.PL_uK(nu_i, p[4],nu0=nu0s) * func.mbb_uK(nu_j, p[1], p[2],nu0=nu0d))
     model = mbb + sync + crossdustsync + DL_lensbin[ell] + p[6] * DL_tens[ell]
     return model
 
-def func_ds_o1bt(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bt(p, x1=None, x2=None,nu0d=353,nu0s=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta and 1/T
     nu_i = x1
     nu_j = x2
-    ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
-    sync= p[3]*func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
+    ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)
+    sync= p[3]*func.PL_uK(nu_i,p[4],nu0=nu0s)*func.PL_uK(nu_j,p[4],nu0=nu0s)
     normcorr= np.sqrt(abs(p[0]*p[3]))
     #normcorr= 1
-    crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref))
-    lognui = np.log(nu_i / nuref)
-    lognuj = np.log(nu_j / nuref)
-    dx0 = func.dmbb_bT(nuref,p[2])
+    crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d))
+    lognui = np.log(nu_i / nu0d)
+    lognuj = np.log(nu_j / nu0d)
+    dx0 = func.dmbb_bT(nu0d,p[2])
     dxi = func.dmbb_bT(nu_i,p[2])
     dxj = func.dmbb_bT(nu_j,p[2])
     temp = ampl*(p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
     temp2= ampl*((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
-    crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
-    crossdustsync3 = p[12]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*(dxj-dx0))
+    crossdustsync2 = p[11]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*lognui*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*lognuj)
+    crossdustsync3 = p[12]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*(dxj-dx0))
     model = temp + temp2 + sync+ crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin[ell] + p[13]*DL_tens[ell]
     return model
 
-def func_ds_o1bts(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o1bts(p, x1=None, x2=None,nu0d=353,nu0s=23.,ell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 1 in beta, beta_s and 1/T
     nu_i = x1
     nu_j = x2
-    ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)
-    sync = func.PL_uK(nu_i,p[4],nu0=nurefs)*func.PL_uK(nu_j,p[4],nu0=nurefs)
+    ampl = func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)
+    sync = func.PL_uK(nu_i,p[4],nu0=nu0s)*func.PL_uK(nu_j,p[4],nu0=nu0s)
     normcorr = np.sqrt(abs(p[0]*p[3]))
     #normcorr= 1
-    crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref))
-    lognui = np.log(nu_i / nuref)
-    lognuj = np.log(nu_j / nuref)
-    lognuis = np.log(nu_i / nurefs)
-    lognujs = np.log(nu_j / nurefs)
-    dx0 = func.dmbb_bT(nuref,p[2])
+    crossdustsync= p[5]*normcorr*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d))
+    lognui = np.log(nu_i / nu0d)
+    lognuj = np.log(nu_j / nu0d)
+    lognuis = np.log(nu_i / nu0s)
+    lognujs = np.log(nu_j / nu0s)
+    dx0 = func.dmbb_bT(nu0d,p[2])
     dxi = func.dmbb_bT(nu_i,p[2])
     dxj = func.dmbb_bT(nu_j,p[2])
     temp = ampl * (p[0]+ (lognui+lognuj) * p[6]+ lognui*lognuj * p[7])
     temp2 = ampl * ((dxi+dxj-2*dx0)*p[8]+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[9]+(dxi-dx0)*(dxj-dx0)*p[10])
     syncmom = sync * (p[3]+ (lognuis+lognujs) * p[11]+ lognuis*lognujs * p[12])
-    crossdustsync2 = p[13]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
-    crossdustsync3 = p[14]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*(dxj-dx0))
-    crossdustsync4 = p[15]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognujs*func.PL_uK(nu_j,p[4],nu0=nurefs)+ func.PL_uK(nu_i,p[4],nu0=nurefs)*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuis)
-    crossdustsync5 = p[16]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[4],nu0=nurefs)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nurefs)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*lognuj)
-    crossdustsync6 = p[17]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nurefs)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nurefs)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nuref)*(dxj-dx0))
+    crossdustsync2 = p[13]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*lognui*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*lognuj)
+    crossdustsync3 = p[14]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*(dxj-dx0))
+    crossdustsync4 = p[15]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*lognujs*func.PL_uK(nu_j,p[4],nu0=nu0s)+ func.PL_uK(nu_i,p[4],nu0=nu0s)*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*lognuis)
+    crossdustsync5 = p[16]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*lognui*func.PL_uK(nu_j,p[4],nu0=nu0s)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nu0s)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*lognuj)
+    crossdustsync6 = p[17]*(func.mbb_uK(nu_i,p[1],p[2],nu0=nu0d)*(dxi-dx0)*func.PL_uK(nu_j,p[4],nu0=nu0s)*lognujs+ func.PL_uK(nu_i,p[4],nu0=nu0s)*lognuis*func.mbb_uK(nu_j,p[1],p[2],nu0=nu0d)*(dxj-dx0))
     model = temp + temp2 + syncmom + crossdustsync+ crossdustsync2+ crossdustsync3+crossdustsync4+crossdustsync5+crossdustsync6+ DL_lensbin[ell] + p[18]*DL_tens[ell]
     return model
 
 #all_ell
 
-def func_ds_o0_all_ell(p, x1=None, x2=None,nuref=353.,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
+def func_ds_o0_all_ell(p, x1=None, x2=None,nu0d=353.,nu0s=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None):
     #fit function dust+syncrotron, order 0
     nu_i = x1
     nu_j = x2
     ellim=3*Nell-1
     Ncross=len(nu_i)/Nell
-    mbb = np.repeat(p[:Nell],Ncross)*func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref)
-    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs)
+    mbb = np.repeat(p[:Nell],Ncross)*func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d)
+    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s)
     normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref))
+    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s) + func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d))
     model = mbb + sync + crossdustsync + DL_lensbin + p[ellim + 4] * DL_tens
     return model
 
-def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None,mompl=False):
+def func_ds_o1bt_all_ell(p, x1=None, x2=None,nu0d=353,nu0s=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None,mompl=False):
     #fit function dust+syncrotron, order 1 in beta and T
     nu_i = x1
     nu_j = x2
@@ -202,14 +202,14 @@ def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=
     As = np.repeat(p[Nell:2*Nell],Ncross)
     Asd= np.repeat(p[2*Nell:3*Nell],Ncross)
 
-    ampl = func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref)
-    sync = As * func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs)
+    ampl = func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d)
+    sync = As * func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s)
     normcorr = np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = Asd * normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref))
-    lognui = np.log(nu_i / nuref)
-    lognuj = np.log(nu_j / nuref)
-    dx0 = func.dmbb_bT(nuref,p[ellim + 2])
+    crossdustsync = Asd * normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s) + func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d))
+    lognui = np.log(nu_i / nu0d)
+    lognuj = np.log(nu_j / nu0d)
+    dx0 = func.dmbb_bT(nu0d,p[ellim + 2])
     dxi = func.dmbb_bT(nu_i,p[ellim + 2])
     dxj = func.dmbb_bT(nu_j,p[ellim + 2])
     
@@ -232,35 +232,35 @@ def func_ds_o1bt_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=
 
     temp = ampl * (Ad + (lognui+lognuj) * Aw1b + lognui * lognuj * w1bw1b)
     temp2= ampl * ((dxi+dxj-2*dx0) * Aw1t + (lognuj*(dxi-dx0)+lognui * (dxj-dx0)) * w1bw1t + (dxi-dx0)*(dxj-dx0) * w1tw1t)
-    crossdustsync2 = Asw1b * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognuj)
-    crossdustsync3 = Asw1t * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxj-dx0))
+    crossdustsync2 = Asw1b * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nu0d)*lognui*func.PL_uK(nu_j,p[ellim + 3],nu0=nu0s)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nu0s) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nu0d)*lognuj)
+    crossdustsync3 = Asw1t * (func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nu0d)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3],nu0=nu0s)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nu0s) * func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nu0d)*(dxj-dx0))
     model = temp + temp2 + sync + crossdustsync+ crossdustsync2+ crossdustsync3+ DL_lensbin + p[ellim + 4]*DL_tens
     return model
 
-def func_ds_o1bts_all_ell(p, x1=None, x2=None,nuref=353,nurefs=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None,mompl=False):
+def func_ds_o1bts_all_ell(p, x1=None, x2=None,nu0d=353,nu0s=23.,ell=None,Nell=None,DL_lensbin=None, DL_tens=None,mompl=False):
     nu_i = x1
     nu_j = x2
     ellim = 3*Nell-1
     Ncross = len(nu_i)/Nell
-    ampl = func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref)
-    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs)
+    ampl = func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d)
+    sync = np.repeat(p[Nell:2*Nell],Ncross)*func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s)
     normcorr= np.repeat(np.sqrt(abs(p[:Nell]*p[Nell:2*Nell])),Ncross)
     #normcorr= 1
-    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nuref) * func.PL_uK(nu_j, p[ellim + 3],nu0=nurefs) + func.PL_uK(nu_i, p[ellim + 3],nu0=nurefs) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nuref))
-    lognui = np.log(nu_i / nuref)
-    lognuj = np.log(nu_j / nuref)
-    lognuis = np.log(nu_i / nurefs)
-    lognujs = np.log(nu_j / nurefs)
-    dx0 = func.dmbb_bT(nuref,p[ellim + 2])
+    crossdustsync = np.repeat(p[2*Nell:3*Nell],Ncross)*normcorr*(func.mbb_uK(nu_i, p[ellim + 1], p[ellim + 2],nu0=nu0d) * func.PL_uK(nu_j, p[ellim + 3],nu0=nu0s) + func.PL_uK(nu_i, p[ellim + 3],nu0=nu0s) * func.mbb_uK(nu_j, p[ellim + 1], p[ellim + 2],nu0=nu0d))
+    lognui = np.log(nu_i / nu0d)
+    lognuj = np.log(nu_j / nu0d)
+    lognuis = np.log(nu_i / nu0s)
+    lognujs = np.log(nu_j / nu0s)
+    dx0 = func.dmbb_bT(nu0d,p[ellim + 2])
     dxi = func.dmbb_bT(nu_i,p[ellim + 2])
     dxj = func.dmbb_bT(nu_j,p[ellim + 2])
     temp = ampl*(np.repeat(p[:Nell],Ncross)+ (lognui+lognuj) * p[ellim + 5] * PL_ell(ell,p[ellim + 12])+ lognui*lognuj * p[ellim + 6] * PL_ell(ell,p[ellim + 13]))
     temp2 = ampl*((dxi+dxj-2*dx0)*p[ellim + 7] * PL_ell(ell,p[ellim + 14])+(lognuj*(dxi-dx0)+lognui*(dxj-dx0))*p[ellim + 8] * PL_ell(ell,p[ellim + 15])+(dxi-dx0)*(dxj-dx0)*p[ellim + 9] * PL_ell(ell,p[ellim + 16]))
-    crossdustsync2 = normcorr*p[ellim + 10] * PL_ell(ell,p[ellim + 17])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognui*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*lognuj)
-    crossdustsync3 = normcorr*p[ellim + 11] * PL_ell(ell,p[ellim + 18])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3],nu0=nurefs)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nurefs)*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nuref)*(dxj-dx0))
-    crossdustsync4 = normcorr*p[ellim + 12] * PL_ell(ell,p[ellim + 19])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*lognujs*func.PL_uK(nu_j,p[ellim + 3])+ func.PL_uK(nu_i,p[ellim + 3])*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*lognuis)/(func.PL_uK(nurefs,p[4])*func.mbb_uK(nuref,p[ellim + 1],p[ellim + 2]))
-    crossdustsync5 = normcorr*p[ellim + 13] * PL_ell(ell,p[ellim + 20])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*lognui*func.PL_uK(nu_j,p[ellim + 3])*lognujs+ func.PL_uK(nu_i,p[ellim + 3])*lognuis*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*lognuj)/(func.PL_uK(nurefs,p[ellim + 3])*func.mbb_uK(nuref,p[ellim + 1],p[ellim + 2]))
-    crossdustsync6 = normcorr*p[ellim + 14] * PL_ell(ell,p[ellim + 21])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3])*lognujs+ func.PL_uK(nu_i,p[ellim + 3])*lognuis*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*(dxj-dx0))/(func.PL_uK(nurefs,p[ellim + 3])*func.mbb_uK(nuref,p[1],p[ellim + 3]))
+    crossdustsync2 = normcorr*p[ellim + 10] * PL_ell(ell,p[ellim + 17])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nu0d)*lognui*func.PL_uK(nu_j,p[ellim + 3],nu0=nu0s)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nu0s)*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nu0d)*lognuj)
+    crossdustsync3 = normcorr*p[ellim + 11] * PL_ell(ell,p[ellim + 18])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2],nu0=nu0d)*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3],nu0=nu0s)+ func.PL_uK(nu_i,p[ellim + 3],nu0=nu0s)*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2],nu0=nu0d)*(dxj-dx0))
+    crossdustsync4 = normcorr*p[ellim + 12] * PL_ell(ell,p[ellim + 19])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*lognujs*func.PL_uK(nu_j,p[ellim + 3])+ func.PL_uK(nu_i,p[ellim + 3])*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*lognuis)/(func.PL_uK(nu0s,p[4])*func.mbb_uK(nu0d,p[ellim + 1],p[ellim + 2]))
+    crossdustsync5 = normcorr*p[ellim + 13] * PL_ell(ell,p[ellim + 20])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*lognui*func.PL_uK(nu_j,p[ellim + 3])*lognujs+ func.PL_uK(nu_i,p[ellim + 3])*lognuis*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*lognuj)/(func.PL_uK(nu0s,p[ellim + 3])*func.mbb_uK(nu0d,p[ellim + 1],p[ellim + 2]))
+    crossdustsync6 = normcorr*p[ellim + 14] * PL_ell(ell,p[ellim + 21])*(func.mbb_uK(nu_i,p[ellim + 1],p[ellim + 2])*(dxi-dx0)*func.PL_uK(nu_j,p[ellim + 3])*lognujs+ func.PL_uK(nu_i,p[ellim + 3])*lognuis*func.mbb_uK(nu_j,p[ellim + 1],p[ellim + 2])*(dxj-dx0))/(func.PL_uK(nu0s,p[ellim + 3])*func.mbb_uK(nu0d,p[1],p[ellim + 3]))
     syncmom = sync*((lognuis+lognujs) * p[ellim + 15] * PL_ell(ell,p[ellim + 22])+ lognuis*lognujs * p[ellim + 16] * PL_ell(ell,p[ellim + 23]))        
     model = temp + temp2 + syncmom + crossdustsync + crossdustsync2 + crossdustsync3 + crossdustsync4 + crossdustsync5 + crossdustsync6 + DL_lensbin + p[ellim + 4]*DL_tens
     return model

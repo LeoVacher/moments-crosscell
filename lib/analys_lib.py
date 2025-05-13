@@ -33,7 +33,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -226,7 +226,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
         for n in tqdm(range(Nmin,Nmax)):
             # first o1 fit, dust fixed, mom free, r fixed
-            fa = {'x1': nu_i, 'x2': nu_j, 'y': DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'ell': np.repeat(l,ncross),'Nell': Nell,'model_func': funcfit}
+            fa = {'x1': nu_i, 'x2': nu_j, 'y': DLdcflat[n], 'err': Linv, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'ell': np.repeat(l,ncross),'Nell': Nell,'model_func': funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
             m = mpfit(ftl.lkl_mpfit, parinfo= parinfopl ,functkw=fa,quiet=quiet)
             paramiter[n]= m.params
             chi2[n]=m.fnorm/m.dof            
