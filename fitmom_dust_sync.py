@@ -34,7 +34,7 @@ cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw=''
 dusttype_cov = dusttype
 synctype_cov = synctype
-iterate = True 
+iterate = False 
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
