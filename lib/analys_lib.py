@@ -286,9 +286,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
         
         if plotres:
-            betabar = np.mean(results_o0['beta_d'])
-            tempbar = np.mean(results_o0['T_d'])
-            betasbar = np.mean(results_o0['beta_s'])
+            betabar = np.mean(results['beta_d'])
+            tempbar = np.mean(results['T_d'])
+            betasbar = np.mean(results['beta_s'])
             try:
                 mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
             except:
