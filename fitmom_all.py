@@ -25,8 +25,8 @@ fsky = 0.8
 dusttype = 1
 synctype = 1
 Pathload = './'
-nu0d=353.
-nu0s=23.
+nu0d=402.
+nu0s=40.
 load=False
 adaptative = False
 N = 50
@@ -131,7 +131,6 @@ if pivot_o0:
     collist = ['darkred']
     plotrespdf(l[:12],reslist,leglist,collist,mom_an,plot_contours=False,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
 
-    
 # fit order 1 in beta and T, get results, save and plot
 
 if cov_type == 'sim':
