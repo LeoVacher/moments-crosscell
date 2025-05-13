@@ -109,26 +109,25 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         #initialize parameters and chi2:
         paramiterl=np.zeros((Nell,N,nparam))
         chi2l=np.zeros((Nell,N))
-
-        #set initial values:   
-        parinfopl =  [{'value':0, 'fixed':0} for i in range(nparam)] #fg params
-        parinfopl = np.array([parinfopl for i in range(Nell)])        
+        parinfopl = []
 
         for L in range(Nell):
-            parinfopl[L,0]= {'value':p0L[L,0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
-            parinfopl[L,1]= {'value':p0L[L,1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
-            parinfopl[L,2]= {'value':1/p0L[L,2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
-            parinfopl[L,3]= {'value':p0L[L,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-            parinfopl[L,4]= {'value':p0L[L,4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
+            params = [{'value':0, 'fixed':0} for i in range(nparam)]  
+            params[0] = {'value': p0L[L, 0], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}  # Ad
+            params[1] = {'value': p0L[L, 1], 'fixed': fix, 'limited': [1, 1], 'limits': [0.5, 2]}    # betad
+            params[2] = {'value': 1 / p0L[L, 2], 'fixed': fix, 'limited': [1, 1], 'limits': [1/100, 1/3]}  # 1/Td
+            params[3] = {'value': p0L[L, 3], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}   # As
+            params[4] = {'value': p0L[L, 4], 'fixed': fix, 'limited': [1, 1], 'limits': [-5, -2]}     # betas
             if fixr == 1:
                 if kw == 'ds_o0':
-                    parinfopl[L,6] = {'value': 0, 'fixed': fixr}  # r
+                    params[6] = {'value': 0, 'fixed': fixr}
                 elif kw == 'ds_o1bt':
-                    parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # r
+                    params[13] = {'value': 0, 'fixed': fixr}
                 elif kw == 'ds_o1bts':
-                    parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r        
-
-        print(parinfopl)
+                    params[18] = {'value': 0, 'fixed': fixr}
+            parinfopl.append(params)
+        parinfopl = np.array(parinfopl, dtype=object)  # shape (Nell,)
+        
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
