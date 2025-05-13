@@ -127,7 +127,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # r
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r        
-            parinfopl = np.array([parinfopl for i in range(Nell)])        
 
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
@@ -158,7 +157,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                 paramiterl[L,n]= m.params
                 chi2l[L,n]=m.fnorm/m.dof            
-        
         
         if iterate:
             if kw=='ds_o0':
