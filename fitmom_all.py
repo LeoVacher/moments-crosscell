@@ -27,7 +27,7 @@ synctype = 5
 Pathload = './'
 nu0d = 402.
 nu0s = 40.
-load=False
+load = False
 adaptative = False
 N = 50
 cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
@@ -42,13 +42,13 @@ all_ell_o0 = False
 if cov_type != 'sim':
     kw += '_%s'%cov_type
 if iterate == True :
-    kw+= '_iterate'
+    kw += '_iterate'
 if pivot_o0:
-    kw+= '_pivoto0'
+    kw += '_pivoto0'
 if nu0d != 353.:
-    kw+= '_nu0d%s'%nu0d
+    kw += '_nu0d%s'%nu0d
 if nu0s != 23.:
-    kw+= '_nu0s%s'%nu0s
+    kw += '_nu0s%s'%nu0s
 
 # Call C_ell of simulation
 
@@ -88,7 +88,11 @@ else:
     Ncov = np.argwhere(DLdc == 0)[0,0]-1
 
 if cov_type == 'sim':
-    Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
+    if all_ell_o0:
+        Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
+    else:
+        Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
+
 else:
     cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
     Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
@@ -101,9 +105,7 @@ DLdc = DLdc[:N,:,:Nell]
 betabar, tempbar, betasbar = 1.5, 20, -3
 
 if pivot_o0:
-    #p0 = [abs(DLdc[0,-1]), betabar, tempbar, abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-    p0 = [1000, betabar, tempbar, 1, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-
+    p0 = [abs(DLdc[0,-1]), betabar, tempbar, abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
     if load:
         try:
             results_ds_o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()

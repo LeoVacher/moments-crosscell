@@ -26,7 +26,7 @@ def adaptafix(arr):
     a= med+mad/2
     b= med-mad/2
     x=(a < 0 < b) or (b < 0 < a)
-    if x==True:
+    if x:
         return 1
     else: 
         return 0
@@ -69,22 +69,24 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     b = nmt.NmtBin.from_lmax_linear(lmax=nside*2-1,nlb=Nlbin,is_Dell=True)
     l = b.get_effective_ells()
     l=l[:Nell]
+    
     #update keyword for load and save:
-    kwf =kw + '_fix%s'%fix
+    
+    kwf = kw+'_fix%s'%fix
     if all_ell:
         kwf = kwf + "_all_ell"
     if adaptative:
-        kwf = kwf + '_adaptive'
+        kwf = kwf+'_adaptive'
 
     #create folder for parallel    
-    if parallel:
+    if parallel == True:
         pathlib.Path('./best_fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
     DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
 
     #get frequencies:
-    ncross=len(nucross)
+    ncross = len(nucross)
     nnus = int((-1 + np.sqrt(ncross * 8 + 1)) / 2.)
     posauto = [int(nnus * i - i * (i + 1) / 2 + i) for i in range(nnus)]
     nu = nucross[posauto]
@@ -109,15 +111,24 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         #initialize parameters and chi2:
         paramiterl=np.zeros((Nell,N,nparam))
         chi2l=np.zeros((Nell,N))
+        parinfopl = []
 
-        #set initial values:   
-        parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
-        parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
-        parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
-        parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
-        parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-        parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
-        parinfopl = np.array([parinfopl for i in range(Nell)])
+        for L in range(Nell):
+            params = [{'value':0, 'fixed':0} for i in range(nparam)]  
+            params[0] = {'value': p0L[L,0], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}  # Ad
+            params[1] = {'value': p0L[L,1], 'fixed': fix, 'limited': [1, 1], 'limits': [0.5, 2]}    # betad
+            params[2] = {'value': 1 / p0L[L,2], 'fixed': fix, 'limited': [1, 1], 'limits': [1/100, 1/3]}  # 1/Td
+            params[3] = {'value': p0L[L,3], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}   # As
+            params[4] = {'value': p0L[L,4], 'fixed': fix, 'limited': [1, 1], 'limits': [-5, -2]}     # betas
+            if fixr == 1:
+                if kw == 'ds_o0':
+                    params[6] = {'value': 0, 'fixed': fixr}
+                elif kw == 'ds_o1bt':
+                    params[13] = {'value': 0, 'fixed': fixr}
+                elif kw == 'ds_o1bts':
+                    params[18] = {'value': 0, 'fixed': fixr}
+            parinfopl.append(params)
+        
         if adaptative:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
@@ -126,6 +137,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     fixmom=adaptafix(res0[list(keys)[k]][L])
                     parinfopl[L][k]= {'value':0, 'fixed':fixmom}
 
+        parinfopl = np.array(parinfopl, dtype=object)  
 
         #for parallel:
         if parallel:
@@ -133,11 +145,11 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             rank = comm.Get_rank()
             size = comm.Get_size()
             perrank = math.ceil(N/size)
-            Nmin= rank*perrank
-            Nmax= (rank+1)*perrank
+            Nmin = rank*perrank
+            Nmax = (rank+1)*perrank
         else:
-            Nmin=0
-            Nmax=N
+            Nmin = 0
+            Nmax = N
         
         #perform the fit
 
@@ -178,7 +190,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             print('unexisting keyword')
 
 
-    if all_ell==True:
+    if all_ell:
         funcfit= eval('ftl.func_'+kw+'_all_ell')
 
         #set initial values:
@@ -187,7 +199,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         [parinfopl.append({'value':p0L[i,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_s
         [parinfopl.append({'value':p0L[i,5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
         if kw=='ds_o1bt' and mompl==False:
-            if adaptafix==True:
+            if adaptafix:
                 res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
                 keys= res0.keys()
                 #TO DO: write here the update for adaptafix all ell.
@@ -221,7 +233,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         paramiter=np.zeros((N,len(parinfopl)))
         
         #for parallel:
-        if parallel==True:
+        if parallel:
             comm = MPI.COMM_WORLD
             rank = comm.Get_rank()
             size = comm.Get_size()
@@ -270,7 +282,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     #save and plot results
     
-    if parallel==True:
+    if parallel:
         np.save('best_fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
     else:
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
