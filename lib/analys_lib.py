@@ -125,7 +125,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     params[13] = {'value': 0, 'fixed': fixr}
                 elif kw == 'ds_o1bts':
                     params[18] = {'value': 0, 'fixed': fixr}
-            parinfopl.append(params)
+            parinfopl.append(np.array(params))
 
         print(parinfopl)        
         if adaptative==True:
