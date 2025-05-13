@@ -111,14 +111,23 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         chi2l=np.zeros((Nell,N))
         parinfopl = []
 
-        #set initial values:   
-        parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
-        parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
-        parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
-        parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
-        parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-        parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
-        parinfopl = np.array([parinfopl for i in range(Nell)])
+        for L in range(Nell):
+            params = [{'value':0, 'fixed':0} for i in range(nparam)]  
+            params[0] = {'value': p0L[L,0], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}  # Ad
+            params[1] = {'value': p0L[L,1], 'fixed': fix, 'limited': [1, 1], 'limits': [0.5, 2]}    # betad
+            params[2] = {'value': 1 / p0L[L,2], 'fixed': fix, 'limited': [1, 1], 'limits': [1/100, 1/3]}  # 1/Td
+            params[3] = {'value': p0L[L,3], 'fixed': 0, 'limited': [1, 0], 'limits': [0, np.inf]}   # As
+            params[4] = {'value': p0L[L,4], 'fixed': fix, 'limited': [1, 1], 'limits': [-5, -2]}     # betas
+            if fixr == 1:
+                if kw == 'ds_o0':
+                    params[6] = {'value': 0, 'fixed': fixr}
+                elif kw == 'ds_o1bt':
+                    params[13] = {'value': 0, 'fixed': fixr}
+                elif kw == 'ds_o1bts':
+                    params[18] = {'value': 0, 'fixed': fixr}
+            parinfopl.append(params)
+
+        print(parinfopl)        
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
