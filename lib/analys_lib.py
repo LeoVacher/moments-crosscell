@@ -295,7 +295,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             if fsky==1:
                 mask = np.ones(hp.nside2npix(nside))
             else:
-                mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+                mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,10))
             betabar = np.mean(results['beta_d'])
             tempbar = np.mean(results['T_d'])
             betasbar = np.mean(results['beta_s'])
