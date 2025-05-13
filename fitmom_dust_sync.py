@@ -48,13 +48,13 @@ if parallel:
 
 # Call C_ell of simulation
 
-#if synctype == None:
-#    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
-#else:
-#    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+if synctype == None:
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
+else:
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
 
-DLdc = np.array([np.load('/global/u1/l/leovchr/codes/moments-crosscell/fit-Samy/LB_d10s5_nside64_delta10_planck70apo10/%s.npy'%i) for i in range(500)])
-DLdc= DLdc[:,2]
+#DLdc = np.array([np.load('/global/u1/l/leovchr/codes/moments-crosscell/fit-Samy/LB_d10s5_nside64_delta10_planck70apo10/%s.npy'%i) for i in range(500)])
+#DLdc= DLdc[:,2]
 
 
 # Initialize binning scheme with Nlbin ells per bandpower
