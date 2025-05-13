@@ -59,7 +59,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     # intitial value for each bin of ell:
     p0L = np.zeros((Nell, nparam))
     for i in range(nparam):
-        if len(p0[i]) == 1:
+        if np.isscalar(p0[i]) or len(np.atleast_1d(p0[i])) == 1:
             p0L[:, i] = p0[i][0]  
         else:
             p0L[:, i] = p0[i] 
