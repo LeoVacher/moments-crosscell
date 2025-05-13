@@ -152,7 +152,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         for n in tqdm(range(Nmin,Nmax)):
             for L in range(Nell):
                 # first o1 fit, dust fixed, mom free, r free
-                fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit}
+                fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
                 m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                 paramiterl[L,n]= m.params
                 chi2l[L,n]=m.fnorm/m.dof            

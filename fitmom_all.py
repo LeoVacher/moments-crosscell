@@ -37,7 +37,7 @@ synctype_cov = synctype
 pivot_o0 = True
 iterate = False
 fixr=1
-all_ell_o0 = True
+all_ell_o0 = False
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
