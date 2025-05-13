@@ -37,7 +37,7 @@ synctype_cov = synctype
 pivot_o0 = True
 iterate = False
 fixr=1
-all_ell_o0 = False
+all_ell_o0 = True
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
@@ -126,6 +126,7 @@ if pivot_o0:
 
     try:
         mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
+        print('mom found')
     except:
         mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
         np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
