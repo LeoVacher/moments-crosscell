@@ -33,7 +33,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -199,6 +199,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 keys= res0.keys()
                 #TO DO: write here the update for adaptafix all ell.
             else:
+                # kept this part explicit to keep track of the different moment terms:
                 [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1b
                 [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #w1bw1b
                 [parinfopl.append({'value':0, 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #Aw1t
