@@ -21,13 +21,13 @@ Nlbin = 10
 fsky = 0.7
 dusttype = 10
 synctype = 5
-order_to_fit= ['1bt'] 
+order_to_fit= ['0'] 
 Pathload = './'
 all_ell = False #all ell or each ell independently
-fix = 1 #fix beta and T ?
+fix = 0 #fix beta and T ?
 adaptative = False
 N = 50
-plotres=True #plot and save pdf?
+plotres = True #plot and save pdf?
 parallel = False
 pivot_o0 = False
 cov_type = 'sim' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
@@ -48,10 +48,14 @@ if parallel:
 
 # Call C_ell of simulation
 
-if synctype == None:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
-else:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+#if synctype == None:
+#    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
+#else:
+#    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+
+DLdc = np.array([np.load('/global/u1/l/leovchr/codes/moments-crosscell/fit-Samy/LB_d10s5_nside64_delta10_planck70apo10/%s.npy'%i) for i in range(500)])
+DLdc= DLdc[:,2]
+
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
