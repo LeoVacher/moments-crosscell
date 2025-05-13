@@ -129,7 +129,7 @@ if pivot_o0:
     reslist = [results_ds_o0]
     leglist = ['d%ss%s_o0_fsky%s_full%s'%(dusttype,synctype,fsky,kw)]
     collist = ['darkred']
-    plotrespdf(l[:12],reslist,leglist,collist,mom_an,plot_contours=True,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
+    plotrespdf(l[:12],reslist,leglist,collist,mom_an,plot_contours=False,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
 
     
 # fit order 1 in beta and T, get results, save and plot
@@ -140,7 +140,7 @@ else:
     cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
     Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
-p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
+p0 = [100, betabar, tempbar, 10, betasbar, 1, 0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
 
 if load:
     try:
