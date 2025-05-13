@@ -56,6 +56,14 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     N,_,Nell=DL.shape
     nparam = len(p0)
 
+    # intitial value for each bin of ell:
+    p0L = np.zeros((Nell, nparams))
+    for i in range(nparams):
+        if len(p0[i]) == 1:
+            p0L[:, i] = p0[i][0]  
+        else:
+            p0L[:, i] = p0[i] 
+
     #ell array
     b = nmt.NmtBin.from_lmax_linear(lmax=nside*2-1,nlb=Nlbin,is_Dell=True)
     l = b.get_effective_ells()
@@ -102,21 +110,24 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         chi2l=np.zeros((Nell,N))
 
         #set initial values:   
-        parinfopl =  [{'value':p0[i], 'fixed':0} for i in range(nparam)] #fg params
-        parinfopl[0]= {'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
-        parinfopl[1]= {'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
-        parinfopl[2]= {'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
-        parinfopl[3]= {'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-        parinfopl[4]= {'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
-        if fixr == 1:
-            if kw == 'ds_o0':
-                parinfopl[6] = {'value': 0, 'fixed': fixr}  # r
-            elif kw == 'ds_o1bt':
-                parinfopl[13] = {'value': 0, 'fixed': fixr}  # r
-            elif kw == 'ds_o1bts':
-                parinfopl[18] = {'value': 0, 'fixed': fixr}  # r
-        
-        parinfopl = np.array([parinfopl for i in range(Nell)])
+        parinfopl =  [{'value':0, 'fixed':0} for i in range(nparam)] #fg params
+        parinfopl = np.array([parinfopl for i in range(Nell)])        
+
+        for L in range(Nell):
+            parinfopl[L,0]= {'value':p0L[L,0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #Ad
+            parinfopl[L,1]= {'value':p0L[L,1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
+            parinfopl[L,2]= {'value':1/p0L[L,2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
+            parinfopl[L,3]= {'value':p0L[L,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
+            parinfopl[L,4]= {'value':p0L[L,4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
+            if fixr == 1:
+                if kw == 'ds_o0':
+                    parinfopl[L,6] = {'value': 0, 'fixed': fixr}  # r
+                elif kw == 'ds_o1bt':
+                    parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # r
+                elif kw == 'ds_o1bts':
+                    parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r        
+            parinfopl = np.array([parinfopl for i in range(Nell)])        
+
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
@@ -182,9 +193,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
         #set initial values:
         parinfopl =  []
-        [parinfopl.append({'value':p0[0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_d
-        [parinfopl.append({'value':p0[3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_s
-        [parinfopl.append({'value':p0[5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
+        [parinfopl.append({'value':p0L[i,0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_d
+        [parinfopl.append({'value':p0L[i,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_s
+        [parinfopl.append({'value':p0L[i,5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
         if kw=='ds_o1bt' and mompl==False:
             if adaptafix==True:
                 res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()

@@ -100,7 +100,7 @@ DLdc = DLdc[:N,:,:Nell]
 betabar, tempbar, betasbar = 1.5, 20, -3
 
 if pivot_o0:
-    p0 = [100, betabar, tempbar, 10, betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+    p0 = [ abs(DLdc[0,-1]), betabar, tempbar, abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
 
     if load:
         try:
