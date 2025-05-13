@@ -51,7 +51,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param kwsave: keyword to save the results in the folder "best_fits".
     :param plotres: if true, plot and save the results in pdf format.
     :param mompl: only for allell case, fit moments as power-laws in ell.
-    :param iterate: if 1, iterate to estimate the pivot.
+    :param iterate: if True, iterate the fit of the moments to estimate the best pivot value.
     :param fixr: if 1, fix the tensor to scalar ratio (r) to zero and does not fit for it.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
@@ -125,11 +125,11 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             parinfopl[L,4]= {'value':p0L[L,4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
             if fixr == 1:
                 if kw == 'ds_o0':
-                    parinfopl[L,6] = {'value': 0, 'fixed': fixr}  # r
+                    parinfopl[L,6] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
                 elif kw == 'ds_o1bt':
-                    parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # r
+                    parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
                 elif kw == 'ds_o1bts':
-                    parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r  
+                    parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)  
         if adaptative:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
@@ -214,7 +214,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl.append({'value':p0[1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]}) #betad
         parinfopl.append({'value':1/p0[2], 'fixed':fix,'limited':[1,1],'limits':[1/100,3]}) #1/Td
         parinfopl.append({'value':p0[4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]}) #betas    
-        parinfopl.append({'value':p0[5], 'fixed':fixr}) #r 
+        parinfopl.append({'value':p0[5], 'fixed':fixr}) # tensor-to-scalar ratio (r) 
         if kw=='ds_o1bt':
             if mompl:
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(7)] #moments and power-law indices 
@@ -225,7 +225,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #moments and power-law indices 
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #power-law indices 
             else:
-                raise ValueError('Not coded yet!')
+                raise ValueError('Not implemented yet!')
 
         #initialize chi2 and best fit array:
         chi2=np.zeros(N)
@@ -294,13 +294,14 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             try:
                 mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
             except:
-                print('computing theoretical moments')
+                print('Computing theoretical expecations for the fitted quantities ...')
                 mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
                 np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
             if all_ell:
                 plot_contours=False
             else:
                 plot_contours=True
+            print('Plotting the results ...')
             plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'],mom_an,plot_contours=plot_contours,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
             if all_ell:
                 plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
