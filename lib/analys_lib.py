@@ -128,7 +128,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # r        
             parinfopl = np.array([parinfopl for i in range(Nell)])        
-        print(parinfopl)
+
         if adaptative==True:
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
@@ -226,7 +226,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 [parinfopl.append({'value':0,'fixed':0}) for i in range(10)] #power-law indices 
             else:
                 raise ValueError('Not coded yet!')
-        print(parinfopl)
 
         #initialize chi2 and best fit array:
         chi2=np.zeros(N)
