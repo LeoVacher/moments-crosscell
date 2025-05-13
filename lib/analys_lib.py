@@ -10,6 +10,7 @@ from mpi4py import MPI
 import plotlib as plib
 import pymaster as nmt 
 import pathlib
+import analytical_mom_lib as anmomlib
 
 #contains all function for moment fitting.
 
