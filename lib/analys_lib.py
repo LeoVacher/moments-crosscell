@@ -34,7 +34,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0, mask=None):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -48,7 +48,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param fix: fix or fit the spectral parameters. fix=0 fit them, fix=1 keep them fixed to the values contained in p0.
     :param all_ell: fit each multipole independently (False) or perform a single (longer) fit over all the multipole range (True).
     :param adaptive: if True use the results of a previous run to fit only the detected moments. 
-    :param kwsave: keyword to save the results in the folder "best_fits".
+    :param kwsave: keyword to save the results in the folder "best_fits". Must be of the format dasb_fsky_kw, where a and b are the dusttype and synctype and fsky is the sky fraction between 0 and 1.
     :param plotres: if true, plot and save the results in pdf format.
     :param mompl: only for allell case, fit moments as power-laws in ell.
     :param iterate: if True, iterate the fit of the moments to estimate the best pivot value.
@@ -287,7 +287,13 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
         
         if plotres:
-            dusttype,synctype = kwsave[1], kwsave[3]
+            # mask (used to compute theoretical expectations)
+            dusttype,synctype,fsky = tuple(int(n) if '.' not in n else float(n) for n in re.findall(r'\d+(?:\.\d+)?', kwsave))
+            print("dusttype=%s,synctype=%s,fsky=%s"%(dusttype,synctype,fsky))
+            if fsky==1:
+                mask = np.ones(hp.nside2npix(nside))
+            else:
+                mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
             betabar = np.mean(results['beta_d'])
             tempbar = np.mean(results['T_d'])
             betasbar = np.mean(results['beta_s'])
