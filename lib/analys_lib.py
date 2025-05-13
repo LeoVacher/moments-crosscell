@@ -286,15 +286,15 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         np.save('./best_fits/results_%s_%s.npy'%(kwsave,kwf),results)
         
         if plotres:
-                betabar = np.mean(results_o0['beta_d'])
-                tempbar = np.mean(results_o0['T_d'])
-                betasbar = np.mean(results_o0['beta_s'])
-                try:
-                    mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
-                except:
-                    print('computing theoretical moments')
-                    mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
-                    np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
+            betabar = np.mean(results_o0['beta_d'])
+            tempbar = np.mean(results_o0['T_d'])
+            betasbar = np.mean(results_o0['beta_s'])
+            try:
+                mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar), allow_pickle=True).item()
+            except:
+                print('computing theoretical moments')
+                mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
+                np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, betabar, tempbar, betasbar,nu0d,nu0s), mom_an)
             if all_ell:
                 plot_contours=False
             else:
