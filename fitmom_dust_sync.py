@@ -12,6 +12,7 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 import covlib as cvl 
+import analytical_mom_lib as anmomlib
 
 r=0.
 nside = 64
@@ -131,4 +132,5 @@ if '1bt' in order_to_fit:
 if '1bts' in order_to_fit:
     p0 = [100, betabar, tempbar, 10, betasbar,1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
     results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s)
+
 
