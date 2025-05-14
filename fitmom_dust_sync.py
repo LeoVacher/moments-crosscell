@@ -17,14 +17,14 @@ nside = 64
 lmax = nside*3-1
 scale = 10 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
-fsky = 0.8 #sky fraction of the raw mask
-dusttype = 1 #index of Pysm's dust model
-synctype = 1 #index of Pysm's synchrotron model
+fsky = 0.7 #sky fraction of the raw mask
+dusttype = 10 #index of Pysm's dust model
+synctype = 5 #index of Pysm's synchrotron model
 order_to_fit= ['0'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './'
-all_ell = True #all ell or each ell independently (True/False)
+all_ell = False #all ell or each ell independently (True/False)
 fix = 0 #fix beta and T (0:fit, 1:fix)?
-fixr= 0 #fix r (0:fit, 1:fix)?
+fixr= 1 #fix r (0:fit, 1:fix)?
 adaptative = False #iterate to obtain ideal ell-dependent pivots (True/False)
 N = 500 #number of simulations
 plotres = True #plot and save pdf?
@@ -56,10 +56,6 @@ if synctype == None:
     DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
 else:
     DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
-
-#DLdc = np.array([np.load('/global/u1/l/leovchr/codes/moments-crosscell/fit-Samy/LB_d10s5_nside64_delta10_planck70apo10/%s.npy'%i) for i in range(500)])
-#DLdc= DLdc[:,2]
-
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
