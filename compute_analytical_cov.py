@@ -33,7 +33,7 @@ kw=''
 use_nmt=True
 mode_cov='BB'
 
-b = nmt.bins.NmtBin(nside=nside,lmax=lmax,nlb=Nlbin,is_Dell=True)
+b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell = len(leff)
 instr_name='litebird_full'
