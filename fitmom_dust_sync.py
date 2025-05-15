@@ -19,7 +19,7 @@ scale = 10 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
 dusttype = 10 #index of Pysm's dust model
-synctype = 5 #index of Pysm's synchrotron model
+synctype = 4 #index of Pysm's synchrotron model
 order_to_fit= ['1bt'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './'
 all_ell = False #all ell or each ell independently (True/False)
@@ -105,7 +105,16 @@ else:
 DLdc = DLdc[:N,:,:Nell]
 
 if pivot_o0:
-    o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+    try:
+        o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+    except:
+        if cov_type == 'sim':
+            Linvdc0 = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
+        else:
+            cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_all_ell.npy"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov))
+            Linvdc0 = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
+        p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
+        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
     betabar = np.mean(o0['beta_d'])
     tempbar = np.mean(o0['T_d'])
     betasbar = np.mean(o0['beta_s'])
