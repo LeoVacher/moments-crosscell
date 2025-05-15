@@ -2,7 +2,6 @@ from astropy import constants as const
 import numpy as np
 import healpy as hp
 import pysm3.units as u
-import sympy as sp
 import sympy as sym
 import scipy.constants as constants
 from astropy.cosmology import Planck18 as cosmo
@@ -317,12 +316,12 @@ def symbolic_derivative_mbb(order, var):
     Returns:
         sympy expression : Dérivée symbolique normalisée du MBB.
     """
-    nu, T, beta, nu0 = sp.symbols('nu T beta nu0', real=True, positive=True)
-    h, c, k = sp.symbols('h c k', real=True, positive=True)
+    nu, T, beta, nu0 = sym.symbols('nu T beta nu0', real=True, positive=True)
+    h, c, k = sym.symbols('h c k', real=True, positive=True)
     x = h * nu / (k * T)  
     x0 = h * nu0 / (k * T)  
-    Bnu = (2 * h * nu**3 / c**2) / (sp.exp(x) - 1)
-    Bnu0 = (2 * h * nu0**3 / c**2) / (sp.exp(x0) - 1)
+    Bnu = (2 * h * nu**3 / c**2) / (sym.exp(x) - 1)
+    Bnu0 = (2 * h * nu0**3 / c**2) / (sym.exp(x0) - 1)
 
     if var in ['T', '1/T']:
         I_nu = Bnu / Bnu0
@@ -333,13 +332,13 @@ def symbolic_derivative_mbb(order, var):
 
     if var == 'T':
         variable = T
-        derivative = sp.diff(I_nu, variable, order)
+        derivative = sym.diff(I_nu, variable, order)
     elif var == '1/T':
-        y = sp.symbols('y', real=True, positive=True)  
+        y = sym.symbols('y', real=True, positive=True)  
         I_nu_y = I_nu.subs(T, 1 / y)  
-        derivative = sp.diff(I_nu_y, y, order).subs(y, 1 / T)  
+        derivative = sym.diff(I_nu_y, y, order).subs(y, 1 / T)  
     elif var == 'beta':
         variable = beta
-        derivative = sp.diff(I_nu, variable, order)
-    return sp.simplify(derivative / I_nu)
+        derivative = sym.diff(I_nu, variable, order)
+    return sym.simplify(derivative / I_nu)
     

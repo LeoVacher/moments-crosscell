@@ -92,8 +92,8 @@ Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
 CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
-DL_lens_EE = CLcmb_or[1,:nside*3-1]
-DL_lens_BB = CLcmb_or[2,:nside*3-1]
+DL_lens_EE = CLcmb_or[1,:nside*3]
+DL_lens_BB = CLcmb_or[2,:nside*3]
 
 coupled_cmb = wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
 DL_cmb_EE = np.array([ coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
