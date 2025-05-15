@@ -71,7 +71,7 @@ wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
 wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 ell_unbined= np.arange(3*nside)
 
-DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='all')
+DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,mask=mask,b=b_unbined,coupled=True,mode='all')
 DL_fg_EE = DLcross_fg[0]
 DL_fg_BB = DLcross_fg[3]
   

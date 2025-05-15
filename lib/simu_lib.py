@@ -54,12 +54,13 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
     wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=False, purify_b=True,lmax=b.lmax), b)
     return wsp
 
-def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,b,coupled=False,mode='BB'):
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,b,coupled=False,mode='BB'):
     """
     Compute the cross-spectra
     """
     N_freqs=len(map_HM1)
     Ncross=int(N_freqs*(N_freqs+1)/2)
+    Nell = len(b.get_effective_ells())
     sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
     sp = sp_dict.get(mode, None)
     if sp!=None:
@@ -85,7 +86,7 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,Nell,mask,b,coupled=False,m
                 if i==j :
                     CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled))
                 z = z +1
-        return CLcross
+    return CLcross
 
 def compute_cross_simple(mapd1,mapd2,mask,b):
     nside = len(mask)
