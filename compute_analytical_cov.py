@@ -66,7 +66,7 @@ mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB
 mapfg=mapfg[:,1:]
 
 #get fg spectra
-b_unbined=  nmt.bins.NmtBin(nside=nside,lmax=nside*3-1,nlb=1,is_Dell=True)
+b_unbined=  nmt.NmtBin.from_lmax_linear(nside=nside,lmax=nside*3-1,nlb=1,is_Dell=True)
 wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
 wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 ell_unbined= np.arange(3*nside)
