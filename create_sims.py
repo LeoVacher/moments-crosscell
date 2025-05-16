@@ -30,6 +30,10 @@ dusttype = 10
 syncrotype = 4
 kw = ''
 load=False
+masking_strat='GWD'
+
+if masking_strat=='GWD':
+    kw = kw + '_maskGWD'
 
 # instr param
 
@@ -43,13 +47,6 @@ sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell = len(leff)
-
-#mask
-
-if fsky==1:
-    mask=np.ones(Npix)
-else:
-    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 #call foreground sky
 
@@ -68,6 +65,22 @@ else:
 # call cmb
 
 CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+
+
+#mask
+
+if masking_strat=='maskGWD':
+    mask = masks_WGD(abs(mapfg[-1,1]+1j*mapfg[-1,2]), 
+          per_cent_to_keep = fsky*100, 
+          smooth_mask_deg = 2, 
+          apo_mask_deg = 2, 
+          verbose=False)
+else:
+    if fsky==1:
+        mask=np.ones(Npix)
+    else:
+        mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+
 
 #Initialise workspace:
 

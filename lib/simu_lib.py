@@ -95,3 +95,29 @@ def compute_cross_simple(mapd1,mapd2,mask,b):
     wsp = nmt.NmtWorkspace()
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 
+
+def masks_WGD(map_for_dust_mask, 
+          per_cent_to_keep = 85, 
+          smooth_mask_deg = 2, 
+          apo_mask_deg = 2, 
+          verbose=True):
+    #Gilles W.D. code for mask
+    # smooth it 2°
+    P_dust_smoothed = hp.smoothing(map_for_dust_mask, fwhm=np.radians(smooth_mask_deg)) ; del map_for_dust_mask
+    # tu peux aussi smooth Q & U puis construire P mais bon ca change pas grand chose
+    if verbose : print('P map 2° smoothed') ; hp.mollview(P_dust_smoothed, unit='mK', norm='hist') ; plt.show()
+
+    # 15% most important binary masked 
+    N = int((1-per_cent_to_keep/100)*len(P_dust_smoothed))
+    mask_raw = np.array(len(P_dust_smoothed)*[1])
+    for i in np.argsort(np.abs(P_dust_smoothed))[-N:]:
+        mask_raw[i] = 0
+    if verbose : print(str(per_cent_to_keep)+'% binary mask') ; hp.mollview(mask_raw, unit='mK', norm='hist') ; plt.show()
+
+    # Apodize the binary mask by a 2° gaussian smoothing
+    apo_mask = hp.smoothing(mask_raw, fwhm=np.radians(apo_mask_deg))
+    if verbose : print('2° gauss apo mask') ; hp.mollview(apo_mask, unit='mK', norm='hist') ; plt.show()
+    apo_mask[apo_mask>1]=1
+    apo_mask[apo_mask<0]=0
+    
+    return apo_mask
