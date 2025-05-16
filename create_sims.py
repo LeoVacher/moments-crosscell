@@ -73,7 +73,7 @@ if masking_strat=='maskGWD':
     mask = masks_WGD(abs(mapfg[-1,1]+1j*mapfg[-1,2]), 
           per_cent_to_keep = fsky*100, 
           smooth_mask_deg = 2, 
-          apo_mask_deg = 2, 
+          apo_mask_deg = scale, 
           verbose=False)
 else:
     if fsky==1:
