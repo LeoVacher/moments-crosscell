@@ -32,6 +32,7 @@ parallel = False #parallelize?
 pivot_o0 = False #use the best fit of order 0?
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
+kws='' #keyword for the simulations?
 dusttype_cov = dusttype
 synctype_cov = synctype
 iterate = True 
@@ -53,9 +54,9 @@ if parallel:
 # Call C_ell of simulation
 
 if synctype == None:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype))
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype)+kws)
 else:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws)
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
