@@ -115,7 +115,7 @@ for k in tqdm(range(kini,N)):
     maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
     maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
 
-    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,Nell,mask,b,coupled=False,mode='BB')
+    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB')
 
     if syncrotype==None and dusttype==None:
         if r == 0:
