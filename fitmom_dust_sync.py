@@ -39,7 +39,7 @@ iterate = True
 nu0d = 402.
 nu0s = 40.
 
-kw = += kws
+kw += kws
 if cov_type != 'sim':
     kw += '_%s'%cov_type
 if iterate == True :
