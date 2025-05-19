@@ -18,8 +18,8 @@ lmax = nside*3-1
 scale = 10 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
-dusttype = 10 #index of Pysm's dust model
-synctype = 4 #index of Pysm's synchrotron model
+dusttype = 1 #index of Pysm's dust model
+synctype = 1 #index of Pysm's synchrotron model
 order_to_fit= ['1bt'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './'
 all_ell = False #all ell or each ell independently (True/False)
@@ -54,9 +54,9 @@ if parallel:
 # Call C_ell of simulation
 
 if synctype == None:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy"%(nside,fsky,scale,Nlbin,dusttype)+kws)
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws+'.npy')
 else:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws)
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws+'.npy')
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
