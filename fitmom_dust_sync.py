@@ -30,12 +30,12 @@ N = 500 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
 pivot_o0 = False #use the best fit of order 0?
+iterate = True 
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
 kws='_maskGWD' #keyword for the simulations?
 dusttype_cov = dusttype
 synctype_cov = synctype
-iterate = True 
 nu0d = 402.
 nu0s = 40.
 
