@@ -32,16 +32,16 @@ parallel = False #parallelize?
 pivot_o0 = False #use the best fit of order 0?
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
-kws='' #keyword for the simulations?
+kws='_GWD' #keyword for the simulations?
 dusttype_cov = dusttype
 synctype_cov = synctype
 iterate = True 
 nu0d = 402.
 nu0s = 40.
 
+kw = += kws
 if cov_type != 'sim':
     kw += '_%s'%cov_type
-
 if iterate == True :
     kw+= '_iterate'
 if fixr==1:
