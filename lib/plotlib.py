@@ -93,7 +93,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     for ell in range(Nmin,Nmax):
         y1_cond , bins_cond = np.histogram(rl[ell,:],K_r)
         x1_cond = [.5*(b1+b2) for b1,b2 in zip(bins_cond[:-1],bins_cond[1:])] # Milieu du bin
-        ysum_cond = scipy.integrate.simps(y1_cond,x1_cond)
+        ysum_cond = scipy.integrate.simpson(y1_cond,x1_cond)
         coeffunit = y1_cond[np.argmax(y1_cond)]/ysum_cond
 
         pl0=[np.mean(y1_cond),np.std(y1_cond)]
@@ -123,7 +123,7 @@ def plotr_gaussproduct(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,q
     gausstot = 1
     for i in range(Nmax-Nmin):
         gausstot = gausstot*func.Gaussian(x,moy[i],sig[i])
-    Norm = scipy.integrate.simps(gausstot,x)
+    Norm = scipy.integrate.simpson(gausstot,x)
     coeffunit = gausstot[np.argmax(gausstot)]/Norm
     pl0=[np.mean(gausstot/Norm/coeffunit),np.std(gausstot/Norm/coeffunit)]
     parinfopl = [{'value':pl0[0], 'fixed':0},{'value':pl0[1],'fixed':0}]
