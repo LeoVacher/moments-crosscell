@@ -48,7 +48,7 @@ def compute_master(f_a, f_b, wsp):
 Pr = "/global/homes/l/leovchr/"
 Pathsave=Pr+ '/codes/moments-crosscell/power_spectra/'
 
-load=True
+load=True #True if you want to load already computed spectra and continue the computation from there, False if you want to start from scratch
 nside = 64
 Npix = hp.nside2npix(nside)
 N=249
@@ -56,7 +56,7 @@ lmax = 2*nside-1
 scale = 10
 Nlbin = 10
 fsky = 0.8
-complexity='medium_complexity'   #should be 'baseline', 'high_complexity' or 'medium_complexity'
+complexity='medium_complexity' #should be 'baseline', 'high_complexity' or 'medium_complexity'
 kw=''
 r=0
 

@@ -47,31 +47,38 @@ b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = len(l)
 
+#loads the results:
 res1 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_fixr_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res4 = np.load('best_fits/results_d%ss%s_%s_signal_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 
+#labels and legend for the results
 legs1 = 'd%ss%s_fsky%s_full'%(dusttype,synctype,fsky)
 legs2 = 'fixr'
 legs3 = 'Knox+fg'
 legs4 = 'signal'
 
+#colors for the results
 c1 = 'darkblue'
 c2 = 'darkorange'
 c3 = 'forestgreen'
 c4 = 'darkred'
 
+#Which pivots for the moments?
 betabar = np.mean(res1['beta_d'])
 tempbar = np.mean(res1['T_d'])
 betasbar= np.mean(res1['beta_s'])
 
+#load analytical moments:
 try:
     mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), allow_pickle=True).item()
 except:
     print('Computing theoretical expecations for the fitted quantities ...')
     mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
     np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
+
+#plot:
 
 reslist = [globals()[f"res{i}"] for i in range(1, nres + 1)]
 leglist = [globals()[f"legs{i}"] for i in range(1, nres + 1)]

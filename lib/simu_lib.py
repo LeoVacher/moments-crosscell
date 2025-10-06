@@ -96,7 +96,7 @@ def compute_cross_simple(mapd1,mapd2,mask,b):
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 
 
-def masks_WGD(map_for_dust_mask, 
+def masks_GWD(map_for_dust_mask, 
           per_cent_to_keep = 85, 
           smooth_mask_deg = 2, 
           apo_mask_deg = 2, 

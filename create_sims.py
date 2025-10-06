@@ -101,10 +101,11 @@ else:
 for k in tqdm(range(kini,N)):
     noisemaps = np.zeros((3,N_freqs,2,Npix))
 
+    #create three random noises corresponding to full mission and the two half-missions
     for p in range(3):
         for i in range(N_freqs):
-            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix)
-            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix)
+            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix) #Q
+            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix) #U
     
     mapcmb0 = hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
@@ -117,6 +118,7 @@ for k in tqdm(range(kini,N)):
 
     CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB')
 
+    #save:
     if syncrotype==None and dusttype==None:
         if r == 0:
             np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kw,CLcross)
