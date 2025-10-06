@@ -41,11 +41,11 @@ def getr_analytical(results,Nmin=0,Nmax=20):
     :Nmax: maximal bin of ell in which to fit the Gaussians
     """
     rl = results['r'][Nmin:Nmax]
-    sig=np.std(rl,axis=1)
-    mean=np.mean(rl,axis=1)
-    rstd= np.sqrt(1/(np.sum(1/sig**2)))
-    rmean = np.sqrt(np.sum(mean**2/sig**2))*rstd
-    return rmean,rstd
+    sig = np.std(rl, axis=1)
+    mean = np.mean(rl, axis=1)
+    rstd = 1 / np.sqrt(np.sum(1 / sig**2))
+    rmean = np.sum(mean / sig**2) * rstd**2
+    return rmean, rstd
 
 def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
     """
@@ -267,7 +267,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     fig, ax = plt.subplots(figsize=(10, 7))  
     for i, resi in enumerate(res):
         if 'r' in resi and resi['r'].ndim != 1:
-            plotr_gaussproduct(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
+            plotr_gaussproduct_analytical(resi, color=colors[i], show=False, Nmax=len(l))
     pdf.savefig()
     plt.close()
 
