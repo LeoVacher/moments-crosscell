@@ -253,9 +253,9 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
     Ncross, Nbins = Cls_cmb.shape
     delta_l = int(lmax / Nbins)
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    doublets=band_doublet(Nfreqs)
-
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
+    doublets = band_doublet(Nfreqs)
+    
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     leff = b.get_effective_ells()
     
     nu_l = (2*leff+1) * delta_l * np.mean(mask**2)**2 / np.mean(mask**4)
@@ -368,8 +368,9 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
     Ncross, Nbins = Cls.shape
     delta_l = int(lmax / Nbins)
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    doublets=band_doublet(Nfreqs)
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
+    doublets = band_doublet(Nfreqs)
+    
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l)
     leff = b.get_effective_ells()
     
     nu_l = (2*leff+1) * delta_l * np.mean(mask**2)**2 / np.mean(mask**4)
@@ -383,7 +384,7 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
         for crossCD in range(crossAB, Ncross):
             A, B = doublets[crossAB]
             C, D = doublets[crossCD]
-        
+            
             crossAC = cross_index(A, C, Nfreqs)
             crossBD = cross_index(B, D, Nfreqs)
             crossAD = cross_index(A, D, Nfreqs)
@@ -405,7 +406,7 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
         
     return covmat
 
-def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=True, output='all', progress=False):
+def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output='all', progress=False):
     """
     Compute analytical covariance matrix using NaMaster fonctions from theoretical power spectra and noise model.
     Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
@@ -414,24 +415,22 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
     ----------
     mask : np.array
         Mask used for computing the power spectra.
-    Cls_cmb_EE : np.array
-        CMB EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Cls_cmb_BB : np.array
-        CMB BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Cls_fg_EE : np.array
-        Foregrounds EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Cls_fg_BB : np.array
-        Foregrounds BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Nls_EE : np.array
-        Noise EE power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Nls_BB : np.array
-        Noise BB power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    w : nmt.NmtWorkspace
-        Workspace used for computing the power spectra.
+    Cls_cmb : list
+        CMB power spectra. Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra.
+    Cls_fg : list
+        Foregrounds power spectra. Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra.
+    Nls : list
+        Noise power spectra. Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra.
+    w : list
+        List of nmt.NmtWorkspace used for computing TT, EE and BB power spectra.
     corfg : bool, optional
         If True, correct for the cosmic variance of foregrounds. Default: True.
     output : string, optional
-        If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
+        If 'TT', return covariance matrix for temperature.
+        If 'EE', return covariance matrix for E-modes.
+        If 'BB', return covariance matrix for B-modes.
+        If 'all', return covariance matrices of TT, EE, BB spectra.
+        Default: 'all'.
     progress : bool, optional
         If True, display a progress bar while computing the covariance matrix. Default: False.
 
@@ -440,21 +439,22 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
     np.array
         Computed covariance matrix.
 
-    """
-    Ncross = Cls_cmb_EE.shape[0]
+    """    
+    Ncross = Cls_cmb[0].shape[0]
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    Nbins = w.wsp.bin.n_bands
-    doublets=band_doublet(Nfreqs)
+    Nbins = w[0].wsp.bin.n_bands
+    doublets = band_doublet(Nfreqs)
     
-    f = nmt.NmtField(mask, None, spin=2)
-    cw = nmt.NmtCovarianceWorkspace()
-    cw.compute_coupling_coefficients(f, f)
-    lmax = cw.wsp.lmax
+    f0 = nmt.NmtField(mask, None, spin=0)
+    cw0 = nmt.NmtCovarianceWorkspace()
+    cw0.compute_coupling_coefficients(f0, f0)
+    lmax = cw0.wsp.lmax
     
-    if output == 'all':
-        covmat = np.zeros((4*Nbins*Ncross, 4*Nbins*Ncross))
-    else:
-        covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
+    f2 = nmt.NmtField(mask, None, spin=2)
+    cw2 = nmt.NmtCovarianceWorkspace()
+    cw2.compute_coupling_coefficients(f2, f2)
+    
+    covmat = np.zeros((3, Nbins*Ncross, Nbins*Ncross))
     
     if progress:
         pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
@@ -474,26 +474,36 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
             
             if A == C and B == D:
                 if A == B:
-                    EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + 2*Nls_EE[crossAC]
-                    EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-                    EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-                    EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + 2*Nls_EE[crossBD]
+                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + 2*Nls[0][crossAC]
+                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
+                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
+                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD] + 2*Nls[0][crossBD]
                     
-                    BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + 2*Nls_BB[crossAC]
-                    BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-                    BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-                    BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + 2*Nls_BB[crossBD]
+                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + 2*Nls[1][crossAC]
+                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
+                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
+                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD] + 2*Nls[1][crossBD]
+                    
+                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + 2*Nls[2][crossAC]
+                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
+                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
+                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD] + 2*Nls[2][crossBD]
                     
                 else:
-                    EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
-                    EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-                    EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-                    EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD] + Nls_EE[crossBD]
+                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + Nls[0][crossAC]
+                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
+                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
+                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD] + Nls[0][crossBD]
                     
-                    BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
-                    BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-                    BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-                    BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD] + Nls_BB[crossBD]
+                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + Nls[1][crossAC]
+                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
+                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
+                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD] + Nls[1][crossBD]
+                    
+                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + Nls[2][crossAC]
+                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
+                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
+                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD] + Nls[2][crossBD]
                     
             elif max(counter.values()) == 2 and A != B and C != D:
                 rep_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 2)][0]
@@ -516,89 +526,125 @@ def cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls
                 crossAD = cross_index(A, D, Nfreqs)
                 crossBC = cross_index(B, C, Nfreqs)
                 
-                EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC] + Nls_EE[crossAC]
-                EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-                EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-                EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+                TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + Nls[0][crossAC]
+                TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
+                TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
+                TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD]
                 
-                BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC] + Nls_BB[crossAC]
-                BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-                BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-                BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+                EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + Nls[1][crossAC]
+                EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
+                EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
+                EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD]
+                
+                BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + Nls[2][crossAC]
+                BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
+                BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
+                BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD]
                 
             else:
-                EE_a1b1 = Cls_cmb_EE[crossAC] + Cls_fg_EE[crossAC]
-                EE_a1b2 = Cls_cmb_EE[crossAD] + Cls_fg_EE[crossAD]
-                EE_a2b1 = Cls_cmb_EE[crossBC] + Cls_fg_EE[crossBC]
-                EE_a2b2 = Cls_cmb_EE[crossBD] + Cls_fg_EE[crossBD]
+                TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC]
+                TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
+                TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
+                TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD]
                 
-                BB_a1b1 = Cls_cmb_BB[crossAC] + Cls_fg_BB[crossAC]
-                BB_a1b2 = Cls_cmb_BB[crossAD] + Cls_fg_BB[crossAD]
-                BB_a2b1 = Cls_cmb_BB[crossBC] + Cls_fg_BB[crossBC]
-                BB_a2b2 = Cls_cmb_BB[crossBD] + Cls_fg_BB[crossBD]
+                EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC]
+                EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
+                EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
+                EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD]
                 
-            Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-            Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-            Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-            Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+                BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC]
+                BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
+                BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
+                BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD]
+                
+            Cl0_a1b1 = [TT_a1b1]
+            Cl0_a1b2 = [TT_a1b2]
+            Cl0_a2b1 = [TT_a2b1]
+            Cl0_a2b2 = [TT_a2b2]
+                
+            Cl2_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+            Cl2_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+            Cl2_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+            Cl2_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
             
-            cov = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+            if output in ['TT', 'all']:
+                covT = nmt.gaussian_covariance(cw0, 0, 0, 0, 0, Cl0_a1b1, Cl0_a1b2, Cl0_a2b1, Cl0_a2b2, w[0]).reshape([Nbins, 1, Nbins, 1])
+            if output in ['EE', 'all']:
+                covE = nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[1]).reshape([Nbins, 4, Nbins, 4])
+            if output in ['BB', 'all']:
+                covB = nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[2]).reshape([Nbins, 4, Nbins, 4])
             
             if corfg:
-                EE_a1b1 = Cls_fg_EE[crossAC]
-                EE_a1b2 = Cls_fg_EE[crossAD]
-                EE_a2b1 = Cls_fg_EE[crossBC]
-                EE_a2b2 = Cls_fg_EE[crossBD]
+                TT_a1b1 = Cls_fg[0][crossAC]
+                TT_a1b2 = Cls_fg[0][crossAD]
+                TT_a2b1 = Cls_fg[0][crossBC]
+                TT_a2b2 = Cls_fg[0][crossBD]
                 
-                BB_a1b1 = Cls_fg_BB[crossAC]
-                BB_a1b2 = Cls_fg_BB[crossAD]
-                BB_a2b1 = Cls_fg_BB[crossBC]
-                BB_a2b2 = Cls_fg_BB[crossBD]
+                EE_a1b1 = Cls_fg[1][crossAC]
+                EE_a1b2 = Cls_fg[1][crossAD]
+                EE_a2b1 = Cls_fg[1][crossBC]
+                EE_a2b2 = Cls_fg[1][crossBD]
                 
-                Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-                Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-                Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-                Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+                BB_a1b1 = Cls_fg[2][crossAC]
+                BB_a1b2 = Cls_fg[2][crossAD]
+                BB_a2b1 = Cls_fg[2][crossBC]
+                BB_a2b2 = Cls_fg[2][crossBD]
                 
-                cov -= nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
+                Cl0_a1b1 = [TT_a1b1]
+                Cl0_a1b2 = [TT_a1b2]
+                Cl0_a2b1 = [TT_a2b1]
+                Cl0_a2b2 = [TT_a2b2]
+                    
+                Cl2_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+                Cl2_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+                Cl2_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+                Cl2_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+                
+                if output in ['TT', 'all']:
+                    covT -= nmt.gaussian_covariance(cw0, 0, 0, 0, 0, Cl0_a1b1, Cl0_a1b2, Cl0_a2b1, Cl0_a2b2, w[0]).reshape([Nbins, 1, Nbins, 1])
+                if output in ['EE', 'all']:
+                    covE -= nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[1]).reshape([Nbins, 4, Nbins, 4])
+                if output in ['BB', 'all']:
+                    covB -= nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[2]).reshape([Nbins, 4, Nbins, 4])
             
-            cov = cov.reshape([Nbins, 4, Nbins, 4])
-            
-            if output == 'EE':
-                for i in range(Nbins):
-                    for j in range(Nbins):
-                        covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 0, j, 0]
+            for i in range(Nbins):
+                for j in range(Nbins):
+                    if output in ['TT', 'all']:
+                        covmat[0, i*Ncross + crossAB, j*Ncross + crossCD] = covT[i, 0, j, 0]
                         
                         if crossAB != crossCD:
-                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 0, j, 0]
-            
-            elif output == 'BB':
-                for i in range(Nbins):
-                    for j in range(Nbins):
-                        covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 3, j, 3]
+                            covmat[0, i*Ncross + crossCD, j*Ncross + crossAB] = covT[i, 0, j, 0]
+                        
+                    if output in ['EE', 'all']:
+                        covmat[1, i*Ncross + crossAB, j*Ncross + crossCD] = covE[i, 0, j, 0]
                         
                         if crossAB != crossCD:
-                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 3, j, 3]
-            
-            else:
-                for WX in range(4):
-                    for YZ in range(4):
-                        for i in range(Nbins):
-                            for j in range(Nbins):
-                                covmat[(WX*Nbins + i) * Ncross + crossAB, (YZ*Nbins + j) * Ncross + crossCD] = cov[i, WX, j, YZ]
-                                
-                                if crossAB != crossCD:
-                                    covmat[(WX*Nbins + i) * Ncross + crossCD, (YZ*Nbins + j) * Ncross + crossAB] = cov[i, WX, j, YZ]
+                            covmat[1, i*Ncross + crossCD, j*Ncross + crossAB] = covE[i, 0, j, 0]
+                        
+                    if output in ['BB', 'all']:
+                        covmat[2, i*Ncross + crossAB, j*Ncross + crossCD] = covB[i, 3, j, 3]
+                        
+                        if crossAB != crossCD:
+                            covmat[2, i*Ncross + crossCD, j*Ncross + crossAB] = covB[i, 3, j, 3]
                     
             if progress:
                 pbar.update(1)
                 
     if progress:
         pbar.close()
+    
+    if output == 'TT':
+        return covmat[0]
+        
+    elif output == 'EE':
+        return covmat[1]
+    
+    elif output == 'BB':
+        return covmat[2]
         
     return covmat
 
-def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progress=False):
+def cov_NaMaster_signal(mask, Cls, w, corfg=True, output='all', progress=False):
     """
     Compute analytical covariance matrix using NaMaster fonctions directly from signal.
     Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
@@ -607,16 +653,18 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
     ----------
     mask : np.array
         Mask used for computing the power spectra.
-    Cls_EE : np.array
-        EE cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    Cls_BB : np.array
-        BB cross-power spectra. Must be of dimension (Ncross, 3*NSIDE).
-    w : nmt.NmtWorkspace
-        Workspace used for computing the power spectra.
+    Cls : list
+        Signal cross-power spectra. Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra.
+        w : list
+            List of nmt.NmtWorkspace used for computing TT, EE and BB power spectra.
     corfg : bool, optional
         If True, correct for the cosmic variance of foregrounds. Default: True.
     output : string, optional
-        If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. Default: 'all'.
+        If 'TT', return covariance matrix for temperature.
+        If 'EE', return covariance matrix for E-modes.
+        If 'BB', return covariance matrix for B-modes.
+        If 'all', return covariance matrices of TT, EE, BB spectra.
+        Default: 'all'.
     progress : bool, optional
         If True, display a progress bar while computing the covariance matrix. Default: False.
 
@@ -626,20 +674,21 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
         Computed covariance matrix.
 
     """
-    Ncross = Cls_EE.shape[0]
+    Ncross = Cls[0].shape[0]
     Nfreqs = int((np.sqrt(1 + 8*Ncross) - 1) / 2)
-    Nbins = w.wsp.bin.n_bands
-    doublets=band_doublet(Nfreqs)
-
-    f = nmt.NmtField(mask, None, spin=2)
-    cw = nmt.NmtCovarianceWorkspace()
-    cw.compute_coupling_coefficients(f, f)
-    lmax = cw.wsp.lmax
+    Nbins = w[0].wsp.bin.n_bands
+    doublets = band_doublet(Nfreqs)
     
-    if output == 'all':
-        covmat = np.zeros((4*Nbins*Ncross, 4*Nbins*Ncross))
-    else:
-        covmat = np.zeros((Nbins*Ncross, Nbins*Ncross))
+    f0 = nmt.NmtField(mask, None, spin=0)
+    cw0 = nmt.NmtCovarianceWorkspace()
+    cw0.compute_coupling_coefficients(f0, f0)
+    lmax = cw0.wsp.lmax
+    
+    f2 = nmt.NmtField(mask, None, spin=2)
+    cw2 = nmt.NmtCovarianceWorkspace()
+    cw2.compute_coupling_coefficients(f2, f2)
+    
+    covmat = np.zeros((3, Nbins*Ncross, Nbins*Ncross))
     
     if progress:
         pbar = tqdm(desc='Estimating covariance matrix', total=int(Ncross*(Ncross+1)/2))
@@ -654,49 +703,57 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
             crossAD = cross_index(A, D, Nfreqs)
             crossBC = cross_index(B, C, Nfreqs)
             
-            EE_a1b1 = Cls_EE[crossAC]
-            EE_a1b2 = Cls_EE[crossAD]
-            EE_a2b1 = Cls_EE[crossBC]
-            EE_a2b2 = Cls_EE[crossBD]
+            TT_a1b1 = Cls[0][crossAC]
+            TT_a1b2 = Cls[0][crossAD]
+            TT_a2b1 = Cls[0][crossBC]
+            TT_a2b2 = Cls[0][crossBD]
             
-            BB_a1b1 = Cls_BB[crossAC]
-            BB_a1b2 = Cls_BB[crossAD]
-            BB_a2b1 = Cls_BB[crossBC]
-            BB_a2b2 = Cls_BB[crossBD]
+            EE_a1b1 = Cls[1][crossAC]
+            EE_a1b2 = Cls[1][crossAD]
+            EE_a2b1 = Cls[1][crossBC]
+            EE_a2b2 = Cls[1][crossBD]
             
-            Cl_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
-            Cl_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
-            Cl_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
-            Cl_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+            BB_a1b1 = Cls[2][crossAC]
+            BB_a1b2 = Cls[2][crossAD]
+            BB_a2b1 = Cls[2][crossBC]
+            BB_a2b2 = Cls[2][crossBD]
             
-            cov = nmt.gaussian_covariance(cw, 2, 2, 2, 2, Cl_a1b1, Cl_a1b2, Cl_a2b1, Cl_a2b2, w)
-            cov = cov.reshape([Nbins, 4, Nbins, 4])
+            Cl0_a1b1 = [TT_a1b1]
+            Cl0_a1b2 = [TT_a1b2]
+            Cl0_a2b1 = [TT_a2b1]
+            Cl0_a2b2 = [TT_a2b2]
             
-            if output == 'EE':
-                for i in range(Nbins):
-                    for j in range(Nbins):
-                        covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 0, j, 0]
+            Cl2_a1b1 = [EE_a1b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b1]
+            Cl2_a1b2 = [EE_a1b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a1b2]
+            Cl2_a2b1 = [EE_a2b1, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b1]
+            Cl2_a2b2 = [EE_a2b2, np.zeros(lmax+1), np.zeros(lmax+1), BB_a2b2]
+            
+            if output in ['TT', 'all']:
+                covT = nmt.gaussian_covariance(cw0, 0, 0, 0, 0, Cl0_a1b1, Cl0_a1b2, Cl0_a2b1, Cl0_a2b2, w[0]).reshape([Nbins, 1, Nbins, 1])
+            if output in ['EE', 'all']:
+                covE = nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[1]).reshape([Nbins, 4, Nbins, 4])
+            if output in ['BB', 'all']:
+                covB = nmt.gaussian_covariance(cw2, 2, 2, 2, 2, Cl2_a1b1, Cl2_a1b2, Cl2_a2b1, Cl2_a2b2, w[2]).reshape([Nbins, 4, Nbins, 4])
+            
+            for i in range(Nbins):
+                for j in range(Nbins):
+                    if output in ['TT', 'all']:
+                        covmat[0, i*Ncross + crossAB, j*Ncross + crossCD] = covT[i, 0, j, 0]
                         
                         if crossAB != crossCD:
-                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 0, j, 0]
-            
-            elif output == 'BB':
-                for i in range(Nbins):
-                    for j in range(Nbins):
-                        covmat[i*Ncross + crossAB, j*Ncross + crossCD] = cov[i, 3, j, 3]
+                            covmat[0, i*Ncross + crossCD, j*Ncross + crossAB] = covT[i, 0, j, 0]
+                        
+                    if output in ['EE', 'all']:
+                        covmat[1, i*Ncross + crossAB, j*Ncross + crossCD] = covE[i, 0, j, 0]
                         
                         if crossAB != crossCD:
-                            covmat[i*Ncross + crossCD, j*Ncross + crossAB] = cov[i, 3, j, 3]
-            
-            else:
-                for WX in range(4):
-                    for YZ in range(4):
-                        for i in range(Nbins):
-                            for j in range(Nbins):
-                                covmat[(WX*Nbins + i) * Ncross + crossAB, (YZ*Nbins + j) * Ncross + crossCD] = cov[i, WX, j, YZ]
-                                
-                                if crossAB != crossCD:
-                                    covmat[(WX*Nbins + i) * Ncross + crossCD, (YZ*Nbins + j) * Ncross + crossAB] = cov[i, WX, j, YZ]
+                            covmat[1, i*Ncross + crossCD, j*Ncross + crossAB] = covE[i, 0, j, 0]
+                        
+                    if output in ['BB', 'all']:
+                        covmat[2, i*Ncross + crossAB, j*Ncross + crossCD] = covB[i, 3, j, 3]
+                        
+                        if crossAB != crossCD:
+                            covmat[2, i*Ncross + crossCD, j*Ncross + crossAB] = covB[i, 3, j, 3]
                     
             if progress:
                 pbar.update(1)
@@ -704,41 +761,58 @@ def cov_NaMaster_signal(mask, Cls_EE, Cls_BB, w, corfg=True, output='all', progr
     if progress:
         pbar.close()
         
+    if progress:
+        pbar.close()
+    
+    if output == 'TT':
+        return covmat[0]
+        
+    elif output == 'EE':
+        return covmat[1]
+    
+    elif output == 'BB':
+        return covmat[2]
+        
     return covmat
 
-def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=None, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Nmt-fg', output='all', progress=False):
+def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None, type='Nmt-fg', output='all', progress=False):
     """
     Compute analytical covariance matrix in different ways.
     Cls can be mode-decoupled power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
-    Cls must be binned for Knox estimates, but not for NaMaster estimates.
+    Cls must be unbinned, except for 'Knox_signal' estimate for which they can be binned.
 
     Parameters
     ----------
     mask : np.array
         Mask used for computing the power spectra.
-    w : nmt.NmtWorkspace
-        Workspace used for computing the power spectra.
-    Cls_signal_EE : np.array, optional
-        Signal EE power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE) except for type 'Knox_signal' for which Cls can be binned. Default: None.
-    Cls_signal_BB : np.array, optional
-        Signal BB power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE) except for type 'Knox_signal' for which Cls can be binned. Default: None.
-    Cls_cmb_EE : np.array, optional
-        CMB EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
-    Cls_cmb_BB : np.array, optional
-        CMB BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
-    Cls_fg_EE : np.array, optional
-        Foregrounds EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
-    Cls_fg_BB : np.array, optional
-        Foregrounds BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
-    Nls_EE : np.array, optional
-        Noise EE power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
-    Nls_BB : np.array, optional
-        Noise BB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'. Must be of dimension (Ncross, 3*NSIDE). Default: None.
+    w : list
+        List of nmt.NmtWorkspace used for computing the power spectra.
+        Must contain one nmt.NmtWorkspace for Knox estimates. For NaMaster estimates, must contain 3 workspaces corresponding to TT, EE and BB spectra.
+    Cls_signal : list, optional
+        Signal power spectra. Needed only if type is 'Knox_signal' or 'Nmt_signal'.
+        Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra, except for type 'Knox_signal' for which Cls can be binned.
+        Default: None.
+    Cls_cmb : list, optional
+        CMB power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'.
+        Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra, except for type 'Knox_signal' for which Cls can be binned.
+        Default: None.
+    Cls_fg : list, optional
+        Foregrounds power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'.
+        Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra, except for type 'Knox_signal' for which Cls can be binned.
+        Default: None.
+    Nls : np.array, optional
+        Noise power spectra. Needed only for types other than 'Knox_signal' and 'Nmt_signal'.
+        Must contain 3 numpy arrays of dimension (Ncross, 3*NSIDE) corresponding to TT, EE and BB spectra, except for type 'Knox_signal' for which Cls can be binned.
+        Default: None.
     type : string, optional
         Type of the estimate. Can be 'Knox-fg', 'Knox+fg', 'Knox_signal', 'Nmt-fg', 'Nmt+fg', 'Nmt_signal'.
         Default: 'Nmt-fg'.
     output : string, optional
-        If 'EE', compute covariance matrix for E modes only. If 'BB', compute covariance matrix for B modes only. If 'all', compute the full covariance matrix. For Knox estimates, must be 'EE' or 'BB'. Default: 'all'.
+        If 'TT', return covariance matrix for temperature.
+        If 'EE', return covariance matrix for E-modes.
+        If 'BB', return covariance matrix for B-modes.
+        If 'all', return covariance matrices of TT, EE, BB spectra.
+        For Knox estimates, must be 'EE' or 'BB'. Default: 'all'.
     progress : bool, optional
         If True, display a progress bar while computing the covariance matrix. Default: False.
 
@@ -748,55 +822,74 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         Computed covariance matrix.
 
     """
-    lmax, Nbins = w.wsp.lmax, w.wsp.bin.n_bands
+    lmax, Nbins = w[0].wsp.lmax, w[0].wsp.bin.n_bands
+    
     delta_l = int(lmax / Nbins)
-    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l,is_Dell=True)
+    b = nmt.NmtBin.from_lmax_linear(lmax, nlb=delta_l, is_Dell=True)
 
     if type != 'Knox_signal':
         if type == 'Nmt_signal':
-            if Cls_signal_EE.shape[1] == Nbins or Cls_signal_BB.shape[1] == Nbins:
-                raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
+            for i in range(3):
+                if Cls_signal[i].shape[1] == Nbins:
+                    raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
 
         else:
-            if Cls_cmb_EE.shape[1] == Nbins or Cls_cmb_BB.shape[1] == Nbins or Cls_fg_EE.shape[1] == Nbins or Cls_fg_BB.shape[1] == Nbins or Nls_EE.shape[1] == Nbins or Nls_BB.shape[1] == Nbins:
-                raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
+            for i in range(3):
+                if Cls_cmb[i].shape[1] == Nbins or Cls_fg[i].shape[1] == Nbins or Nls[i].shape[1] == Nbins:
+                    raise ValueError("Cls must not be binned for types other than 'Knox_signal'")
 
-    if type in ['Knox-fg', 'Knox+fg']:        
-        if output == 'EE':            
-            Cls_cmb = np.zeros((Cls_cmb_EE.shape[0], Nbins))
-            Cls_fg = np.zeros((Cls_fg_EE.shape[0], Nbins))
-            Nls = np.zeros((Nls_EE.shape[0], Nbins))
+    if type in ['Knox-fg', 'Knox+fg']:
+        if output == 'TT':
+            w = w[0]
+            Cls_cmb_binned = np.zeros((Cls_cmb[0].shape[0], Nbins))
+            Cls_fg_binned = np.zeros((Cls_fg[0].shape[0], Nbins))
+            Nls_binned = np.zeros((Nls[0].shape[0], Nbins))
             
-            for i in range(Cls_cmb_EE.shape[0]):
-                Cls_cmb[i] = b.bin_cell(Cls_cmb_EE[i, :lmax+1])
-                Cls_fg[i] = b.bin_cell(Cls_fg_EE[i, :lmax+1])
-                Nls[i] = b.bin_cell(Nls_EE[i, :lmax+1])
+            for i in range(Cls_cmb[0].shape[0]):
+                Cls_cmb_binned[i] = b.bin_cell(Cls_cmb[0][i, :lmax+1])
+                Cls_fg_binned[i] = b.bin_cell(Cls_fg[0][i, :lmax+1])
+                Nls_binned[i] = b.bin_cell(Nls[0][i, :lmax+1])
+        
+        elif output == 'EE':
+            w = w[1]
+            Cls_cmb_binned = np.zeros((Cls_cmb[1].shape[0], Nbins))
+            Cls_fg_binned = np.zeros((Cls_fg[1].shape[0], Nbins))
+            Nls_binned = np.zeros((Nls[1].shape[0], Nbins))
+            
+            for i in range(Cls_cmb[1].shape[0]):
+                Cls_cmb_binned[i] = b.bin_cell(Cls_cmb[1][i, :lmax+1])
+                Cls_fg_binned[i] = b.bin_cell(Cls_fg[1][i, :lmax+1])
+                Nls_binned[i] = b.bin_cell(Nls[1][i, :lmax+1])
             
         elif output == 'BB':
-            Cls_cmb = np.zeros((Cls_cmb_BB.shape[0], Nbins))
-            Cls_fg = np.zeros((Cls_fg_BB.shape[0], Nbins))
-            Nls = np.zeros((Nls_BB.shape[0], Nbins))
+            w = w[2]
+            Cls_cmb_binned = np.zeros((Cls_cmb[2].shape[0], Nbins))
+            Cls_fg_binned = np.zeros((Cls_fg[2].shape[0], Nbins))
+            Nls_binned = np.zeros((Nls[2].shape[0], Nbins))
             
-            for i in range(Cls_cmb_EE.shape[0]):
-                Cls_cmb[i] = b.bin_cell(Cls_cmb_BB[i, :lmax+1])
-                Cls_fg[i] = b.bin_cell(Cls_fg_BB[i, :lmax+1])
-                Nls[i] = b.bin_cell(Nls_BB[i, :lmax+1])
+            for i in range(Cls_cmb[2].shape[0]):
+                Cls_cmb_binned[i] = b.bin_cell(Cls_cmb[2][i, :lmax+1])
+                Cls_fg_binned[i] = b.bin_cell(Cls_fg[2][i, :lmax+1])
+                Nls_binned[i] = b.bin_cell(Nls[2][i, :lmax+1])
             
         else:
             raise ValueError("Incorrect type for output 'all'")
             
         if type == 'Knox-fg':
-            return cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=progress)
+            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=True, progress=progress)
         
         elif type == 'Knox+fg':
-            return cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, progress=progress)
+            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=False, progress=progress)
         
     elif type == 'Knox_signal':
+        if output == 'TT':
+            Cls_signal = Cls_signal[0]
+        
         if output == 'EE':
-            Cls_signal = Cls_signal_EE
+            Cls_signal = Cls_signal[1]
             
         elif output == 'BB':
-            Cls_signal = Cls_signal_BB
+            Cls_signal = Cls_signal[2]
             
         else:
             raise ValueError("Incorrect type for output 'all'")
@@ -812,18 +905,18 @@ def compute_covmat(mask, w, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=N
         return cov_Knox_signal(mask, Cls_signal, w, progress=progress)
             
     if type == 'Nmt-fg':
-        return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=True, output=output, progress=progress)
+        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output=output, progress=progress)
         
     elif type == 'Nmt+fg':
-        return cov_NaMaster(mask, Cls_cmb_EE, Cls_cmb_BB, Cls_fg_EE, Cls_fg_BB, Nls_EE, Nls_BB, w, corfg=False, output=output, progress=progress)
+        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, output=output, progress=progress)
             
     elif type == 'Nmt_signal':
-        return cov_NaMaster_signal(mask, Cls_signal_EE, Cls_signal_BB, w, output=output, progress=progress)
+        return cov_NaMaster_signal(mask, Cls_signal, w, output=output, progress=progress)
             
     else:
         raise ValueError('Unknown type of estimate')
 
-def inverse_covmat(covmat, Nspec, neglect_corbins=True, return_cholesky=False, return_new=False):
+def inverse_covmat(covmat, Ncross, neglect_corbins=False, return_cholesky=False, return_new=False):
     """
     Inverse the input covariance matrix to the best achievable accuracy.
 
@@ -831,10 +924,10 @@ def inverse_covmat(covmat, Nspec, neglect_corbins=True, return_cholesky=False, r
     ----------
     covmat : np.array
         Covariance matrix to inverse. Must be of dimension (Ncross*Nbins, Ncross*Nbins).
-    Nspec : int
-        Number of spectra the covariance matrix has been computed from. Should be 4*Ncross if all E and B modes were kept, otherwise should be Ncross.
+    Ncross : int
+        Number of cross-spectra the covariance matrix has been computed from.
     neglect_corbins : bool, optional
-        If True, neglect correlations between ell bins. Default: True.
+        If True, neglect correlations between ell bins. Default: False.
     return_cholesky : bool, optional
         If True, return the Cholesky matrix computed from the inverse covariance, otherwise return the standard inverse matrix. Default: False.
     return_new : bool, optional
@@ -847,13 +940,13 @@ def inverse_covmat(covmat, Nspec, neglect_corbins=True, return_cholesky=False, r
 
     """
     if neglect_corbins:
-        Nbins = int(len(covmat) / Nspec)
+        Nbins = int(len(covmat) / Ncross)
         
-        inv_covmat = np.zeros((Nbins, Nspec, Nspec))
-        new_covmat = np.zeros((Nbins, Nspec, Nspec))
+        inv_covmat = np.zeros((Nbins, Ncross, Ncross))
+        new_covmat = np.zeros((Nbins, Ncross, Ncross))
         
         for i in range(Nbins):
-            inv_covmat[i], new_covmat[i] = compute_inverse(covmat[i*Nspec:(i+1)*Nspec, i*Nspec:(i+1)*Nspec])
+            inv_covmat[i], new_covmat[i] = compute_inverse(covmat[i*Ncross:(i+1)*Ncross, i*Ncross:(i+1)*Ncross])
             
             if return_cholesky:
                 inv_covmat[i] = np.linalg.cholesky(inv_covmat[i])

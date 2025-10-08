@@ -46,69 +46,82 @@ Npix = hp.nside2npix(nside)
 sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+fsky_eff = np.mean(mask**2)
 
 #signal
 
-DLdc = np.load("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
+if use_nmt == False:
+    DLdc = np.load("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy"%(nside,fsky,scale,Nlbin,dusttype,synctype))
 
 #foreground
 
 if dusttype==None and synctype==None:
     mapfg=np.zeros((N_freqs,2,Npix))
 else:
+    nside_pysm = 512
     if dusttype==None:
-        sky = pysm3.Sky(nside=512, preset_strings=['s%s'%synctype])#,'s%s'%synctype])
+        if synctype >= 4:
+            nside_pysm = 2048
+        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%synctype], output_unit='uK_CMB')
     if synctype==None:
-        sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
+        if dusttype >= 9:
+            nside_pysm = 2048
+        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype], output_unit='uK_CMB')
     if synctype!=None and dusttype!=None:
-        sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%synctype])
-mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(N_freqs)])
+        if dusttype >= 9 or synctype >= 4:
+            nside_pysm = 2048
+        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype,'s%s'%synctype], output_unit='uK_CMB')
+    mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).value,nside_in=nside_pysm,nside_out=nside) for f in range(N_freqs)])
 mapfg=mapfg[:,1:]
 
 #get fg spectra
-b_unbined=  nmt.NmtBin.from_lmax_linear(lmax=nside*3-1,nlb=1,is_Dell=True)
-wsp_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined)
-wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+b_unbined=  nmt.NmtBin.from_lmax_linear(lmax=nside*3-1,nlb=1)
+
+wspE_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined,purify='EE')
+wspE = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='EE')
+wspB_unbined = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b_unbined,purify='BB')
+wspB = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB')
+wspT = wspE # not needed here
+
 ell_unbined= np.arange(3*nside)
 
-DLcross_fg = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wsp_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='all')
-DL_fg_EE = DLcross_fg[0]
-DL_fg_BB = DLcross_fg[3]
+CL_fg_EE = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspE_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='EE')
+CL_fg_BB = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspB_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='BB')
   
 #get noise spectra
-DL_cross_noise = np.ones((Ncross,3*nside))
+CL_cross_noise = np.ones((Ncross,3*nside))
 z=0
 Nls_EE=[]
 Nls_BB=[]
 for i in range(0,N_freqs): 
     for j in range(i,N_freqs): 
-        DL_cross_noise[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix
-        coupled_noise = wsp_unbined.couple_cell([DL_cross_noise[z], np.zeros_like(DL_cross_noise[z]), np.zeros_like(DL_cross_noise[z]), DL_cross_noise[z]])
-        Nls_EE.append(coupled_noise[0])
-        Nls_BB.append(coupled_noise[3])
+        CL_cross_noise[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix
+        coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise[z], np.zeros_like(CL_cross_noise[z]), np.zeros_like(CL_cross_noise[z]), CL_cross_noise[z]])[0]
+        coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise[z], np.zeros_like(CL_cross_noise[z]), np.zeros_like(CL_cross_noise[z]), CL_cross_noise[z]])[3]
+        Nls_EE.append(coupled_noise_EE)
+        Nls_BB.append(coupled_noise_BB)
         z=z+1
 Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
 CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
-DL_lens_EE = CLcmb_or[1,:nside*3]
-DL_lens_BB = CLcmb_or[2,:nside*3]
+CL_lens_EE = CLcmb_or[1,:nside*3]
+CL_lens_BB = CLcmb_or[2,:nside*3]
 
-coupled_cmb = wsp_unbined.couple_cell([DL_lens_EE, np.zeros_like(DL_lens_EE), np.zeros_like(DL_lens_EE), DL_lens_BB])
-DL_cmb_EE = np.array([ coupled_cmb[0] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-DL_cmb_BB = np.array([ coupled_cmb[3] for i in range(N_freqs) for j in range(i, N_freqs)]) 
-
-fsky_eff = np.mean(mask**2)**2 / np.mean(mask**4)
+coupled_cmb_EE = wspE_unbined.couple_cell([CL_lens_EE, np.zeros_like(CL_lens_EE), np.zeros_like(CL_lens_EE), CL_lens_BB])[0]
+coupled_cmb_BB = wspB_unbined.couple_cell([CL_lens_EE, np.zeros_like(CL_lens_EE), np.zeros_like(CL_lens_EE), CL_lens_BB])[3]
+CL_cmb_EE = np.array([ coupled_cmb_EE for i in range(N_freqs) for j in range(i, N_freqs)]) 
+CL_cmb_BB = np.array([ coupled_cmb_BB for i in range(N_freqs) for j in range(i, N_freqs)]) 
 
 if use_nmt==False:
-    cov_sg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=DLdc[0,:,:Nell], Cls_cmb_EE=None, Cls_cmb_BB=None, Cls_fg_EE=None, Cls_fg_BB=None, Nls_EE=None, Nls_BB=None, type='Knox_signal', output=mode_cov, progress=True)
-    cov_an = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=None, Cls_fg_BB=DL_fg_BB, Nls_EE=None, Nls_BB=Nls_BB, type='Knox-fg', output=mode_cov, progress=True)
-    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=None, Cls_cmb_BB=DL_cmb_BB, Cls_fg_EE=None, Cls_fg_BB=DL_fg_BB, Nls_EE=None, Nls_BB=Nls_BB, type='Knox+fg', output=mode_cov, progress=True)
+    cov_sg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_signal=[np.zeros_like(DLdc[0,:,:Nell]), np.zeros_like(DLdc[0,:,:Nell]), DLdc[0,:,:Nell]], type='Knox_signal', output=mode_cov, progress=True)
+    cov_an = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox-fg', output=mode_cov, progress=True)
+    cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox+fg', output=mode_cov, progress=True)
 
 if use_nmt==True:
-    cov_an   = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE/fsky_eff, Cls_cmb_BB=DL_cmb_BB/fsky_eff, Cls_fg_EE=DL_fg_EE/fsky_eff, Cls_fg_BB=DL_fg_BB/fsky_eff, Nls_EE=Nls_EE/fsky_eff, Nls_BB=Nls_BB/fsky_eff, type='Nmt-fg', output=mode_cov, progress=True)
-    cov_anfg = cvl.compute_covmat(mask, wsp, Cls_signal_EE=None, Cls_signal_BB=None, Cls_cmb_EE=DL_cmb_EE/fsky_eff, Cls_cmb_BB=DL_cmb_BB/fsky_eff, Cls_fg_EE=DL_fg_EE/fsky_eff, Cls_fg_BB=DL_fg_BB/fsky_eff, Nls_EE=Nls_EE/fsky_eff, Nls_BB=Nls_BB/fsky_eff, type='Nmt+fg', output=mode_cov, progress=True)
+    cov_an   = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt-fg', output=mode_cov, progress=True)
+    cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', output=mode_cov, progress=True)
 
 if use_nmt==False:
     np.save('./covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype),cov_an)
