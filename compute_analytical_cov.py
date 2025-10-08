@@ -40,8 +40,8 @@ instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 sens_P = instr['sens_P']
 freq = instr['frequencies']
-sens_P = sens_P[np.argsort(freq)]
-freq = np.sort(freq)
+#sens_P = sens_P[np.argsort(freq)]
+#freq = np.sort(freq)
 N_freqs=len(freq)
 Ncross= int(N_freqs*(N_freqs+1)/2)
 Npix = hp.nside2npix(nside)

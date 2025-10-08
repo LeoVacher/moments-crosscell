@@ -69,7 +69,7 @@ Nell = 12#len(l)
 instr_name = 'litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
-freq = np.sort(freq)
+#freq = np.sort(freq)
 nf = len(freq)
 Ncross = int(nf*(nf+1)/2)
 
