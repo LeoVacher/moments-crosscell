@@ -21,7 +21,7 @@ from tqdm import tqdm
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=500 
+N=1000 
 lmax = nside*3-1
 scale = 10
 Nlbin = 10
@@ -30,7 +30,7 @@ dusttype = 1
 syncrotype = 1
 kw = ''
 load=False
-masking_strat='GWD'
+masking_strat=''
 
 if masking_strat=='GWD':
     kw = kw + '_maskGWD'
