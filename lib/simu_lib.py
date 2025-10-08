@@ -40,18 +40,28 @@ def downgrade_map(input_map,nside_out,nside_in):
 
 def compute_master(f_a, f_b, wsp,coupled=False):
     cl_coupled = nmt.compute_coupled_cell(f_a, f_b)
-    cl_decoupled = wsp.decouple_cell(cl_coupled)
     if coupled==False:
+        cl_decoupled = wsp.decouple_cell(cl_coupled)
         return cl_decoupled
     elif coupled==True:
         return cl_coupled
 
-def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b):
+def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b,purify='BB'):
     """
     Get a namaster working space from maps before computation
     """
+    if purify == 'EE':
+        purify_e = True
+        purify_b = False
+    elif purify == 'BB':
+        purify_e = False
+        purify_b = True
+    elif purify == 'all':
+        purify_e = True
+        purify_b = True
+
     wsp = nmt.NmtWorkspace()
-    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=False, purify_b=True,lmax=b.lmax), b)
+    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), b)
     return wsp
 
 def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,mode='BB'):
@@ -66,14 +76,22 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,m
         CLcross = np.zeros((Ncross,Nell))
     if sp==None:
         CLcross = np.zeros((4,Ncross,Nell))
+
+    if mode == 'EE':
+        purify_e = True
+        purify_b = False
+    else:
+        purify_e = False
+        purify_b = True
+
     z=0
     if sp!=None:
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
                 if i != j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), wsp, coupled=coupled)[sp])
                 if i==j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), wsp, coupled=coupled)[sp])
                 z = z +1
         return CLcross
 
