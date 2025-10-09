@@ -40,12 +40,20 @@ instr_name='litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 sens_P = instr['sens_P']
 freq = instr['frequencies']
+beam = instr['beams']
 #sens_P = sens_P[np.argsort(freq)]
+#beam = beam[np.argsort(freq)]
 #freq = np.sort(freq)
 N_freqs=len(freq)
 Ncross= int(N_freqs*(N_freqs+1)/2)
 Npix = hp.nside2npix(nside)
 sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
+
+Bls_EE = np.zeros((N_freqs, 3*nside))
+Bls_BB = np.zeros((N_freqs, 3*nside))
+
+for i in range(Nfreqs):
+    Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
 
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 fsky_eff = np.mean(mask**2)
@@ -91,15 +99,17 @@ CL_fg_EE = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspE_unbined,Nell=len(el
 CL_fg_BB = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspB_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='BB')
   
 #get noise spectra
-CL_cross_noise = np.ones((Ncross,3*nside))
+CL_cross_noise_EE = np.ones((Ncross,3*nside))
+CL_cross_noise_BB = np.ones((Ncross,3*nside))
 z=0
 Nls_EE=[]
 Nls_BB=[]
 for i in range(0,N_freqs): 
     for j in range(i,N_freqs): 
-        CL_cross_noise[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix
-        coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise[z], np.zeros_like(CL_cross_noise[z]), np.zeros_like(CL_cross_noise[z]), CL_cross_noise[z]])[0]
-        coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise[z], np.zeros_like(CL_cross_noise[z]), np.zeros_like(CL_cross_noise[z]), CL_cross_noise[z]])[3]
+        CL_cross_noise_EE[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix / (Bls_EE[i] * Bls_EE[j])
+        CL_cross_noise_BB[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix / (Bls_BB[i] * Bls_BB[j])
+        coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise_EE[z], np.zeros_like(CL_cross_noise_EE[z]), np.zeros_like(CL_cross_noise_EE[z]), CL_cross_noise_EE[z]])[0]
+        coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise_BB[z], np.zeros_like(CL_cross_noise_BB[z]), np.zeros_like(CL_cross_noise_BB[z]), CL_cross_noise_BB[z]])[3]
         Nls_EE.append(coupled_noise_EE)
         Nls_BB.append(coupled_noise_BB)
         z=z+1
