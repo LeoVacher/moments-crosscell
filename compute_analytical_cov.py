@@ -52,7 +52,7 @@ sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 Bls_EE = np.zeros((N_freqs, 3*nside))
 Bls_BB = np.zeros((N_freqs, 3*nside))
 
-for i in range(Nfreqs):
+for i in range(N_freqs):
     Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
 
 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
