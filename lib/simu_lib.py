@@ -46,7 +46,7 @@ def compute_master(f_a, f_b, wsp,coupled=False):
     elif coupled==True:
         return cl_coupled
 
-def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b,purify='BB'):
+def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b,purify='BB', beam1=None, beam2=None):
     """
     Get a namaster working space from maps before computation
     """
@@ -61,10 +61,10 @@ def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b,purify='BB'):
         purify_b = True
 
     wsp = nmt.NmtWorkspace()
-    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask,1*map_FM2[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), b)
+    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask,1*map_FM2[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), b)
     return wsp
 
-def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,mode='BB'):
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,mode='BB', beams=None):
     """
     Compute the cross-spectra
     """
@@ -88,28 +88,46 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,m
     if sp!=None:
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
+                if beams is None:
+                    beam1 = None
+                    beam2 = None
+                    w = wsp
+                else:
+                    beam1 = beams[i]
+                    beam2 = beams[j]
+                    w = wsp[z]
+
                 if i != j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_FM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
                 if i==j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax), wsp, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
                 z = z +1
         return CLcross
 
     elif sp==None:
         for i in range(0,N_freqs):
             for j in range(i,N_freqs):
+                if beams is None:
+                    beam1 = None
+                    beam2 = None
+                    w = wsp
+                else:
+                    beam1 = beams[i]
+                    beam2 = beams[j]
+                    w = wsp[z]
+
                 if i != j :
-                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled))
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2), w, coupled=coupled))
                 if i==j :
-                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax), wsp, coupled=coupled))
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2), w, coupled=coupled))
                 z = z +1
     return CLcross
 
-def compute_cross_simple(mapd1,mapd2,mask,b):
+def compute_cross_simple(mapd1,mapd2,mask,b, beam1=None, beam2=None):
     nside = len(mask)
     lmax = 3*nside-1
-    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=b.lmax)
-    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=b.lmax)
+    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1)
+    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2)
     wsp = nmt.NmtWorkspace()
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 

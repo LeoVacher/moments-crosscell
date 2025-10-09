@@ -43,10 +43,16 @@ freq = instr['frequencies']
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
 sens_P = instr['sens_P']
+beam = instr['beams']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell = len(leff)
+
+Bls = np.zeros((N_freqs, 3*nside))
+
+for i in range(Nfreqs):
+	Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
 
 #call foreground sky
 
@@ -84,7 +90,10 @@ else:
 
 #Initialise workspace:
 
-wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+wsp = []
+for i in range(N_freqs):
+     for j in range(i, N_freqs):
+        wsp.append(sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB', beam1=Bls[i], beam2=Bls[j]))
 
 #compute sims:
 
@@ -111,10 +120,18 @@ for k in tqdm(range(kini,N)):
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
     mapcmb = mapcmb[:,1:]
 
+    # Sky signal
+    signal = mapfg + mapcmb
+
+    for i in range(N_freqs):
+         if beam[i] != 0:
+              for j in range(2): #smooth Q and U maps
+                signal[i,j] = hp.smoothing(signal[i,j], fwhm=beam[i])
+
     #add noise to maps
-    maptotaldc1  = mapfg  + noisemaps[0] + mapcmb
-    maptotaldc21 = mapfg  + noisemaps[1]*np.sqrt(2) + mapcmb
-    maptotaldc22 = mapfg  + noisemaps[2]*np.sqrt(2) + mapcmb
+    maptotaldc1  = signal + noisemaps[0]
+    maptotaldc21 = signal + noisemaps[1]*np.sqrt(2)
+    maptotaldc22 = signal + noisemaps[2]*np.sqrt(2)
 
     CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB')
 
