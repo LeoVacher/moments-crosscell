@@ -100,7 +100,7 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,m
                 if i != j :
                     CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_FM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
                 if i==j :
-                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
                 z = z +1
         return CLcross
 
