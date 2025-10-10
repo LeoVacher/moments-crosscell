@@ -47,7 +47,7 @@ def getr_analytical(results,Nmin=0,Nmax=20):
     rmean = np.sum(mean / sig**2) * rstd**2
     return rmean, rstd
 
-def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False):
+def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False,ax=None,alpha=1):
     """
     compute r and sigma(r) analytically and plot a corresponding Gaussian curve
     :param results: output of moment fitting
@@ -57,8 +57,9 @@ def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=
     rmean,rstd=getr_analytical(results,Nmin=Nmin,Nmax=Nmax)
     x = np.linspace(-1,1,10000)
     intervall = 0.014
-    fig,ax = plt.subplots(1,1, figsize=(10,7))
-    ax.plot(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(rmean,5),np.round(rstd,5)))
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),color=color,linewidth= 5,label='$%s \\pm %s$'%(np.round(rmean,5),np.round(rstd,5)),alpha=alpha)
     ax.fill_between(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),color=color,alpha=0.2,linewidth=5)
     ax.fill_between(x,(func.Gaussian(x,rmean,rstd))/np.max(func.Gaussian(x,rmean,rstd)),facecolor="none",edgecolor=color,linewidth=5)
     ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
@@ -267,7 +268,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     fig, ax = plt.subplots(figsize=(10, 7))  
     for i, resi in enumerate(res):
         if 'r' in resi and resi['r'].ndim != 1:
-            plotr_gaussproduct_analytical(resi, color=colors[i], show=False, Nmax=len(l))
+            plotr_gaussproduct_analytical(resi, color=colors[i], show=False, Nmax=len(l),ax=ax,alpha=0.8)
     pdf.savefig()
     plt.close()
 
@@ -294,7 +295,6 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
                 legend_labels=[],
                 )
             plt.suptitle(r"$\ell_{\rm bin}=%s$"%ell, fontsize=18, fontweight='bold')
-            plt.savefig('./param_testplot.pdf')
             pdf.savefig()
             plt.close()
     pdf.close()
