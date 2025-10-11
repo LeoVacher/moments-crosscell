@@ -7,7 +7,6 @@ import pymaster as nmt
 import time
 from mpfit import mpfit
 import scipy
-#from Nearest_Positive_Definite import *
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patheffects as path_effects
 import scipy.stats as st
@@ -19,14 +18,14 @@ from tqdm import tqdm
 r = 0 # input tensor-to-scalar ratio in the simulation
 nside = 64 #HEALPix nside
 Npix = hp.nside2npix(nside) #number of pixels
-N=5000  #number of sims
+N = 250  #number of sims
 lmax = nside*3-1 #maximum multipole
 scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
 fsky = 0.7 #fraction of sky for the raw mask
 dusttype = 1 #Pysm dust model
-synctype = 1 #Pysm syncrotron model
-kws = '_N5000' #keyword for the simulation
+synctype = 0 #Pysm syncrotron model
+kws = '' #keyword for the simulation
 load=False #load previous sims 
 masking_strat='' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = True #smooth with gaussian beam?
@@ -79,7 +78,6 @@ else:
     else:
         mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
-
 #Initialise workspace:
 
 if gaussbeam:
@@ -93,11 +91,19 @@ else:
 #compute sims:
 
 if load == True:
+    # TO DO: ADD here load options for all cases (dust=None...) 
     if synctype == None:
         CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))
     else:
         CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))  
     kini=np.argwhere(CLcross == 0)[0,0]
+    if kini ==N:
+        print("All sims already computed and saved")
+        sys.exit()
+    if kini > N:
+        CLcross_new = np.zeros((N,Ncross,len(leff)))
+        CLcross_new[:N,:,:] = CLcross[:N,:,:]
+        CLcross = CLcross_new
 else:
     kini=0
     CLcross = np.zeros((N,Ncross,len(leff)))
