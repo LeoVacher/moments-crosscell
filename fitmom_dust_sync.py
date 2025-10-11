@@ -38,6 +38,8 @@ dusttype_cov = dusttype
 synctype_cov = synctype
 nu0d = 353.
 nu0s = 23.
+beam = True
+
 
 kw += kws
 if cov_type != 'sim':
@@ -46,6 +48,8 @@ if iterate == True :
     kw+= '_iterate'
 if fixr==1:
     kw+= '_fixr'
+if beam:
+    kws += '_beam'
 
 if parallel:
     comm = MPI.COMM_WORLD

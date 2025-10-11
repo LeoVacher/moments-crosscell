@@ -21,16 +21,17 @@ from tqdm import tqdm
 r = 0
 nside = 64
 Npix = hp.nside2npix(nside)
-N=1000 
+N=5000 
 lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
 dusttype = 1
 syncrotype = 1
-kw = ''
+kw = '_N5000'
 load=False
 masking_strat=''
+beam = True
 
 if masking_strat=='GWD':
     kw = kw + '_maskGWD'
@@ -49,10 +50,11 @@ b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell = len(leff)
 
-Bls = np.zeros((N_freqs, 3*nside))
-
-for i in range(Nfreqs):
-	Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
+if beam:
+    kw = kw + '_beam'
+    Bls = np.zeros((N_freqs, 3*nside))
+    for i in range(N_freqs):
+	    Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
 
 #call foreground sky
 
@@ -90,10 +92,14 @@ else:
 
 #Initialise workspace:
 
-wsp = []
-for i in range(N_freqs):
-     for j in range(i, N_freqs):
-        wsp.append(sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB', beam1=Bls[i], beam2=Bls[j]))
+
+if beam:
+     wsp = []
+    for i in range(N_freqs):
+         for j in range(i, N_freqs):
+            wsp.append(sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB', beam1=Bls[i], beam2=Bls[j]))
+else:
+     wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 
 #compute sims:
 
@@ -124,7 +130,7 @@ for k in tqdm(range(kini,N)):
     signal = mapfg + mapcmb
 
     for i in range(N_freqs):
-         if beam[i] != 0:
+         if beam:
               for j in range(2): #smooth Q and U maps
                 signal[i,j] = hp.smoothing(signal[i,j], fwhm=beam[i])
 
