@@ -95,7 +95,7 @@ else:
 
 if beam:
      wsp = []
-    for i in range(N_freqs):
+     for i in range(N_freqs):
          for j in range(i, N_freqs):
             wsp.append(sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB', beam1=Bls[i], beam2=Bls[j]))
 else:
