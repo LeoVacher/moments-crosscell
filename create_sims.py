@@ -27,7 +27,7 @@ scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
 fsky = 0.7 #fraction of sky for the raw mask
 dusttype = 1 #Pysm dust model
-syncrotype = 1 #Pysm syncrotron model
+synctype = 1 #Pysm syncrotron model
 kws = '_N5000' #keyword for the simulation
 load=False #load previous sims 
 masking_strat='' #keywords for choice of mask. If '', use Planck mask 
@@ -60,7 +60,7 @@ else:
 
 #call foreground sky
 
-mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, syncrotype=synctype)
+mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
 
 # call cmb
 
@@ -95,10 +95,10 @@ else:
 #compute sims:
 
 if load == True:
-    if syncrotype == None:
+    if synctype == None:
         CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc.npy'%(nside,fsky,scale,Nlbin,dusttype))
     else:
-        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,syncrotype))  
+        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype))  
     kini=np.argwhere(CLcross == 0)[0,0]
 else:
     kini=0
@@ -133,24 +133,24 @@ for k in tqdm(range(kini,N)):
     CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB',beams=Bls)
 
     #save:
-    if syncrotype==None and dusttype==None:
+    if synctype==None and dusttype==None:
         if r == 0:
             np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kws,CLcross)
         else :
             np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin)+kws,CLcross)
-    elif syncrotype==None:
+    elif synctype==None:
     	if r == 0:
     		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
     	else :
     		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
     elif dusttype==None:
         if r == 0:
-            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,syncrotype)+kws,CLcross)
+            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
         else :
-            np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,syncrotype)+kws,CLcross)
-    elif syncrotype!=None and dusttype!=None:
+            np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
+    elif synctype!=None and dusttype!=None:
     	if r == 0:
-    		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,syncrotype)+kws,CLcross)
+    		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
     	else :
-    		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,syncrotype)+kws,CLcross)
+    		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
 

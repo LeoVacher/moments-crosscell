@@ -65,24 +65,7 @@ if use_nmt == False:
 
 #foreground
 
-if dusttype==None and synctype==None:
-    mapfg=np.zeros((N_freqs,2,Npix))
-else:
-    nside_pysm = 512
-    if dusttype==None:
-        if synctype >= 4:
-            nside_pysm = 2048
-        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%synctype], output_unit='uK_CMB')
-    if synctype==None:
-        if dusttype >= 9:
-            nside_pysm = 2048
-        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype], output_unit='uK_CMB')
-    if synctype!=None and dusttype!=None:
-        if dusttype >= 9 or synctype >= 4:
-            nside_pysm = 2048
-        sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype,'s%s'%synctype], output_unit='uK_CMB')
-    mapfg= np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).value,nside_in=nside_pysm,nside_out=nside) for f in range(N_freqs)])
-mapfg=mapfg[:,1:]
+mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
 
 #get fg spectra
 b_unbined=  nmt.NmtBin.from_lmax_linear(lmax=nside*3-1,nlb=1)
