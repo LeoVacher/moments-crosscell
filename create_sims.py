@@ -31,7 +31,7 @@ syncrotype = 1
 kw = '_N5000'
 load=False
 masking_strat=''
-beam = True
+gaussbeam = True
 
 if masking_strat=='GWD':
     kw = kw + '_maskGWD'
@@ -50,8 +50,8 @@ b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
 Nell = len(leff)
 
-if beam:
-    kw = kw + '_beam'
+if gaussbeam:
+    kw = kw + '_gaussbeam'
     Bls = np.zeros((N_freqs, 3*nside))
     for i in range(N_freqs):
          Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
@@ -80,7 +80,7 @@ CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 if masking_strat=='maskGWD':
     mask = masks_WGD(abs(mapfg[-1,1]+1j*mapfg[-1,2]), 
           per_cent_to_keep = fsky*100, 
-          smooth_mask_deg = 2, 
+          gaussbeam_mask_deg = 2, 
           apo_mask_deg = scale, 
           verbose=False)
 else:
@@ -92,8 +92,7 @@ else:
 
 #Initialise workspace:
 
-
-if beam:
+if gaussbeam:
      wsp = []
      for i in range(N_freqs):
          for j in range(i, N_freqs):
@@ -130,7 +129,7 @@ for k in tqdm(range(kini,N)):
     signal = mapfg + mapcmb
 
     for i in range(N_freqs):
-         if beam:
+         if gaussbeam:
               for j in range(2): #smooth Q and U maps
                 signal[i,j] = hp.smoothing(signal[i,j], fwhm=beam[i])
 
