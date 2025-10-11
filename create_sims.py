@@ -60,17 +60,7 @@ else:
 
 #call foreground sky
 
-if dusttype == None and syncrotype == None:
-    mapfg = np.zeros((N_freqs,2,Npix))
-else:
-    if dusttype == None:
-        sky = pysm3.Sky(nside=512, preset_strings=['s%s'%syncrotype])#,'s%s'%synctype])
-    if syncrotype == None:
-    	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype])#,'s%s'%synctype])
-    if syncrotype != None and dusttype != None:
-    	sky = pysm3.Sky(nside=512, preset_strings=['d%s'%dusttype,'s%s'%syncrotype])
-    mapfg = np.array([sim.downgrade_map(sky.get_emission(freq[f] * u.GHz).to(u.uK_CMB, equivalencies=u.cmb_equivalencies(freq[f]*u.GHz)),nside_in=512,nside_out=nside) for f in range(len(freq))])
-    mapfg = mapfg[:,1:]
+mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, syncrotype=synctype)
 
 # call cmb
 
