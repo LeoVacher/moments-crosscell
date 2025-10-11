@@ -2,6 +2,7 @@ import healpy as hp
 import numpy as np
 import pymaster as nmt
 import pysm3
+import pysm3.units as u
 
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
