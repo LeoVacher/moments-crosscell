@@ -55,6 +55,8 @@ if gaussbeam:
     Bls = np.zeros((N_freqs, 3*nside))
     for i in range(N_freqs):
          Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
+else:
+    Bls = None
 
 #call foreground sky
 
@@ -138,7 +140,7 @@ for k in tqdm(range(kini,N)):
     maptotaldc21 = signal + noisemaps[1]*np.sqrt(2)
     maptotaldc22 = signal + noisemaps[2]*np.sqrt(2)
 
-    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB')
+    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB',beams=Bls)
 
     #save:
     if syncrotype==None and dusttype==None:
