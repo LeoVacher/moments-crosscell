@@ -54,7 +54,7 @@ if beam:
     kw = kw + '_beam'
     Bls = np.zeros((N_freqs, 3*nside))
     for i in range(N_freqs):
-	    Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
+         Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
 
 #call foreground sky
 
