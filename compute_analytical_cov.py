@@ -8,7 +8,6 @@ import sys
 sys.path.append("./lib")
 import numpy as np
 import pymaster as nmt 
-import pysm3
 import time
 from mpfit import mpfit
 import scipy
@@ -18,7 +17,6 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 import simu_lib as sim
-import pysm3.units as u
 import covlib as cvl 
 
 r=0.
