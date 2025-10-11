@@ -3,6 +3,10 @@ import numpy as np
 import pymaster as nmt
 from tqdm import tqdm
 
+
+### Pipeline to extract CL on NERSC of LB Simulations ###
+#### ALMOST CERTAINLY OBSOLETE, to be updated ###
+
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
     This is a Function to downgrade Alm correctly.

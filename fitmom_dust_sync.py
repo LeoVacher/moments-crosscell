@@ -13,15 +13,17 @@ import basicfunc as func
 import analys_lib as an
 import covlib as cvl 
 
-nside = 64
-lmax = nside*3-1
+#### Pipeline to fit different models on cross-frequency power spectra from simulations ####
+
+nside = 64 #HEALPix nside
+lmax = nside*3-1 #maximum multipole
 scale = 10 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
 dusttype = 9 #index of Pysm's dust model
 synctype = 4 #index of Pysm's synchrotron model
 order_to_fit= ['0'] #orders to fit ('0', '1bt' or '1bts')
-Pathload = './'
+Pathload = './' #Home path
 all_ell = False #all ell or each ell independently (True/False)
 fix = 0 #fix beta and T (0:fit, 1:fix)?
 fixr= 0 #fix r (0:fit, 1:fix)?
@@ -30,15 +32,15 @@ N = 250 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
 pivot_o0 = False #use the best fit of order 0?
-iterate = False 
+iterate = False #iterate to obtain ideal ell-dependent pivots (True/False)
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
 kws='' #keyword for the simulations?
-dusttype_cov = dusttype
-synctype_cov = synctype
-nu0d = 353.
-nu0s = 23.
-gaussbeam = True
+dusttype_cov = dusttype #dust type for the covariance matrix
+synctype_cov = synctype #synchrotron type for the covariance matrix
+nu0d = 353. #dust reference frequency
+nu0s = 23. #synchrotron reference frequency
+gaussbeam = True #are simulations smoothed with gaussian beam?
 
 
 kw += kws

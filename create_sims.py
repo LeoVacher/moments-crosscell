@@ -18,27 +18,27 @@ import simu_lib as sim
 import pysm3.units as u
 from tqdm import tqdm
 
-r = 0
-nside = 64
-Npix = hp.nside2npix(nside)
-N=5000 
-lmax = nside*3-1
-scale = 10
-Nlbin = 10
-fsky = 0.7
-dusttype = 1
-syncrotype = 1
-kws = '_N5000'
-load=False
-masking_strat=''
-gaussbeam = True
+r = 0 # input tensor-to-scalar ratio in the simulation
+nside = 64 #HEALPix nside
+Npix = hp.nside2npix(nside) #number of pixels
+N=5000  #number of sims
+lmax = nside*3-1 #maximum multipole
+scale = 10 #apodization scale in degrees
+Nlbin = 10 #binning scheme of the Cls
+fsky = 0.7 #fraction of sky for the raw mask
+dusttype = 1 #Pysm dust model
+syncrotype = 1 #Pysm syncrotron model
+kws = '_N5000' #keyword for the simulation
+load=False #load previous sims 
+masking_strat='' #keywords for choice of mask. If '', use Planck mask 
+gaussbeam = True #smooth with gaussian beam?
 
-if masking_strat=='GWD':
+if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
     kws = kws + '_maskGWD'
 
 # instr param
 
-instr_name ='litebird_full'
+instr_name ='litebird_full' #instrument name in ./lib/instr_dict/
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
 N_freqs = len(freq)
