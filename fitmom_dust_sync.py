@@ -43,7 +43,6 @@ nu0s = 23. #synchrotron reference frequency
 gaussbeam = True #are simulations smoothed with gaussian beam?
 
 
-kw += kws
 if cov_type != 'sim':
     kw += '_%s'%cov_type
 if iterate == True :
@@ -52,6 +51,8 @@ if fixr==1:
     kw+= '_fixr'
 if gaussbeam:
     kws += '_gaussbeam'
+
+kw += kws
 
 if parallel:
     comm = MPI.COMM_WORLD
