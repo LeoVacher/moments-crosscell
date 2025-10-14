@@ -24,6 +24,7 @@ def get_dl_bb_mom(map1,map2,nside,mask,b):
     return sim.compute_cross_simple(getmom_downgr(map1,nside)[1:],getmom_downgr(map2,nside)[1:],mask,b)[3]
   
 def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.,momsync=True):
+   # to do : add beam effect and add EE moments if needed
     lmax = nside*3-1
     b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
     sky = pysm3.Sky(nside=512, preset_strings=['d%s'%(dusttype),'s%s'%(syncrotype)])

@@ -190,7 +190,7 @@ def plothist(label,res,colors='darkblue',r=0):
     namepl = dict(zip(keyspl, valuespl))
     name = {**nameo0,**namemom,**namepl}
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
+    _ , ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 7))
     seaborn.histplot(res[label],stat="probability",kde=True,ax=ax,color=colors)
     plt.text(0.95, 0.95, name[label]+r"$=%s\pm%s$"%(np.round(np.mean(res[label]),6), np.round(np.std(res[label]),6)), transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right')
     plt.title("%s"%name[label])
