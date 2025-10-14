@@ -22,11 +22,11 @@ N = 250  #number of sims
 lmax = nside*3-1 #maximum multipole
 scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
-fsky = 0.7 #fraction of sky for the raw mask
+fsky = 0.8 #fraction of sky for the raw mask
 dusttype = 1 #Pysm dust model
-synctype = 0 #Pysm syncrotron model
+synctype = 1 #Pysm syncrotron model
 kws = '' #keyword for the simulation
-load=False #load previous sims 
+load=True #load previous sims 
 masking_strat='' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = True #smooth with gaussian beam?
 
