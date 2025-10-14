@@ -59,19 +59,32 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     
     mom1bs = skyrefcpxs*(betasmap-betasbar)
 
+    #amplitudes:
     Ad = get_dl_bb_mom(skyrefcpxd,skyrefcpxd,nside,mask,b)
     As = get_dl_bb_mom(skyrefcpxs,skyrefcpxs,nside,mask,b)
     Asd = get_dl_bb_mom(skyrefcpxd,skyrefcpxs,nside,mask,b)/np.sqrt(Ad*As)
+    
+    #dust beta moments:
     w1bw1b = get_dl_bb_mom(mom1b,mom1b,nside,mask,b)
     Aw1b = get_dl_bb_mom(skyrefcpxd,mom1b,nside,mask,b)
     Asw1b = get_dl_bb_mom(skyrefcpxs,mom1b,nside,mask,b)
 
+    #dust 1/temp moments:    
     Aw1p = get_dl_bb_mom(skyrefcpxd,mom1pmet,nside,mask,b)
     w1bw1p = get_dl_bb_mom(mom1b,mom1pmet,nside,mask,b)
     w1pw1p = get_dl_bb_mom(mom1pmet,mom1pmet,nside,mask,b)
     Asw1p = get_dl_bb_mom(skyrefcpxs,mom1pmet,nside,mask,b)
 
-    analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p])
-    name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
+    #syncrotron beta moments:
+
+    Aw1bs = get_dl_bb_mom(skyrefcpxd,mom1bs,nside,mask,b)    
+    Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)    
+    w1bw1bs = get_dl_bb_mom(mom1b,mom1bs,nside,mask,b)
+    w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,nside,mask,b)
+    Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)  
+    w1bsw1p = get_dl_bb_mom(mom1bs,mom1pmet,nside,mask,b)
+
+    analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1bsw1p,w1bw1bs])
+    name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1bsw1t','w1bw1bs']
     momdict = dict(zip(name, analytical_mom))
     return momdict
