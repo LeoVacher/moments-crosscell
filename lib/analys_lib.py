@@ -299,7 +299,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             betabar = np.mean(results['beta_d'])
             tempbar = np.mean(results['T_d'])
             betasbar = np.mean(results['beta_s'])
-            fsky = int(np.mean(mask)**2)
+            fsky = np.mean(mask**2)
             try:
                 mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), allow_pickle=True).item()
             except:
