@@ -23,7 +23,7 @@ def getmom_downgr(mom,nside):
 def get_dl_bb_mom(map1,map2,nside,mask,b):
     return sim.compute_cross_simple(getmom_downgr(map1,nside)[1:],getmom_downgr(map2,nside)[1:],mask,b)[3]
   
-def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.):
+def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.,momsync=True):
     lmax = nside*3-1
     b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
     sky = pysm3.Sky(nside=512, preset_strings=['d%s'%(dusttype),'s%s'%(syncrotype)])
@@ -77,14 +77,20 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
 
     #syncrotron beta moments:
 
-    Aw1bs = get_dl_bb_mom(skyrefcpxd,mom1bs,nside,mask,b)    
-    Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)    
-    w1bw1bs = get_dl_bb_mom(mom1b,mom1bs,nside,mask,b)
-    w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,nside,mask,b)
-    Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)  
-    w1bsw1p = get_dl_bb_mom(mom1bs,mom1pmet,nside,mask,b)
+    if momsync:
+        Aw1bs = get_dl_bb_mom(skyrefcpxd,mom1bs,nside,mask,b)    
+        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)    
+        w1bw1bs = get_dl_bb_mom(mom1b,mom1bs,nside,mask,b)
+        w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,nside,mask,b)
+        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)  
+        w1bsw1p = get_dl_bb_mom(mom1bs,mom1pmet,nside,mask,b)
 
-    analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1bsw1p,w1bw1bs])
-    name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1bsw1t','w1bw1bs']
+    if momsync:
+        analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1bsw1p,w1bw1bs])
+        name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1bsw1t','w1bw1bs']
+    else:
+        analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p])
+        name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
+
     momdict = dict(zip(name, analytical_mom))
     return momdict
