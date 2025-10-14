@@ -4,24 +4,11 @@ sys.path.append("./lib")
 import numpy as np
 import healpy as hp
 import pymaster as nmt 
-import pysm3
-import time
-from mpfit import mpfit
-import mpfitlib as mpl
-import scipy
-#from Nearest_Positive_Definite import *
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.patheffects as path_effects
-import scipy.stats as st
-import basicfunc as func
-import analys_lib as an
-import simu_lib as sim
-import pysm3.units as u
 import urllib.request
 
-fsky=0.7
+fsky=0.99
 scale=10
-nside=32
+nside=64
 
 download = True
 if download:
