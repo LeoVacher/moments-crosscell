@@ -76,6 +76,10 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     w1pw1p = get_dl_bb_mom(mom1pmet,mom1pmet,nside,mask,b)
     Asw1p = get_dl_bb_mom(skyrefcpxs,mom1pmet,nside,mask,b)
 
+    #dust spectral parameters:
+    beta_d = betabar + Aw1b / Ad
+    T_d = 1 / (pmetbar + Aw1p / Ad)
+
     #syncrotron beta moments:
 
     if momsync:
@@ -85,12 +89,13 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
         w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,nside,mask,b)
         Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)  
         w1pw1bs = get_dl_bb_mom(mom1pmet,mom1bs,nside,mask,b)
-        analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1pw1bs,w1bw1bs])
-        name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1tw1bs','w1bw1bs']
+        beta_s = betasbar + Asw1bs / As
+        analytical_mom = np.array([Ad,beta_d,T_d,As,beta_s,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1pw1bs,w1bw1bs])
+        name = ['A_d','beta_d','T_d','A_s','beta_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1tw1bs','w1bw1bs']
 
     else:
-        analytical_mom = np.array([Ad,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p])
-        name = ['A_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
+        analytical_mom = np.array([Ad,beta_d,T_d,As,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p])
+        name = ['A_d','beta_d','T_d','A_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t']
 
     momdict = dict(zip(name, analytical_mom))
     return momdict
