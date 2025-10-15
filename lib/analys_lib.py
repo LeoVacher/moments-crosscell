@@ -165,18 +165,30 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         if iterate:
             if kw=='ds_o0':
                 raise ValueError('No iteration possible for order 0!')
-            else:
-                while any(adaptafix(paramiterl[i, :, 6]) == 0 for i in range(Nell)):
+            elif kw=='ds_o1bt':
+                while any(any(np.array([adaptafix(paramiterl[i, :, 6]), adaptafix(paramiterl[i, :, 8])]) == 0) for i in range(Nell)):
                     for n in tqdm(range(Nmin,Nmax)):
                         for L in range(Nell):
                             parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
                             parinfopl[L][2] = {'value': paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0] , 'fixed':1}
-                            if kw=='ds_o1bts':
-                                parinfopl[L][4] = {'value': paramiterl[L,n,4] + paramiterl[L,n,11]/paramiterl[L,n,3], 'fixed':1}
                             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
                             m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                             paramiterl[L,n]= m.params
-                            chi2l[L,n]=m.fnorm/m.dof            
+                            chi2l[L,n]=m.fnorm/m.dof
+            else:
+                while any(any(np.array([adaptafix(paramiterl[i, :, 6]), adaptafix(paramiterl[i, :, 8]), adaptafix(paramiterl[i, :, 11])]) == 0) for i in range(Nell)):
+                    for n in tqdm(range(Nmin,Nmax)):
+                        for n in tqdm(range(Nmin,Nmax)):
+                        for L in range(Nell):
+                            parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
+                            parinfopl[L][2] = {'value': paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0] , 'fixed':1}
+                            parinfopl[L][4] = {'value': paramiterl[L,n,4] + paramiterl[L,n,11]/paramiterl[L,n,3], 'fixed':1}
+                            fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
+                            m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
+                            paramiterl[L,n]= m.params
+                            chi2l[L,n]=m.fnorm/m.dof
+
+
     
         #return result dictionnary:
 
