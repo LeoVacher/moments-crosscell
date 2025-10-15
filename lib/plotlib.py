@@ -218,6 +218,12 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     # Check if all dictionaries have only common keys
     only_common_keys = all(len(resi.keys() - common_keys) == 0 for resi in res)
     
+    # Remove failed fits
+    for i, resi in enumerate(res):
+        for k in set(resi.keys()):
+            resi[k] = resi[k][~np.isnan(resi['X2red'])]
+        res[i] = resi
+
     # Plot common keys
     for k in common_keys:
         plt.figure(figsize=(10, 7))
