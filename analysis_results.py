@@ -17,23 +17,23 @@ from matplotlib.backends.backend_pdf import PdfPages
 from plotlib import plotrespdf
 import analytical_mom_lib as anmomlib
 
-nres=2
-nside = 64
-lmax = nside*2-1
-scale = 10
-Nlbin = 10
-fsky = 0.7
-dusttype = 10
-synctype = 5
-fix=1
-order = '1bt' #0 or 1bt
-kw = ''
-kwsim = ''
-Pathload = './'
-plot_contours=False
-all_ell=False
-nu0d=402.
-nu0s=40.
+nres=2 #number of results to plot
+nside = 64 #HEALPix nside
+lmax = nside*2-1 #maximum multipole
+scale = 10 #scale of apodisaton of the mask
+Nlbin = 10 #binning for bandpower
+fsky = 0.8 #sky fraction of the raw mask
+dusttype = 1 #index of Pysm's dust model
+synctype = 1 #index of Pysm's synchrotron model
+fix=1 #fix beta and T (0:fit, 1:fix)?
+order = '1bts' #0, 1bt or 1bts 
+kw = '' #keyword for the fitting scheme
+kwsim = '' #keyword for the simulation 
+Pathload = './' #Home path
+plot_contours=True #plot contours for best fit parameters
+all_ell=False #all ell or each ell independently (True/False)
+nu0d=402. #dust reference frequency
+nu0s=40. #synchrotron reference frequency
 
 if all_ell==True:
     kw=kw+'_all_ell'
@@ -49,13 +49,13 @@ Nell = len(l)
 
 #loads the results:
 res1 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
-res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_fixr_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s_adaptative.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res3 = np.load('best_fits/results_d%ss%s_%s_Nmt+fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 #res4 = np.load('best_fits/results_d%ss%s_%s_signal_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
 
 #labels and legend for the results
 legs1 = 'd%ss%s_fsky%s_full'%(dusttype,synctype,fsky)
-legs2 = 'fixr'
+legs2 = 'adaptive'
 legs3 = 'Knox+fg'
 legs4 = 'signal'
 
