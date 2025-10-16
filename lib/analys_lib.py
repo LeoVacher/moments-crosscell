@@ -49,7 +49,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param Nlbin: binning of the spectra
     :param fix: fix or fit the spectral parameters. fix=0 fit them, fix=1 keep them fixed to the values contained in p0.
     :param all_ell: fit each multipole independently (False) or perform a single (longer) fit over all the multipole range (True).
-    :param adaptive: if True use the results of a previous run to fit only the detected moments. 
+    :param adaptative: if True use the results of a previous run to fit only the detected moments. 
     :param kwsave: keyword to save the results in the folder "best_fits". Must be of the format dasb_fsky_kw, where a and b are the dusttype and synctype and fsky is the sky fraction between 0 and 1.
     :param plotres: if true, plot and save the results in pdf format.
     :param mompl: only for allell case, fit moments as power-laws in ell.
@@ -78,8 +78,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     kwf = kw+'_fix%s'%fix
     if all_ell:
         kwf = kwf + "_all_ell"
-    if adaptative:
-        kwf = kwf+'_adaptive'
     if iterate:
         kwf = kwf+'_iterate'
 
@@ -139,6 +137,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 for L in range(Nell):
                     fixmom=adaptafix(res0[list(keys)[k]][L])
                     parinfopl[L][k]= {'value':0, 'fixed':fixmom}
+            kwf = kwf+'_adaptative'
 
         #for parallel:
         if parallel:
