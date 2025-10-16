@@ -149,7 +149,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 else:
                     dust_keys = list(keys)[6:11]
                     dust_keys.append(list(keys)[13:15])
-                    sync_keys = list(keys[11:13])
+                    sync_keys = list(keys)[11:13]
                     sync_keys.append(list(keys)[15:-2])
                     if all(adaptafix(res0[k][L]) == 1 for k in sync_keys):
                         for k in sync_keys:
