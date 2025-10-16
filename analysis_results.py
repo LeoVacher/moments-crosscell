@@ -66,9 +66,9 @@ c3 = 'forestgreen'
 c4 = 'darkred'
 
 #Which pivots for the moments?
-betabar = np.mean(res1['beta_d'][~np.isnan(res1['X2red'])])
-tempbar = np.mean(res1['T_d'][~np.isnan(res1['X2red'])])
-betasbar= np.mean(res1['beta_s'][~np.isnan(res1['X2red'])])
+betabar = np.median(res1['beta_d'][~np.isnan(res1['X2red'])])
+tempbar = np.median(res1['T_d'][~np.isnan(res1['X2red'])])
+betasbar= np.median(res1['beta_s'][~np.isnan(res1['X2red'])])
 
 #load analytical moments:
 try:
