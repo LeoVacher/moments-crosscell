@@ -114,7 +114,10 @@ DLdc = DLdc[:N,:,:Nell]
 
 if pivot_o0:
     try:
-        o0 = np.load('best_fits/results_d%ss%s_%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,cov_type,'0','0'),allow_pickle=True).item()
+        if cov_type == 'sim':
+            o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+        else:
+            o0 = np.load('best_fits/results_d%ss%s_%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,cov_type,'0','0'),allow_pickle=True).item()
     except:
         if cov_type == 'sim':
             Linvdc0 = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
