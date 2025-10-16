@@ -130,14 +130,33 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)  
+        
         if adaptative:
+            kwf += '_adaptative'
             res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys= res0.keys()
-            for k in range(6,len(res0.keys())-2):
-                for L in range(Nell):
-                    fixmom=adaptafix(res0[list(keys)[k]][L])
-                    parinfopl[L][k]= {'value':0, 'fixed':fixmom}
-            kwf = kwf+'_adaptative'
+
+            for L in range(Nell):
+                if kw == 'ds_o0':
+                    raise ValueError('Adaptative is not possible for order 0!')
+                
+                elif kw == 'ds_o1bt':
+                    dust_keys = list(keys)[6:-2]
+                    if all(adaptafix(res0[k][L]) == 1 for k in dust_keys)):
+                        for k in dust_keys:
+                            parinfopl[L][k] = {'value':0, 'fixed':1}
+
+                else:
+                    dust_keys = list(keys)[6:11]
+                    dust_keys.append(list(keys)[13:15])
+                    sync_keys = list(keys[11:13])
+                    sync_keys.append(list(keys)[15:-2])
+                    if all(adaptafix(res0[k][L]) == 1 for k in sync_keys)):
+                        for k in sync_keys:
+                            parinfopl[L][k] = {'value':0, 'fixed':1}
+                        if all(adaptafix(res0[k][L]) == 1 for k in dust_keys)):
+                            for k in dust_keys:
+                                parinfopl[L][k] = {'value':0, 'fixed':1}
 
         #for parallel:
         if parallel:
