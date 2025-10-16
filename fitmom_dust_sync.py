@@ -31,7 +31,7 @@ adaptative = True #adapt to fix to 0 non detected moments (True/False)
 N = 250 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
-pivot_o0 = True #use the best fit of order 0?
+pivot_o0 = False #use the best fit of order 0?
 iterate = False #iterate to obtain ideal ell-dependent pivots (True/False)
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
@@ -144,6 +144,6 @@ if '1bt' in order_to_fit:
 
 if '1bts' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
+    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
 
 
