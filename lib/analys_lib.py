@@ -151,7 +151,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     sync_keys = np.concatenate((keys[11:13], keys[15:-2]))
                     if all(adaptafix(res0[k][L]) == 1 for k in sync_keys):
                         for k in sync_keys:
-                            parinfopl[L][k] = {'value':0, 'fixed':1}
+                            parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
                         if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                             for k in dust_keys:
                                 parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
