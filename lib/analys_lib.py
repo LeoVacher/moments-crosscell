@@ -142,7 +142,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 
                 elif kw == 'ds_o1bt':
                     dust_keys = list(keys)[6:-2]
-                    if all(adaptafix(res0[k][L]) == 1 for k in dust_keys)):
+                    if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                         for k in dust_keys:
                             parinfopl[L][k] = {'value':0, 'fixed':1}
 
@@ -151,10 +151,10 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     dust_keys.append(list(keys)[13:15])
                     sync_keys = list(keys[11:13])
                     sync_keys.append(list(keys)[15:-2])
-                    if all(adaptafix(res0[k][L]) == 1 for k in sync_keys)):
+                    if all(adaptafix(res0[k][L]) == 1 for k in sync_keys):
                         for k in sync_keys:
                             parinfopl[L][k] = {'value':0, 'fixed':1}
-                        if all(adaptafix(res0[k][L]) == 1 for k in dust_keys)):
+                        if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                             for k in dust_keys:
                                 parinfopl[L][k] = {'value':0, 'fixed':1}
 
