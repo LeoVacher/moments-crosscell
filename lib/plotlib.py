@@ -279,13 +279,13 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     plt.close()
 
     if plot_contours:
-        param_names = list(resi.keys())[:-1]
         nameo0 = {'A_d':"A_d",'beta_d':"\\beta_d",'T_d':"T_d",'beta_s':"\\beta_s",'A_s':"A_s",'A_sd':"A_{sd}",'r':'r'}
-        param_names = [nameo0.get(name, name) for name in param_names]
         for ell in range(len(l)):
             samples = []
 
             for i, resi in enumerate(res):
+                param_names = list(resi.keys())[:-1]
+                param_names = [nameo0.get(name, name) for name in param_names]
                 data = np.column_stack([resi[key][ell] for key in list(resi.keys())[:-1]]) 
                 samples.append(MCSamples(samples=data, names=param_names, labels=param_names))
 
