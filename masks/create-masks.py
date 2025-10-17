@@ -19,6 +19,7 @@ except:
     url = "http://pla.esac.esa.int/pla/aio/product-action?MAP.MAP_ID=HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
     output_file = "./masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
     urllib.request.urlretrieve(url, output_file)
+    maskgal =hp.read_map("./masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits", field=field)
 
 maskgal = hp.ud_grade(maskgal*1.,nside_out=nside)
 maskgal[maskgal<0.5] = 0
