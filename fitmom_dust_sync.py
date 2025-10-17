@@ -114,14 +114,17 @@ DLdc = DLdc[:N,:,:Nell]
 
 if pivot_o0:
     try:
-        o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+        if cov_type == 'sim':
+            o0 = np.load('best_fits/results_d%ss%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,'0','0'),allow_pickle=True).item()
+        else:
+            o0 = np.load('best_fits/results_d%ss%s_%s_%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,cov_type,'0','0'),allow_pickle=True).item()
     except:
         if cov_type == 'sim':
             Linvdc0 = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
         else:
             Linvdc0 = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
         p0 = [np.abs(DLdc[0,-1]), 1.5, 20, np.abs(DLdc[0,0]), -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
+        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
     betabar = np.mean(o0['beta_d'])
     tempbar = np.mean(o0['T_d'])
     betasbar = np.mean(o0['beta_s'])
