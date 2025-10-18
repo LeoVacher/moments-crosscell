@@ -138,7 +138,7 @@ def masks_GWD(map_for_dust_mask,
           per_cent_to_keep = 85, 
           smooth_mask_deg = 2, 
           apo_mask_deg = 2, 
-          verbose=True):
+          verbose=False):
     #Gilles W.D. code for mask
     # smooth it 2°
     P_dust_smoothed = hp.smoothing(map_for_dust_mask, fwhm=np.radians(smooth_mask_deg)) ; del map_for_dust_mask
