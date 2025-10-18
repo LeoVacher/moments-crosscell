@@ -77,6 +77,7 @@ else:
         mask=np.ones(Npix)
     else:
         mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+        hp.write_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale),mask)
 
 #Initialise workspace:
 
