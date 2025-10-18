@@ -22,13 +22,13 @@ N = 250  #number of sims
 lmax = nside*3-1 #maximum multipole
 scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
-fsky = 0.8 #fraction of sky for the raw mask
+fsky = 0.5 #fraction of sky for the raw mask
 dusttype = 1 #Pysm dust model
 synctype = 1 #Pysm syncrotron model
 kws = '' #keyword for the simulation
-load=True #load previous sims 
-masking_strat='' #keywords for choice of mask. If '', use Planck mask 
-gaussbeam = True #smooth with gaussian beam?
+load=False #load previous sims 
+masking_strat='GWD' #keywords for choice of mask. If '', use Planck mask 
+gaussbeam = False #smooth with gaussian beam?
 
 if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
     kws = kws + '_maskGWD'
@@ -72,12 +72,12 @@ if masking_strat=='maskGWD':
           gaussbeam_mask_deg = 2, 
           apo_mask_deg = scale, 
           verbose=False)
+    hp.write_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale),mask)
 else:
     if fsky==1:
         mask=np.ones(Npix)
     else:
         mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
-        hp.write_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale),mask)
 
 #Initialise workspace:
 
