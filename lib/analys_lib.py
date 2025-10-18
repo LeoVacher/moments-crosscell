@@ -132,7 +132,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)  
         
         if adaptative:
-            kwf += '_adaptative'
             res0 = np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys = np.array(list(res0.keys()))
 
@@ -155,6 +154,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                         if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                             for k in dust_keys:
                                 parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
+
+            kwf += '_adaptative'
 
         #for parallel:
         if parallel:
