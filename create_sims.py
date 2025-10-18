@@ -66,7 +66,7 @@ CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 
 #mask
 
-if masking_strat=='maskGWD':
+if masking_strat=='GWD':
     mask = masks_WGD(abs(mapfg[-1,1]+1j*mapfg[-1,2]), 
           per_cent_to_keep = fsky*100, 
           gaussbeam_mask_deg = 2, 
