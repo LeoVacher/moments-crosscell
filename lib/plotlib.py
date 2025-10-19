@@ -220,7 +220,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     
     if adaptative_pivot == False:
         mom_an.pop('beta_d', None)
-        mom_an.pop('T_s', None)
+        mom_an.pop('T_d', None)
         mom_an.pop('beta_s', None)
 
     # Remove failed fits
