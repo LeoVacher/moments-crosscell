@@ -30,7 +30,11 @@ synctype = 4
 kw=''
 use_nmt=True
 mode_cov='BB'
+masking_strat = ''
 gaussbeam = True
+
+if masking_strat == 'GWD':
+     kw += '_maskGWD'
 
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
@@ -56,7 +60,10 @@ if gaussbeam:
 	for i in range(N_freqs):
     		Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
 
-mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+if masking_strat == 'GWD':
+     mask = hp.read_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+else:
+    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 fsky_eff = np.mean(mask**2)
 
 #signal

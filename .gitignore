@@ -320,3 +320,6 @@ masks/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
 *.pyc
 /notebook-plots
 /test-sim-cov
+
+# Numpy data files
+*.npy
