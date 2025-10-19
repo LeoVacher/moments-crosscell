@@ -199,7 +199,7 @@ def plothist(label,res,colors='darkblue',r=0):
         ax.axvline(r, 0, 1, color = 'black', linestyle = "--",linewidth=3,zorder=1)
 
 
-def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.54,tempbar=20.,betasbar=-3.,adaptative_pivot=False):
+def plotrespdf(l, res, legs, colors, mom_an=None, plot_contours=False, betadbar=1.54, tempbar=20., betasbar=-3., ell_pivot=False):
     """
     Generate a PDF with plots for all quantities of interest.
     :param l: Bandpower array
@@ -218,7 +218,7 @@ def plotrespdf(l, res, legs, colors,mom_an=None,plot_contours=False,betadbar=1.5
     # Check if all dictionaries have only common keys
     only_common_keys = all(len(resi.keys() - common_keys) == 0 for resi in res)
     
-    if adaptative_pivot == False:
+    if ell_pivot == False:
         mom_an.pop('beta_d', None)
         mom_an.pop('T_d', None)
         mom_an.pop('beta_s', None)

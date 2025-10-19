@@ -339,7 +339,12 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             else:
                 plot_contours=True
             print('Plotting the results ...')
-            plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'],mom_an,plot_contours=plot_contours,betadbar=betabar,tempbar=tempbar,betasbar=betasbar)
+            ell_pivot_kw = False # theoretical pivot not dependent of ell
+            if iterate:
+                ell_pivot_kw = True # theoretical pivot dependent of ell if computed iteratively
+            if fix==0:
+                ell_pivot_kw = True # theoretical pivot dependent of ell if fitted in fix=0
+            plib.plotrespdf(l[:Nell],[results],['%s-%s'%(kwsave,kwf)],['darkorange'],mom_an,plot_contours=plot_contours,betadbar=betabar,tempbar=tempbar,betasbar=betasbar,ell_pivot=ell_pivot_kw)
             if all_ell:
                 plib.plotr_hist(results,color='darkorange',save=True,kwsave='%s%s'%(kwsave,kwf))
             else:
