@@ -35,8 +35,8 @@ beam = instr['beams']
 Nfreqs = len(freq)
 Ncross = int(Nfreqs*(Nfreqs+1) / 2)
 
-Bls = np.zeros((N_freqs, 3*nside))
-for i in range(N_freqs):
+Bls = np.zeros((Nfreqs, 3*nside))
+for i in range(Nfreqs):
     Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
 
 telescopes = ['LFT', 'MFT', 'HFT']
@@ -57,15 +57,15 @@ if fsky == 1:
 else:
     mask = hp.read_map('./masks/mask_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))
 
-# Initialise workspace
+# Initialize workspace
 
-null = np.zeros((3, Npix))
+null = np.zeros((Nfreqs, 2, Npix))
 wsp = []
 for i in range(Nfreqs):
     for j in range(i, Nfreqs):
             wsp.append(sim.get_wsp(null, null, null, null, mask, b, purify='BB', beam1=Bls[i], beam2=Bls[j]))
 
-# Downgrade simulations and compute cross-spectra
+# Initialize simulations
 
 if load == True:
     DLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity)) 
@@ -85,19 +85,22 @@ else:
     DLcross = np.zeros((N, Ncross, Nell))
 
 for k in trange(k_ini, N):
-    maps_FM = np.zeros((Nfreqs, 3, Npix))
-    maps_HM1 = np.zeros((Nfreqs, 3, Npix))
-    maps_HM2 = np.zeros((Nfreqs, 3, Npix))
+    maps_FM = np.zeros((Nfreqs, 2, Npix))
+    maps_HM1 = np.zeros((Nfreqs, 2, Npix))
+    maps_HM2 = np.zeros((Nfreqs, 2, Npix))
 
+    # Downgrade Q and U maps for each frequency
     for i in range(Nfreqs):
-        FM_i = hp.read_map(path+'%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_full.fits' % (k, bands[i], complexity, k))
-        HM1_i = hp.read_map(path+'%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitA.fits' % (k, bands[i], complexity, k))
-        HM2_i = hp.read_map(path+'%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitB.fits' % (k, bands[i], complexity, k))
+        FM_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_full.fits' % (k, bands[i], complexity, k), field=None)
+        HM1_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitA.fits' % (k, bands[i], complexity, k), field=None)
+        HM2_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitB.fits' % (k, bands[i], complexity, k), field=None)
 
-        maps_FM[i] = sim.downgrade_map(FM_i, nside_in=512, nside_out=nside)
-        maps_HM1[i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)
-        maps_HM2[i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)
+        maps_FM[i] = sim.downgrade_map(FM_i, nside_in=512, nside_out=nside)[1:]
+        maps_HM1[i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)[1:]
+        maps_HM2[i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)[1:]
 
-    DLcross[k] = sim.computecross(maps_FM, maps_FM, maps_HM1, maps_HM2, wsp, mask, Nell, coupled=False, mode='BB', beams=Bls)
+    # Compute cross-spectra
+    DLcross[k] = sim.computecross(maps_FM, maps_FM, maps_HM1, maps_HM2, wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
+    # Save
     np.save('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity), DLcross)
