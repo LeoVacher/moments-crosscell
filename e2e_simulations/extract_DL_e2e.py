@@ -84,7 +84,7 @@ else:
     k_ini = 0
     DLcross = np.zeros((N, Ncross, Nell))
 
-for k in range(k_ini, N):
+for k in trange(k_ini, N):
     maps_FM = np.zeros((Nfreqs, 3, Npix))
     maps_HM1 = np.zeros((Nfreqs, 3, Npix))
     maps_HM2 = np.zeros((Nfreqs, 3, Npix))
