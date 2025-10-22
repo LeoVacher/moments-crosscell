@@ -5,12 +5,14 @@ import numpy as np
 freq_LB_full=np.array([40,50,60,68,68,78,78,89,89,100,119,140,100,119,140,166,195,195,235,280,337,402])
 sens_P_LB_full =np.array([37.42, 33.46, 21.31, 19.91, 31.77, 15.55, 19.13,12.28,28.77, 10.34,7.69,7.25,8.48,5.70,6.38, 5.57, 7.05, 10.50, 10.79, 13.80, 21.95, 47.45])
 beam_LB_full = np.array([70.5, 58.5, 51.1, 41.6, 47.1, 36.9, 43.8, 33, 41.5, 30.2, 26.3, 23.7, 37.8, 33.6, 30.8, 28.9, 28.0, 28.6, 24.7, 22.5, 20.9, 17.9]) / 60 * np.pi/180
+bandwidth_LB_full = np.array([12, 15, 14, 16, 16, 18, 18, 20, 20, 23, 36, 42, 23, 36, 42, 50, 59, 59, 71, 84, 101, 92])
 
 litebird = {
         'frequencies': freq_LB_full,
         'sens_I': sens_P_LB_full /1.41,
         'sens_P': sens_P_LB_full,
         'beams': beam_LB_full,
+        'bandwidths': bandwidth_LB_full,
         'add_noise': False,
         'noise_seed': int(np.random.uniform()),
         'use_bandpass': False,

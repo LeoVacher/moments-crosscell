@@ -29,6 +29,8 @@ kws = '' #keyword for the simulation
 load=False #load previous sims 
 masking_strat='GWD' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = False #smooth with gaussian beam?
+bandpass = False #integrate on bandpass assuming top-hat functions
+Ngrid = 100 #number of points on bandpass grid
 path = './' #path for saving sims. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 
 if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
@@ -55,6 +57,14 @@ if gaussbeam:
          Bls[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[2]
 else:
     Bls = None
+
+if bandpass:
+    kws += '_bandpass'
+    bw = instr['bandwidths']
+    freq_grids = np.zeros((N_freqs, Ngrid))
+    for i in range(N_freqs):
+        freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
+    freq = freq_grids
 
 #call foreground sky
 

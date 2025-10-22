@@ -32,6 +32,8 @@ use_nmt=True
 mode_cov='BB'
 masking_strat = ''
 gaussbeam = True
+bandpass = False
+Ngrid = 100
 path = './'
 
 if masking_strat == 'GWD':
@@ -56,16 +58,24 @@ sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 Bls_EE = np.ones((N_freqs, 3*nside))
 Bls_BB = np.ones((N_freqs, 3*nside))
 
-if gaussbeam:
-	kw += '_gaussbeam'
-	for i in range(N_freqs):
-    		Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
-
 if masking_strat == 'GWD':
      mask = hp.read_map(path+"masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 else:
     mask = hp.read_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 fsky_eff = np.mean(mask**2)
+
+if gaussbeam:
+	kw += '_gaussbeam'
+	for i in range(N_freqs):
+    		Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
+
+if bandpass:
+    kw += '_bandpass'
+    bw = instr['bandwidths']
+    freq_grids = np.zeros((N_freqs, Ngrid))
+    for i in range(N_freqs):
+        freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
+    freq = freq_grids
 
 #signal
 
