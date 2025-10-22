@@ -19,6 +19,7 @@ complexity = 'baseline' # Sky complexity. Should be 'baseline', 'medium_complexi
 load = False # Load previous sims 
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 load_maps = False # Load already downgraded maps stored in path
+save_maps = True # Save downgraded maps in path
 
 Npix = hp.nside2npix(nside) # Number of pixels
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=Nlbin, is_Dell=True) # Binning scheme for the cross-spectra
@@ -86,15 +87,18 @@ else:
     k_ini = 0
     DLcross = np.zeros((N, Ncross, Nell))
 
+k_downgrade = 0
 if load_maps:
     maps = np.load(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity))
+    while np.any(maps[k_downgrade] != 0):
+        k_downgrade += 1
 else:
     maps = np.zeros((N, 3, Nfreqs, 2, Npix))
 
 # Compute simulations
 
 for k in trange(k_ini, N):
-    if not load_maps:
+    if k >= k_downgrade:
         # Downgrade Q and U maps for each frequency
         for i in range(Nfreqs):
             FM_i = hp.read_map(Pathload+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_full.fits' % (k, bands[i], complexity, k), field=None)
@@ -105,7 +109,8 @@ for k in trange(k_ini, N):
             maps[k,1,i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)[1:]
             maps[k,2,i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)[1:]
 
-        np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
+        if save_maps:
+            np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
 
     # Compute cross-spectra
     DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,1], maps[k,2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
