@@ -17,12 +17,14 @@ Nlbin = 10 # Binning scheme of the Cls
 fsky = 0.7 # Fraction of sky for the raw mask
 complexity = 'baseline' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
 load = False # Load previous sims 
+path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
+load_maps = False # Load already downgraded maps stored in path
 
 Npix = hp.nside2npix(nside) # Number of pixels
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=Nlbin, is_Dell=True) # Binning scheme for the cross-spectra
 leff = b.get_effective_ells()
 Nell = len(leff)
-path = '/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s' % (complexity) # Path to the simulations on the NERSC
+Pathload = '/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s' % (complexity) # Path to the simulations on the NERSC
 
 # Load instrument
 
@@ -55,7 +57,7 @@ for t in telescopes:
 if fsky == 1:
     mask = np.ones(Npix)
 else:
-    mask = hp.read_map('./masks/mask_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))
+    mask = hp.read_map(path+'masks/mask_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))
 
 # Initialize workspace
 
@@ -67,8 +69,8 @@ for i in range(Nfreqs):
 
 # Initialize simulations
 
-if load == True:
-    DLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity)) 
+if load:
+    DLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity)) 
     k_ini = np.argwhere(DLcross == 0)[0,0]
 
     if k_ini == N:
@@ -84,23 +86,28 @@ else:
     k_ini = 0
     DLcross = np.zeros((N, Ncross, Nell))
 
+if load_maps:
+    maps = np.load(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity))
+else:
+    maps = np.zeros((N, 3, Nfreqs, 2, Npix))
+
+# Compute simulations
+
 for k in trange(k_ini, N):
-    maps_FM = np.zeros((Nfreqs, 2, Npix))
-    maps_HM1 = np.zeros((Nfreqs, 2, Npix))
-    maps_HM2 = np.zeros((Nfreqs, 2, Npix))
-
-    # Downgrade Q and U maps for each frequency
-    for i in range(Nfreqs):
-        FM_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_full.fits' % (k, bands[i], complexity, k), field=None)
-        HM1_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitA.fits' % (k, bands[i], complexity, k), field=None)
-        HM2_i = hp.read_map(path+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitB.fits' % (k, bands[i], complexity, k), field=None)
-
-        maps_FM[i] = sim.downgrade_map(FM_i, nside_in=512, nside_out=nside)[1:]
-        maps_HM1[i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)[1:]
-        maps_HM2[i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)[1:]
+    if not load_maps:
+        # Downgrade Q and U maps for each frequency
+        for i in range(Nfreqs):
+            FM_i = hp.read_map(Pathload+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_full.fits' % (k, bands[i], complexity, k), field=None)
+            HM1_i = hp.read_map(Pathload+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitA.fits' % (k, bands[i], complexity, k), field=None)
+            HM2_i = hp.read_map(Pathload+'/%04d/coadd_maps_LB_%s_cmb_e2e_sims_fg_%s_wn_1f_binned_030mHz_%04d_splitB.fits' % (k, bands[i], complexity, k), field=None)
+        
+            maps[k,0,i] = sim.downgrade_map(FM_i, nside_in=512, nside_out=nside)[1:]
+            maps[k,1,i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)[1:]
+            maps[k,2,i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)[1:]
 
     # Compute cross-spectra
-    DLcross[k] = sim.computecross(maps_FM, maps_FM, maps_HM1, maps_HM2, wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
+    DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,1], maps[k,2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     # Save
-    np.save('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity), DLcross)
+    np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
+    np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity), DLcross)

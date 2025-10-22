@@ -29,6 +29,7 @@ kws = '' #keyword for the simulation
 load=False #load previous sims 
 masking_strat='GWD' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = False #smooth with gaussian beam?
+path = './' #path for saving sims. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 
 if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
     kws = kws + '_maskGWD'
@@ -61,7 +62,7 @@ mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
 
 # call cmb
 
-CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 
 
 #mask
@@ -72,12 +73,12 @@ if masking_strat=='GWD':
           smooth_mask_deg = 2, 
           apo_mask_deg = scale, 
           verbose=False)
-    hp.write_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale),mask)
+    hp.write_map(path+"masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale),mask)
 else:
     if fsky==1:
         mask=np.ones(Npix)
     else:
-        mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+        mask = hp.read_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
 #Initialise workspace:
 
@@ -94,9 +95,9 @@ else:
 if load == True:
     # TO DO: ADD here load options for all cases (dust=None...) 
     if synctype == None:
-        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,kws))
+        CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,kws))
     else:
-        CLcross = np.load('./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype,kws))  
+        CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype,kws))  
     kini=np.argwhere(CLcross == 0)[0,0]
     if kini ==N:
         print("All sims already computed and saved")
@@ -140,22 +141,22 @@ for k in tqdm(range(kini,N)):
     #save:
     if synctype==None and dusttype==None:
         if r == 0:
-            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kws,CLcross)
+            np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kws,CLcross)
         else :
-            np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin)+kws,CLcross)
+            np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin)+kws,CLcross)
     elif synctype==None:
     	if r == 0:
-    		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
+    		np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
     	else :
-    		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
+    		np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
     elif dusttype==None:
         if r == 0:
-            np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
+            np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
         else :
-            np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
+            np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
     elif synctype!=None and dusttype!=None:
     	if r == 0:
-    		np.save("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+    		np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
     	else :
-    		np.save("./power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+    		np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
 

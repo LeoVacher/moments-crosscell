@@ -9,6 +9,7 @@ import urllib.request
 fsky=0.99
 scale=10
 nside=64
+path = './' #path for saving mask. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 
 fskylist=np.array([0.2,0.4,0.6,0.7,0.8,0.9,0.97,0.99])
 field= list(np.where(fskylist==fsky)[0])
@@ -28,4 +29,4 @@ maskgalapo = nmt.mask_apodization(maskgal*1., scale, apotype='C2')
 
 hp.mollview(maskgalapo)
 
-hp.write_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale), maskgalapo, dtype=float, overwrite=True)
+hp.write_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale), maskgalapo, dtype=float, overwrite=True)

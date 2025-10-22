@@ -32,6 +32,7 @@ use_nmt=True
 mode_cov='BB'
 masking_strat = ''
 gaussbeam = True
+path = './'
 
 if masking_strat == 'GWD':
      kw += '_maskGWD'
@@ -61,15 +62,15 @@ if gaussbeam:
     		Bls_EE[i], Bls_BB[i] = hp.gauss_beam(beam[i], lmax=3*nside-1, pol=True).T[1:3]
 
 if masking_strat == 'GWD':
-     mask = hp.read_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+     mask = hp.read_map(path+"masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 else:
-    mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+    mask = hp.read_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 fsky_eff = np.mean(mask**2)
 
 #signal
 
 if use_nmt == False:
-    DLdc = np.load("./power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy')
+    DLdc = np.load(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy')
 
 #foreground
 
@@ -108,7 +109,7 @@ Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
-CLcmb_or = hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
 CL_lens_EE = CLcmb_or[1,:nside*3]
 CL_lens_BB = CLcmb_or[2,:nside*3]
 
@@ -127,10 +128,10 @@ if use_nmt==True:
     cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', output=mode_cov, progress=True)
 
 if use_nmt==False:
-    np.save('./covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-    np.save('./covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
-    np.save('./covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    np.save(path+'covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+    np.save(path+'covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
+    np.save(path+'covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
 
 if use_nmt==True:
-    np.save('./covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-    np.save('./covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+    np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
