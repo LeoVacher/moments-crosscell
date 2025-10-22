@@ -105,9 +105,10 @@ for k in trange(k_ini, N):
             maps[k,1,i] = sim.downgrade_map(HM1_i, nside_in=512, nside_out=nside)[1:]
             maps[k,2,i] = sim.downgrade_map(HM2_i, nside_in=512, nside_out=nside)[1:]
 
+        np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
+
     # Compute cross-spectra
     DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,1], maps[k,2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     # Save
-    np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
     np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity), DLcross)
