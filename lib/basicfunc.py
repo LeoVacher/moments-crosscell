@@ -59,9 +59,9 @@ def unit_conversion(nu, input_unit, output_unit):
     nu : float or np.array
         Frequencies for which conversion factors should be computed in GHz.
     input_unit : string
-        Unit from which conversion factors should be computed. Can be 'MJy_sr', 'uK_RJ' or 'uK_CMB'.
+        Unit from which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
     output_unit : string
-        Unit to which conversion factors should be computed. Can be 'MJy_sr', 'uK_RJ' or 'uK_CMB'.
+        Unit to which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
 
     Returns
     -------
@@ -76,7 +76,7 @@ def unit_conversion(nu, input_unit, output_unit):
         elif output_unit == 'uK_RJ':
             return 1 / uK_RJ_to_uK_CMB(nu)
         
-        elif output_unit == 'MJy_sr':
+        elif output_unit == 'MJy/sr':
             return uK_RJ_to_MJy_sr(nu) / uK_RJ_to_uK_CMB(nu)
         
         else:
@@ -89,20 +89,20 @@ def unit_conversion(nu, input_unit, output_unit):
         elif output_unit == 'uK_RJ':
             return np.ones_like(nu)
         
-        elif output_unit == 'MJy_sr':
+        elif output_unit == 'MJy/sr':
             return uK_RJ_to_MJy_sr(nu)
         
         else:
             raise ValueError('Incorrect output unit')
             
-    elif input_unit == 'MJy_sr':
+    elif input_unit == 'MJy/sr':
         if output_unit == 'uK_CMB':
             return uK_RJ_to_uK_CMB(nu) / uK_RJ_to_MJy_sr(nu)
         
         elif output_unit == 'uK_RJ':
             return 1 / uK_RJ_to_MJy_sr(nu)
         
-        elif output_unit == 'MJy_sr':
+        elif output_unit == 'MJy/sr':
             return np.ones_like(nu)
         
         else:
@@ -110,6 +110,38 @@ def unit_conversion(nu, input_unit, output_unit):
     
     else:
         raise ValueError('Incorrect input unit')
+
+def bandpass_unit_conversion(nu, input_unit, output_unit):
+    """
+    Compute factors to convert brightness from input_unit to output_unit for all input frequencies assuming top-hat bandpasses if needed.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequency bands for which conversion factors should be computed in GHz.
+    input_unit : string
+        Unit from which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+    output_unit : string
+        Unit to which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequency bands.
+    """
+    if nu.ndim == 1:
+        factors = unit_conversion(nu, input_unit, output_unit)
+    
+    else:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        weights_to_in = unit_conversion(nu, 'MJy/sr', input_unit)
+        weights_to_out = unit_conversion(nu, 'MJy/sr', output_unit)
+        factors = np.trapezoid(weights_to_out, nu) / np.trapezoid(weights_to_in, nu)
+
+    return factors
 
 #FONCTIONS
 
@@ -157,7 +189,16 @@ def mbb_uK(nu,beta,b_T,nu0=353.):
     :return: float -- modified black body brightness.
 
     """    
-    return (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * unit_conversion(nu, 'MJy_sr', 'uK_CMB') / unit_conversion(nu0, 'MJy_sr', 'uK_CMB')
+    S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T))
+    
+    if nu.ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / bandpass_unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def PL_uK(nu,beta,nu0=23.):
     """Power law.
@@ -169,22 +210,62 @@ def PL_uK(nu,beta,nu0=23.):
     :return: float -- power law brightness.
 
     """    
-    return unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB') * (nu/nu0)**beta
+    S_nu = (nu/nu0)**beta
+
+    if nu.ndim == 1:
+        return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / bandpass_unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
+    
+    else:
+        S_nu *= unit_conversion(nu, 'uK_RJ', 'MJy/sr') / unit_conversion(nu0, 'uK_RJ', 'MJy/sr')
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+        return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / bandpass_unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def dmbbT(nu,T):
     '''first order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    return (x/T)*np.exp(x)/np.expm1(x)
+    dS_nu = (x/T)*np.exp(x)/np.expm1(x)
+
+    if nu.ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        dS_nu = np.trapezoid(dS_nu * weights, nu)
+
+    return dS_nu
 
 def dmbb_bT(nu,p):
     '''first order derivative of black body with respect to 1/T '''
     x = const.h.value*nu*1.e9/const.k_B.value
-    return -x*np.exp(x*p)/np.expm1(x*p)
+    dS_nu = -x*np.exp(x*p)/np.expm1(x*p)
+
+    if nu.ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        dS_nu = np.trapezoid(dS_nu * weights, nu)
+
+    return dS_nu
 
 def ddmbbT(nu,T):
     '''second order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    return (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
+    d2S_nu = (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
+
+    if nu.ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        d2S_nu = np.trapezoid(d2S_nu * weights, nu)
+
+    return d2S_nu
 
 def d3mbbT(nu,T):
     '''third order derivative of black body with respect to T '''
@@ -192,7 +273,16 @@ def d3mbbT(nu,T):
     theta = (x/T)*np.exp(x)/np.expm1(x)
     TR2= x*np.tanh(x/2)-2
     TR3= x**2*(np.cosh(x)+2)/(np.cosh(x)-1)
-    return theta*(TR3+ 6*(1+TR2))/T/T
+    d3S_nu = theta*(TR3+ 6*(1+TR2))/T/T
+
+    if nu.ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        d3S_nu = np.trapezoid(d3S_nu * weights, nu)
+
+    return d3S_nu
     
 def Gaussian(x,mu,sigma):
     '''gaussian curve '''
