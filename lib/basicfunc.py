@@ -129,7 +129,8 @@ def bandpass_unit_conversion(nu, input_unit, output_unit):
     float or np.array
         Conversion factors for all input frequency bands.
     """
-    if nu.ndim == 1:
+    
+    if np.array(nu).ndim == 1:
         factors = unit_conversion(nu, input_unit, output_unit)
     
     else:
@@ -191,14 +192,14 @@ def mbb_uK(nu,beta,b_T,nu0=353.):
     """    
     S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T))
     
-    if nu.ndim == 2:
+    if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
         weights /= np.tile(bw, [Ngrid,1]).T
         S_nu = np.trapezoid(S_nu * weights, nu)
 
-    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / bandpass_unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def PL_uK(nu,beta,nu0=23.):
     """Power law.
@@ -212,8 +213,8 @@ def PL_uK(nu,beta,nu0=23.):
     """    
     S_nu = (nu/nu0)**beta
 
-    if nu.ndim == 1:
-        return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / bandpass_unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
+    if np.array(nu).ndim == 1:
+        return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
     
     else:
         S_nu *= unit_conversion(nu, 'uK_RJ', 'MJy/sr') / unit_conversion(nu0, 'uK_RJ', 'MJy/sr')
@@ -223,14 +224,14 @@ def PL_uK(nu,beta,nu0=23.):
         weights /= np.tile(bw, [Ngrid,1]).T
         S_nu = np.trapezoid(S_nu * weights, nu)
 
-        return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / bandpass_unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
+        return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def dmbbT(nu,T):
     '''first order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
     dS_nu = (x/T)*np.exp(x)/np.expm1(x)
 
-    if nu.ndim == 2:
+    if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
@@ -244,7 +245,7 @@ def dmbb_bT(nu,p):
     x = const.h.value*nu*1.e9/const.k_B.value
     dS_nu = -x*np.exp(x*p)/np.expm1(x*p)
 
-    if nu.ndim == 2:
+    if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
@@ -258,7 +259,7 @@ def ddmbbT(nu,T):
     x = const.h.value*nu*1.e9/const.k_B.value/T
     d2S_nu = (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
 
-    if nu.ndim == 2:
+    if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
@@ -275,7 +276,7 @@ def d3mbbT(nu,T):
     TR3= x**2*(np.cosh(x)+2)/(np.cosh(x)-1)
     d3S_nu = theta*(TR3+ 6*(1+TR2))/T/T
 
-    if nu.ndim == 2:
+    if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)

@@ -1,53 +1,205 @@
 from astropy import constants as const
-#import scipy.constants as constants
 import numpy as np
 import healpy as hp
 import pysm3.units as u
-import pysm_common as psm 
+import sympy as sym
+import scipy.constants as constants
+from astropy.cosmology import Planck18 as cosmo
+
+# Convert units
+
+def uK_RJ_to_MJy_sr(nu):
+    """
+    Compute factors to convert brightness from uK_RJ to MJy/sr for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    k = const.k_B.value
+    c = const.c.value
+    
+    return 2*k * (nu*1e9 / c)**2 * 1e11
+
+def uK_RJ_to_uK_CMB(nu):
+    """
+    Compute factors to convert brightness from uK_RJ to uK_CMB for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    h = const.h.value
+    k = const.k_B.value
+    Tcmb = cosmo.Tcmb0.value
+    
+    x = h*nu*1e9 / (k*Tcmb)
+    return (np.exp(x) - 1)**2 / (x**2 * np.exp(x))
+
+def unit_conversion(nu, input_unit, output_unit):
+    """
+    Compute factors to convert brightness from input_unit to output_unit for all input frequencies.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequencies for which conversion factors should be computed in GHz.
+    input_unit : string
+        Unit from which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+    output_unit : string
+        Unit to which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequencies.
+
+    """
+    if input_unit == 'uK_CMB':
+        if output_unit == 'uK_CMB':
+            return np.ones_like(nu)
+        
+        elif output_unit == 'uK_RJ':
+            return 1 / uK_RJ_to_uK_CMB(nu)
+        
+        elif output_unit == 'MJy/sr':
+            return uK_RJ_to_MJy_sr(nu) / uK_RJ_to_uK_CMB(nu)
+        
+        else:
+            raise ValueError('Incorrect output unit')
+            
+    elif input_unit == 'uK_RJ':
+        if output_unit == 'uK_CMB':
+            return uK_RJ_to_uK_CMB(nu)
+        
+        elif output_unit == 'uK_RJ':
+            return np.ones_like(nu)
+        
+        elif output_unit == 'MJy/sr':
+            return uK_RJ_to_MJy_sr(nu)
+        
+        else:
+            raise ValueError('Incorrect output unit')
+            
+    elif input_unit == 'MJy/sr':
+        if output_unit == 'uK_CMB':
+            return uK_RJ_to_uK_CMB(nu) / uK_RJ_to_MJy_sr(nu)
+        
+        elif output_unit == 'uK_RJ':
+            return 1 / uK_RJ_to_MJy_sr(nu)
+        
+        elif output_unit == 'MJy/sr':
+            return np.ones_like(nu)
+        
+        else:
+            raise ValueError('Incorrect output unit')
+    
+    else:
+        raise ValueError('Incorrect input unit')
+
+def bandpass_unit_conversion(nu, input_unit, output_unit):
+    """
+    Compute factors to convert brightness from input_unit to output_unit for all input frequencies assuming top-hat bandpasses if needed.
+
+    Parameters
+    ----------
+    nu : float or np.array
+        Frequency bands for which conversion factors should be computed in GHz.
+    input_unit : string
+        Unit from which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+    output_unit : string
+        Unit to which conversion factors should be computed. Can be 'MJy/sr', 'uK_RJ' or 'uK_CMB'.
+
+    Returns
+    -------
+    float or np.array
+        Conversion factors for all input frequency bands.
+    """
+    
+    if np.array(nu).ndim == 1:
+        factors = unit_conversion(nu, input_unit, output_unit)
+    
+    else:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        weights_to_in = unit_conversion(nu, 'MJy/sr', input_unit)
+        weights_to_out = unit_conversion(nu, 'MJy/sr', output_unit)
+        factors = np.trapezoid(weights_to_out, nu) / np.trapezoid(weights_to_in, nu)
+
+    return factors
 
 #FONCTIONS
 
-def B(nu, T):
-    """Planck function.
+def B(nu,b_T):
+    """
+    Planck function.
+
+    Parameters
+    ----------
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float.
     :return: float -- black body brightness.
 
     """
-    x = const.h.value*nu*1.e9/const.k_B.value/T
+    x = const.h.value*nu*1.e9*b_T/const.k_B.value
     return 2.*const.h.value *(nu *1.e9)**3/ const.c.value**2/np.expm1(x)
 
-def mbb(nu,beta,T):
+def mbb(nu,beta,b_T):
     """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
     :param beta: spectral index of the emissivity
     :type beta: float    
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float.
     :return: float -- modified black body brightness.
 
     """    
-    return B(nu,T)*(1e9*nu)**beta
+    return B(nu,b_T)*(1e9*nu)**beta
 
 
-def mbb_uK(nu,beta,T,nu0=353.):
+def mbb_uK(nu,beta,b_T,nu0=353.):
     """Modified black body.
 
     :param nu: frequency in GHz at which to evaluate planck function.
     :type nu: float.
     :param beta: spectral index of the emissivity
     :type beta: float    
-    :param T: temperature of black body in Kelvins.
-    :type T: float.
+    :param b_T: inverse temperature (coldness, 1/T) of black body in Kelvins^(-1).
+    :type b_T: float..
     :return: float -- modified black body brightness.
 
     """    
-    return (mbb(nu,beta,T)/mbb(nu0,beta,T))*psm.convert_units('MJysr','uK_CMB',nu)/psm.convert_units('MJysr','uK_CMB',nu0)
+    S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T))
+    
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def PL_uK(nu,beta,nu0=23.):
     """Power law.
@@ -59,25 +211,82 @@ def PL_uK(nu,beta,nu0=23.):
     :return: float -- power law brightness.
 
     """    
-    return psm.convert_units('uK_RJ','uK_CMB',nu)/psm.convert_units('uK_RJ','uK_CMB',nu0)*(nu/nu0)**beta
+    S_nu = (nu/nu0)**beta
 
+    if np.array(nu).ndim == 1:
+        return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
+    
+    else:
+        S_nu *= unit_conversion(nu, 'uK_RJ', 'MJy/sr') / unit_conversion(nu0, 'uK_RJ', 'MJy/sr')
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+        return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
 def dmbbT(nu,T):
+    '''first order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    return (x/T)*np.exp(x)/np.expm1(x)
+    dS_nu = (x/T)*np.exp(x)/np.expm1(x)
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        dS_nu = np.trapezoid(dS_nu * weights, nu)
+
+    return dS_nu
+
+def dmbb_bT(nu,p):
+    '''first order derivative of black body with respect to 1/T '''
+    x = const.h.value*nu*1.e9/const.k_B.value
+    dS_nu = -x*np.exp(x*p)/np.expm1(x*p)
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        dS_nu = np.trapezoid(dS_nu * weights, nu)
+
+    return dS_nu
 
 def ddmbbT(nu,T):
+    '''second order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    return (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
+    d2S_nu = (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        d2S_nu = np.trapezoid(d2S_nu * weights, nu)
+
+    return d2S_nu
 
 def d3mbbT(nu,T):
+    '''third order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
     theta = (x/T)*np.exp(x)/np.expm1(x)
     TR2= x*np.tanh(x/2)-2
     TR3= x**2*(np.cosh(x)+2)/(np.cosh(x)-1)
-    return theta*(TR3+ 6*(1+TR2))/T/T
+    d3S_nu = theta*(TR3+ 6*(1+TR2))/T/T
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        d3S_nu = np.trapezoid(d3S_nu * weights, nu)
+
+    return d3S_nu
     
 def Gaussian(x,mu,sigma):
+    '''gaussian curve '''
     coeffnorm = 1/(sigma*np.sqrt(2*np.pi))
     coeffexp = ((x-mu)/sigma)**2
     return coeffnorm*np.exp(-coeffexp/2)
@@ -94,156 +303,7 @@ def from_ellnu_to_matrixnunu(DLdcflat,Nf,Nell):
             a = a+1
     return(DLdcmatrix)
 
-def rad2deg(x):
-    return x*180/np.pi
-
-def deg2rad(x):
-    return x*np.pi/180
-
-################################
-# Power spectrum from flat maps
-################################
-
-def _spectral_iso(data_sp, bins=None, sampling=1.0, return_counts=False):
-    """
-    Internal function.
-    Check power_spectrum_iso for documentation details.
-    Parameters
-    ----------
-    data_sp : TYPE
-        DESCRIPTION.
-    bins : TYPE, optional
-        DESCRIPTION. The default is None.
-    sampling : TYPE, optional
-        DESCRIPTION. The default is 1.0.
-    return_coutns : bool, optional
-        Return counts per bin.
-    Returns
-    -------
-    bins : TYPE
-        DESCRIPTION.
-    ps_mean : TYPE
-        DESCRIPTION.
-    ps_std : TYPE
-        DESCRIPTION.
-    counts : array, optional
-        Return counts per bin return_counts=True.
-    """
-    N = data_sp.shape[0]
-    ndim = data_sp.ndim
-    # Build an array of isotropic wavenumbers making use of numpy broadcasting
-    wn = (2 * np.pi * np.fft.fftfreq(N, d=sampling)).reshape((N,) + (1,) * (ndim - 1))
-    wn_iso = np.zeros(data_sp.shape)
-    for i in range(ndim):
-        wn_iso += np.moveaxis(wn, 0, i) ** 2
-    wn_iso = np.sqrt(wn_iso)
-    # We do not need ND-arrays anymore
-    wn_iso = wn_iso.ravel()
-    data_sp = data_sp.ravel()
-    # We compute associations between index and bins
-    if bins is None:
-        bins = np.sort(np.unique(wn_iso)) # Default binning
-    index = np.digitize(wn_iso, bins) - 1
-    # Stacking
-    stacks = np.empty(len(bins), dtype=object)
-    for i in range(len(bins)):
-        stacks[i] = []
-    for i in range(len(index)):
-        if index[i] >= 0:
-            stacks[index[i]].append(data_sp[i])
-    counts = []
-    # Computation for each bin of the mean power spectrum and standard deviations of the mean
-    ps_mean = np.zeros(len(bins), dtype=data_sp.dtype) # Allow complex values (for cross-spectrum)
-    ps_std = np.zeros(len(bins)) # If complex values, note that std first take the modulus
-    for i in range(len(bins)):
-        ps_mean[i] = np.mean(stacks[i])
-        count = len(stacks[i])
-        ps_std[i] = np.std(stacks[i]) / np.sqrt(count)
-        counts.append(count)
-    if return_counts:
-        return bins, ps_mean, ps_std, np.array(counts)
-    else:
-        return bins, ps_mean, ps_std
-
-def power_spectrum_iso(data, data2=None, bins=None, sampling=1.0, norm=None, return_counts=False):
-    """
-    Compute the isotropic power spectrum of input data.
-    bins parameter should be a list of bin edges defining:
-    bins[0] <= bin 0 values < bins[1]
-    bins[1] <= bin 1 values < bins[2]
-                ...
-    bins[N-2] <= bin N-2 values < bins[N-1]
-    bins[N-1] <= bin N-1 values
-    Note that the last bin has no superior limit.
-    Parameters
-    ----------
-    data : array
-        Input data.
-    bins : array, optional
-        Array of bins. If None, we use a default binning which correspond to a full isotropic power spectrum.
-        The default is None.
-    sampling : float, optional
-        Grid size. The default is 1.0.
-    norm : TYPE, optional
-        FFT normalization. Can be None or 'ortho'. The default is None.
-    return_counts: bool, optional
-        Return counts per bin. The default is None
-    Raises
-    ------
-    Exception
-        DESCRIPTION.
-    Returns
-    -------
-    bins : TYPE
-        DESCRIPTION.
-    ps_mean : TYPE
-        DESCRIPTION.
-    ps_std : TYPE
-        DESCRIPTION.
-    counts : array, optional
-        If return_counts=True, counts per bin.
-    """
-    # Check data shape
-    for i in range(data.ndim):
-        if data.shape[i] != data.shape[0]:
-            raise Exception("Input data must be of shape (N, ..., N).")
-    # Compute the full power spectrum of input data
-    if data2 is None:
-        data_ps = power_spectrum(data, norm=norm)
-    else:
-        data_ps = power_spectrum(data, data2=data2, norm=norm)
-    return _spectral_iso(data_ps, bins=bins, sampling=sampling, return_counts=return_counts)
-
-def power_spectrum(data, data2=None, norm=None):
-    """
-    Compute the full power spectrum of input data.
-    Parameters
-    ----------
-    data : array
-        Input data.
-    norm : str
-        FFT normalization. Can be None or 'ortho'. The default is None.
-    Returns
-    -------
-    None.
-    """
-    if data2 is None:
-        result=np.absolute(np.fft.fftn(data, norm=norm))**2
-    else:
-        result=np.real(np.conjugate(np.fft.fftn(data, norm=norm))*np.fft.fftn(data2, norm=norm))
-    return result
-
-
-def binning(ell,arr,bintab):
-
-    ind = np.digitize(ell, bintab)
-    arrbin = np.array([arr[ind == i].mean() for i in range(1, len(bintab))])
-    # ellbin = np.array([ell[ind == i].mean() for i in range(1, len(bintab))])
-
-    return arrbin
-
-
-#Downgrade from dodo
+#Downgrade
 
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
@@ -297,177 +357,7 @@ def MBB_fit(freq,beta,T):
 def dBnu_dT(nu,T):
     return (B(nu,T)*constc/nu/T)**2 / 2 * np.exp(consth*nu*1e9/constk/T) / constk
 
-
-#JONAFUNC AUTOMATIKKK
-
-import sympy as sym
-import scipy.constants as constants
-
-def compute_3Dfrom2D(nside,model,betamap,tempmap,radius=60.,maxborder=3,maxtorder=3,mix='deterministic'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-        templist = tempmap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            np.random.shuffle(templist)
-            # np.random.shuffle(alist)
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari = np.sum(templist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if ((border == 0)  * (torder == 0)) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari)**border*(templist-tempbari)**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar)**border*(templist-tempbar)**torder)/np.sum(alist)
-    return mom
-
-def compute_3Dfrom2D_random_layer(nside,model,betamap,tempmap,radius=60.,maxborder=3,maxtorder=3,nlayer=10,mix='shuffle'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-        templist = tempmap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            np.random.shuffle(templist)
-            np.random.shuffle(alist)
-            np.random.shuffle(alisti)
-
-        alisti = alisti[:nlayer]
-        alist = alist[:nlayer]
-        betalist = betalist[:nlayer]
-        templist = templist[:nlayer]
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari = np.sum(templist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if ((border == 0)  * (torder == 0)) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari)**border*(templist-tempbari)**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar)**border*(templist-tempbar)**torder)/np.sum(alist)
-    return mom
-
-
-def compute_3Dfrom2D_sync(nside,model,betamap,radius=60.,maxborder=3,mix='deterministic'):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,npix],dtype='complex64')
-    dusti = model[0]
-    dustp = model[1] + model[2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        vecpix = hp.pix2vec(nside,ipix)
-        listpix = hp.query_disc(nside,vecpix,radius/60/180*np.pi)
-
-        alisti = dusti[listpix]
-        alist = dustp[listpix]
-        betalist = betamap[listpix]
-
-        if mix == 'shuffle':
-            np.random.shuffle(betalist)
-            # np.random.shuffle(alist)
-
-        betabar = np.real(np.sum(betalist*alist)/np.sum(alist))
-        betabari = np.sum(betalist*alisti)/np.sum(alisti)
-
-        for border in range(maxborder+1):
-            if border == 0:
-                mom[0,0,0,ipix] = 1. 
-                mom[1,0,0,ipix] = 1. 
-        else:
-            mom[0,border,ipix] = np.sum(alisti*(betalist-betabari)**border)/np.sum(alisti)
-            mom[1,border,ipix] = np.sum(alist*(betalist-betabar)**border)/np.sum(alist)
-    return mom
-
-
-def compute_pure3Dmom(nside,model,betamap,tempmap,maxborder=3,maxtorder=3):
-
-    npix = hp.nside2npix(nside)
-
-    mom = np.zeros([2,maxborder+1,maxtorder+1,npix],dtype='complex64')
-    betabar = np.zeros(npix)
-    tempbar = np.zeros(npix)
-    betabari = np.zeros(npix)
-    tempbari= np.zeros(npix) 
-    dusti = model[:,0]
-    dustp = model[:,1] + model[:,2]*1j
-
-    for ipix in range(npix):
-
-        if ipix%1000 == 0: 
-            print("%.1f%%"%(ipix/npix*100))
-
-        listpix = ipix
-
-        alisti = dusti[:,listpix]
-        alist = dustp[:,listpix]
-        betalist = betamap[:,listpix]
-        templist = tempmap[:,listpix]
-
-        betabar[ipix] = np.real(np.sum(betalist*alist)/np.sum(alist))
-        tempbar[ipix] = np.real(np.sum(templist*alist)/np.sum(alist))
-        betabari[ipix] = np.sum(betalist*alisti)/np.sum(alisti)
-        tempbari[ipix] = np.sum(templist*alisti)/np.sum(alisti)
-
-
-        for border in range(maxborder+1):
-            for torder in range(maxtorder+1-border):
-                if (border == 0)  * (torder == 0) == 1:
-                    mom[0,0,0,ipix] = 1. 
-                    mom[1,0,0,ipix] = 1. 
-                else:
-                    mom[0,border,torder,ipix] = np.sum(alisti*(betalist-betabari[ipix])**border*(templist-tempbari[ipix])**torder)/np.sum(alisti)
-                    mom[1,border,torder,ipix] = np.sum(alist*(betalist-betabar[ipix])**border*(templist-tempbar[ipix])**torder)/np.sum(alist)
-    return mom, betabari, betabar, tempbari, tempbar
+#compute automatically moment's SEDs
 
 def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=3,nside_moments=512,mult_factor=1.):
     npix_moments = hp.nside2npix(nside_moments)
@@ -506,54 +396,40 @@ def model_mbb_moments(nside,nu,model,mom,tempmap,nu0=353.,maxborder=3,maxtorder=
     if nside != nside_moments: map3D = hp.ud_grade(map3D,nside)
     return map3D
 
-def model_pl_moments(nside,nu,model,mom,nu0=353.,maxborder=3,nside_moments=512,mult_factor=1.):
-    npix_moments = hp.nside2npix(nside_moments)
-    map3D = np.zeros([3,npix_moments])
+def symbolic_derivative_mbb(order, var):
+    """
+    Compute the analytical derivatives of modified black body function 
+    Parameters:
+        order : int
+            Ordre de la dérivée (1, 2, ...).
+        var : str
+            Variable par rapport à laquelle on dérive ('T', '1/T', ou 'beta').
+    Returns:
+        sympy expression : Dérivée symbolique normalisée du MBB.
+    """
+    nu, T, beta, nu0 = sym.symbols('nu T beta nu0', real=True, positive=True)
+    h, c, k = sym.symbols('h c k', real=True, positive=True)
+    x = h * nu / (k * T)  
+    x0 = h * nu0 / (k * T)  
+    Bnu = (2 * h * nu**3 / c**2) / (sym.exp(x) - 1)
+    Bnu0 = (2 * h * nu0**3 / c**2) / (sym.exp(x0) - 1)
+
+    if var in ['T', '1/T']:
+        I_nu = Bnu / Bnu0
+    elif var == 'beta':
+        I_nu = (nu / nu0)**beta
+    else:
+        raise ValueError("The variable must be 'T', '1/T', or 'beta'.")
+
+    if var == 'T':
+        variable = T
+        derivative = sym.diff(I_nu, variable, order)
+    elif var == '1/T':
+        y = sym.symbols('y', real=True, positive=True)  
+        I_nu_y = I_nu.subs(T, 1 / y)  
+        derivative = sym.diff(I_nu_y, y, order).subs(y, 1 / T)  
+    elif var == 'beta':
+        variable = beta
+        derivative = sym.diff(I_nu, variable, order)
+    return sym.simplify(derivative / I_nu)
     
-    beta = sym.Symbol('ß')
-    
-    nuval = nu * 1e9
-    nu0val = nu0 * 1e9
-    mbb = (nuval / nu0val) ** beta
-    for border in range(maxtorder+1):
-        analyticalmom = sym.diff(mbb,beta,border)*sym.diff(mbb,T,torder).factor()/mbb**2
-        valuemom = float(analyticalmom)
-
-        if border == 0 :
-            modelcomplex = (model[1]+1j*model[2]) * 1./(np.math.factorial(border))*mom[1,border]*valuemom
-            map3D[0] += model[0] * 1./(np.math.factorial(border)*np.math.factorial(torder))*np.real(mom[0,border])*valuemom
-        else:
-            modelcomplex = (model[1]+1j*model[2]) * mult_factor/(np.math.factorial(border))*mom[1,border]*valuemom
-            map3D[0] += model[0] * mult_factor/(np.math.factorial(border))*np.real(mom[0,border])*valuemom
-        map3D[1] += np.real(modelcomplex)
-        map3D[2] += np.imag(modelcomplex)
-    if nside != nside_moments: map3D = hp.ud_grade(map3D,nside)
-    return map3D
-
-def get_mom_function(nu,tempmap,nu0=353.,border=3,torder=3,mult_factor=1.):
-
-    beta = sym.Symbol('ß')
-    T = sym.Symbol('T')
-    
-    nu0val = nu0 * 1e9
-    if type(nu0val)=='int':
-        nu0val = np.array(nu0val)
-    valuemom=[]
-    for f in nu:
-        nuval = f * 1e9
-        Bval = 2*const.h.value*(nuval**3)/const.c.value**2
-        Cval = const.h.value*nuval/const.k_B.value
-        Bval0 = 2*const.h.value*(nu0val**3)/const.c.value**2
-        Cval0 = const.h.value*nu0val/const.k_B.value
-        Bvalratio = Bval/Bval0
-        mbb = ((nuval / nu0val) ** beta) * Bvalratio / (sym.exp(Cval / T) - 1) * (sym.exp(Cval0 / T) - 1)
-        analyticalmom = sym.diff(mbb,beta,border)*sym.diff(mbb,T,torder).factor()/mbb**2
-            
-        if torder == 0:
-            valuemom.append(float(analyticalmom))
-        else:
-            analyticalmom = sym.lambdify(T,analyticalmom,'numpy')
-            valuemom.append(analyticalmom(tempmap))
-    valuemom=np.array(valuemom)/np.math.factorial(border)/np.math.factorial(torder)
-    return valuemom
-
