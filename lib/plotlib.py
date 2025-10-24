@@ -47,6 +47,20 @@ def getr_analytical(results,Nmin=0,Nmax=20):
     rmean = np.sum(mean / sig**2) * rstd**2
     return rmean, rstd
 
+def getX2_analytical(results,Nmin=0,Nmax=20):
+    """
+    return mean X^2 and sigma(X^2) computed analytically across all bins of ell (assuming they are independent).
+    :param results: output of moment fitting
+    :Nmin: minimal bin of ell in which to fit the Gaussians
+    :Nmax: maximal bin of ell in which to fit the Gaussians
+    """
+    X2red = results['X2red'][Nmin:Nmax]
+    sig = np.std(X2red, axis=1)
+    mean = np.mean(X2red, axis=1)
+    Xstd = 1 / np.sqrt(np.sum(1 / sig**2))
+    Xmean = np.sum(mean / sig**2) * Xstd**2
+    return Xmean, Xstd
+
 def plotr_gaussproduct_analytical(results,Nmin=0,Nmax=20,color='darkblue',debug=False,r=0,quiet=True,save=False,kwsave='',show=False,ax=None,alpha=1):
     """
     compute r and sigma(r) analytically and plot a corresponding Gaussian curve
