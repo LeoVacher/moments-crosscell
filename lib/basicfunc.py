@@ -284,7 +284,20 @@ def d3mbbT(nu,T):
         d3S_nu = np.trapezoid(d3S_nu * weights, nu)
 
     return d3S_nu
-    
+
+def log_nu(nu, nu0):
+    '''integrate log(nu/nu0) on a top-hat bandpass'''
+    lognu = np.log(nu/nu0)
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        lognu = np.trapezoid(lognu * weights, nu)
+
+    return lognu
+
 def Gaussian(x,mu,sigma):
     '''gaussian curve '''
     coeffnorm = 1/(sigma*np.sqrt(2*np.pi))
