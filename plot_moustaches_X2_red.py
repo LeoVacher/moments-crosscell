@@ -9,7 +9,9 @@ colors = ["blue", "darkorange", "red"] #colors of each subcase
 kw_save= "fsky_vs_fittingscheme" #name to save the pdf
 offset = 0.05 #size of the offset between the different subcases
 
-#load the results:
+#load the results (for the moment, I keep it very explicit, as it's hard to be general with so many keywords!):
+
+# res_c%(casenumber)_sc%(subcasenumber):
 res_c0sc0 = np.load('../best_fits/results_d%ss%s_%s_Nmt-fg_maskGWD_ds_o%s_fix%s.npy'%(1,1,0.5,'0',0),allow_pickle=True).item()
 res_c0sc1 = np.load('../best_fits/results_d%ss%s_%s_Nmt-fg_maskGWD_ds_o%s_fix%s.npy'%(1,1,0.5,'1bts',1),allow_pickle=True).item()
 res_c0sc2 = np.load('../best_fits/results_d%ss%s_%s_Nmt-fg_maskGWD_ds_o%s_fix%s_adaptative.npy'%(1,1,0.5,'1bts',1),allow_pickle=True).item()
@@ -28,9 +30,10 @@ res_c3sc2 = np.load('../best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s_adaptati
 
 
 res_list = [
-    [res_c0sc0, res_c1sc0, res_c2sc0, res_c3sc0],
-    [res_c0sc1, res_c1sc1, res_c2sc1, res_c3sc1],
-    [res_c0sc2, res_c1sc2, res_c2sc2, res_c3sc2]
+    [res_c0sc0, res_c1sc0, res_c2sc0, res_c3sc0], # all cases ordered for subcase 0
+    [res_c0sc1, res_c1sc1, res_c2sc1, res_c3sc1], # all cases ordered for subcase 1
+    [res_c0sc2, res_c1sc2, res_c2sc2, res_c3sc2]  # all cases ordered for subcase 2
+                                                  # up to subcase N !
 ]
 
 r_all, sigma_r_all = [], []
