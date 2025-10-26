@@ -23,8 +23,8 @@ def uK_RJ_to_MJy_sr(nu):
         Conversion factors for all input frequencies.
 
     """
-    k = const.k_B.value
-    c = const.c.value
+    k = const.k_B.cgs.value
+    c = const.c.cgs.value
     
     return 2*k * (nu*1e9 / c)**2 * 1e11
 
@@ -43,9 +43,9 @@ def uK_RJ_to_uK_CMB(nu):
         Conversion factors for all input frequencies.
 
     """
-    h = const.h.value
-    k = const.k_B.value
-    Tcmb = cosmo.Tcmb0.value
+    h = const.h.cgs.value
+    k = const.k_B.cgs.value
+    Tcmb = cosmo.Tcmb0.cgs.value
     
     x = h*nu*1e9 / (k*Tcmb)
     return (np.exp(x) - 1)**2 / (x**2 * np.exp(x))
@@ -113,7 +113,7 @@ def unit_conversion(nu, input_unit, output_unit):
 
 def bandpass_unit_conversion(nu, input_unit, output_unit):
     """
-    Compute factors to convert brightness from input_unit to output_unit for all input frequencies assuming top-hat bandpasses if needed.
+    Compute factors to convert brightness from input_unit to output_unit for all input frequencies, assuming top-hat bandpasses if nu is of dimension 2.
 
     Parameters
     ----------
@@ -130,7 +130,7 @@ def bandpass_unit_conversion(nu, input_unit, output_unit):
         Conversion factors for all input frequency bands.
     """
     
-    if np.array(nu).ndim == 1:
+    if np.array(nu).ndim < 2:
         factors = unit_conversion(nu, input_unit, output_unit)
     
     else:
@@ -138,9 +138,9 @@ def bandpass_unit_conversion(nu, input_unit, output_unit):
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
         weights /= np.tile(bw, [Ngrid,1]).T
-        weights_to_in = unit_conversion(nu, 'MJy/sr', input_unit)
-        weights_to_out = unit_conversion(nu, 'MJy/sr', output_unit)
-        factors = np.trapezoid(weights_to_out, nu) / np.trapezoid(weights_to_in, nu)
+        weights_to_in = weights * unit_conversion(nu, input_unit, 'MJy/sr')
+        weights_to_out = weights * unit_conversion(nu, output_unit, 'MJy/sr')
+        factors = np.trapezoid(weights_to_in, nu) / np.trapezoid(weights_to_out, nu)
 
     return factors
 
@@ -213,7 +213,7 @@ def PL_uK(nu,beta,nu0=23.):
     """    
     S_nu = (nu/nu0)**beta
 
-    if np.array(nu).ndim == 1:
+    if np.array(nu).ndim < 2:
         return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
     
     else:
@@ -229,44 +229,17 @@ def PL_uK(nu,beta,nu0=23.):
 def dmbbT(nu,T):
     '''first order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    dS_nu = (x/T)*np.exp(x)/np.expm1(x)
-
-    if np.array(nu).ndim == 2:
-        Ngrid = nu.shape[1]
-        weights = np.ones_like(nu)
-        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
-        weights /= np.tile(bw, [Ngrid,1]).T
-        dS_nu = np.trapezoid(dS_nu * weights, nu)
-
-    return dS_nu
+    return (x/T)*np.exp(x)/np.expm1(x)
 
 def dmbb_bT(nu,p):
     '''first order derivative of black body with respect to 1/T '''
     x = const.h.value*nu*1.e9/const.k_B.value
-    dS_nu = -x*np.exp(x*p)/np.expm1(x*p)
-
-    if np.array(nu).ndim == 2:
-        Ngrid = nu.shape[1]
-        weights = np.ones_like(nu)
-        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
-        weights /= np.tile(bw, [Ngrid,1]).T
-        dS_nu = np.trapezoid(dS_nu * weights, nu)
-
-    return dS_nu
+    return -x*np.exp(x*p)/np.expm1(x*p)
 
 def ddmbbT(nu,T):
     '''second order derivative of black body with respect to T '''
     x = const.h.value*nu*1.e9/const.k_B.value/T
-    d2S_nu = (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
-
-    if np.array(nu).ndim == 2:
-        Ngrid = nu.shape[1]
-        weights = np.ones_like(nu)
-        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
-        weights /= np.tile(bw, [Ngrid,1]).T
-        d2S_nu = np.trapezoid(d2S_nu * weights, nu)
-
-    return d2S_nu
+    return (x*np.tanh(x/2)-2)*((x/T)*np.exp(x)/np.expm1(x))/T
 
 def d3mbbT(nu,T):
     '''third order derivative of black body with respect to T '''
@@ -274,16 +247,50 @@ def d3mbbT(nu,T):
     theta = (x/T)*np.exp(x)/np.expm1(x)
     TR2= x*np.tanh(x/2)-2
     TR3= x**2*(np.cosh(x)+2)/(np.cosh(x)-1)
-    d3S_nu = theta*(TR3+ 6*(1+TR2))/T/T
+    return theta*(TR3+ 6*(1+TR2))/T/T
+
+def dust_o1b(nu, beta, b_T, nu0=353.):
+    '''first moment of dust in beta'''
+    S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * np.log(nu/nu0)
 
     if np.array(nu).ndim == 2:
         Ngrid = nu.shape[1]
         weights = np.ones_like(nu)
         bw = np.max(nu, axis=1) - np.min(nu, axis=1)
         weights /= np.tile(bw, [Ngrid,1]).T
-        d3S_nu = np.trapezoid(d3S_nu * weights, nu)
+        S_nu = np.trapezoid(S_nu * weights, nu)
 
-    return d3S_nu
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
+
+def dust_o1t(nu, beta, b_T, nu0=353.):
+    '''first moment of dust in temperature'''
+    S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * (dmbb_bT(nu, b_T) - dmbb_bT(nu0, b_T))
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
+
+def sync_o1b(nu, beta, nu0=23.):
+    '''first moment of synchrotron in beta'''
+    S_nu = (nu/nu0)**beta * np.log(nu/nu0)
+
+    if np.array(nu).ndim < 2:
+        return S_nu * bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / unit_conversion(nu0, 'uK_RJ', 'uK_CMB')
+    
+    else:
+        S_nu *= unit_conversion(nu, 'uK_RJ', 'MJy/sr') / unit_conversion(nu0, 'uK_RJ', 'MJy/sr')
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+        return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
     
 def Gaussian(x,mu,sigma):
     '''gaussian curve '''
