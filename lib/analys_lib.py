@@ -319,7 +319,15 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         
         if plotres:
             # mask (used to compute theoretical expectations)
-            dusttype,synctype,fsky = tuple(int(n) if '.' not in n else float(n) for n in re.findall(r'\d+(?:\.\d+)?', kwsave))
+            dusttype,synctype,fsky = tuple(str(n) if '.' not in n else float(n) for n in re.findall(r'd(\S+)s(\S+)_([\d.]+)', kwsave)[0])
+            if dusttype == 'b' and synctype == 'b':
+                dusttype, synctype = 1, 1
+            elif dusttype == 'm' and synctype == 'm':
+                dusttype, synctype = 10, 5
+            elif dusttype == 'h' and synctype == 'h':
+                dusttype, synctype = 12, 7
+            else:
+                dusttype, synctype = int(dusttype), int(synctype)
             print("dusttype=%s,synctype=%s,fsky=%s"%(dusttype,synctype,fsky))
             if fsky==1:
                 mask = np.ones(hp.nside2npix(nside))
