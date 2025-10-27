@@ -87,7 +87,13 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         pathlib.Path('./best_fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
-    DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
+    if '_TT' in kwsave:
+        mode = 'TT'
+    elif '_EE' in kwsave:
+        mode = 'EE'
+    elif '_BB' in kwsave:
+        mode = 'BB'
+    DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin, mode=mode)
 
     #get frequencies:
     ncross = len(nucross)

@@ -17,34 +17,41 @@ import covlib as cvl
 
 nside = 64 #HEALPix nside
 lmax = nside*3-1 #maximum multipole
-scale = 10 #scale of apodisaton of the mask
+scale = '10C1' #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
-fsky = 0.8 #sky fraction of the raw mask
-dusttype = 1 #index of Pysm's dust model
-synctype = 1 #index of Pysm's synchrotron model
+fsky = 0.7 #sky fraction of the raw mask
+dusttype = 9 #index of Pysm's dust model
+synctype = 4 #index of Pysm's synchrotron model
 order_to_fit= ['1bts'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './' #Home path. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 all_ell = False #all ell or each ell independently (True/False)
 fix = 1 #fix beta and T (0:fit, 1:fix)?
-fixr= 0 #fix r (0:fit, 1:fix)?
-adaptative = True #adapt to fix to 0 non detected moments (True/False)
-N = 250 #number of simulations
+fixr= 1 #fix r (0:fit, 1:fix)?
+adaptative = False #adapt to fix to 0 non detected moments (True/False)
+N = 1000 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
-pivot_o0 = False #use the best fit of order 0?
-iterate = False #iterate to obtain ideal ell-dependent pivots (True/False)
+pivot_o0 = True #use the best fit of order 0?
+iterate = True #iterate to obtain ideal ell-dependent pivots (True/False)
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
-kw='' #additional keyword to add?
+kw='_BB' #additional keyword to add?
 kws='' #keyword for the simulations?
 dusttype_cov = dusttype #dust type for the covariance matrix
 synctype_cov = synctype #synchrotron type for the covariance matrix
 nu0d = 402. #dust reference frequency
 nu0s = 40. #synchrotron reference frequency
-gaussbeam = False #are simulations smoothed with gaussian beam?
+gaussbeam = True #are simulations smoothed with gaussian beam?
 bandpass = False #are simulatuions bandpass integrated? (top-hat functions)
 Ngrid = 100 #number of points on bandpass grid to integrate the model
 
-
+if kw == '_TT':
+    mode = 0
+elif kw == '_EE':
+    mode = 1
+elif kw == '_BB':
+    mode = 2
+else:
+    raise ValueError('Which mode to fit?')
 
 if cov_type != 'sim':
     kw += '_%s'%cov_type
@@ -66,9 +73,9 @@ if parallel:
 # Call C_ell of simulation
 
 if synctype == None:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws+'.npy')
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws+'.npy')[:, mode]
 else:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws+'.npy')
+    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws+'.npy')[:, mode]
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
@@ -81,7 +88,7 @@ Nell = 12#len(l)
 instr_name = 'litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
-#freq = np.sort(freq)
+freq = np.sort(freq)
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
 
@@ -111,14 +118,14 @@ if all_ell:
     if cov_type == 'sim':
         Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[mode, :Ncross*Nell, :Ncross*Nell]
         Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 
 else:
     if cov_type == 'sim':
         Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[mode, :Ncross*Nell, :Ncross*Nell]
         Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
