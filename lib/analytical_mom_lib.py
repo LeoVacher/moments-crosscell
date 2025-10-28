@@ -44,7 +44,7 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     pmetbar = 1/tempbar
     pmetmap = 1/tempmap
     if dusttype==12:
-        Ampl = dust.layers.value * func.unit_conversion(nu0d, input_unit='uK_RJ', output_unit='uK_CMB')
+        Ampl = dust.layers.value * func.unit_conversion(353, input_unit='uK_RJ', output_unit='uK_CMB')
         Amplcpxd = (Ampl[:,1]+1j*Ampl[:,2]) / func.mbb_uK(353, betamap, pmetmap, nu0=nu0d)
     skyrefd = skyd.get_emission(nu0d * u.GHz).value * func.unit_conversion(nu0d, input_unit='uK_RJ', output_unit='uK_CMB')
     skyrefs = skys.get_emission(nu0s * u.GHz).value * func.unit_conversion(nu0s, input_unit='uK_RJ', output_unit='uK_CMB')
