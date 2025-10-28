@@ -125,11 +125,11 @@ def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,m
                 z = z +1
     return CLcross
 
-def compute_cross_simple(mapd1,mapd2,mask,b, beam1=None, beam2=None):
+def compute_cross_simple(mapd1,mapd2,mask,b, purify_e=False, purify_b=True, beam1=None, beam2=None):
     nside = len(mask)
     lmax = 3*nside-1
-    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1)
-    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2)
+    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1)
+    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2)
     wsp = nmt.NmtWorkspace()
     wsp.compute_coupling_matrix(fa1, fa2, b)
     return compute_master(fa1,fa2,wsp) 
