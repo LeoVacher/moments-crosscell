@@ -33,7 +33,6 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     nside_pysm = 512
     if dusttype >= 9 or synctype >= 4:
         nside_pysm = 2048
-    sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%(dusttype),'s%s'%(synctype)])
     skyd = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype])
     skys = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%synctype])
     dust = skyd.components[0]
