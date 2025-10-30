@@ -10,7 +10,8 @@ import simu_lib as sim
 
 path = '/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_noise_simulations/'
 Nside = 64
-Nsims = 250
+N = 250
+load = False
 
 Npixs = hp.nside2npix(Nside)
 
@@ -28,15 +29,26 @@ channels = {'LFT': ['L1-040', 'L2-050', 'L1-060', 'L3-068', 'L2-068', 'L4-078','
             'HFT': ['H1-195', 'H2-235', 'H1-280', 'H2-337', 'H3-402']
            }
 
+# Initialize maps
+
+k_ini = 0
+if load:
+    maps = np.load('./e2e_simulations/e2e_noise_nside%s.npy' % (Nside)) 
+    while np.any(maps[k_ini] != 0):
+        k_ini += 1
+
+else:
+    maps = np.zeros((N, 3, Nfreqs, 3, Npixs))
+
 # Extract and downgrade noise simulations
 
-maps = np.zeros((Nsims, Nfreqs, 2, Npixs))
-
-for i in trange(Nsims):
-    j = 0
+for k in trange(k_ini, N):
+    i = 0
     for t in telescopes:
         for c in channels[t]:
-            maps[i, j] = hp.ud_grade(hp.read_map(path+'%s/%s/LB_%s_%s_binned_wn_1f_030mHz_%04d_full.fits' % (t, c, t, c, i), field=(1,2)), nside_out=Nside)
-            j += 1
+            maps[k,0,i] = hp.ud_grade(hp.read_map(path+'%s/%s/LB_%s_%s_binned_wn_1f_030mHz_%04d_full.fits' % (t, c, t, c, k), field=None), nside_out=Nside)
+            maps[k,1,i] = hp.ud_grade(hp.read_map(path+'%s/%s/LB_%s_%s_binned_wn_1f_030mHz_%04d_splitA.fits' % (t, c, t, c, k), field=None), nside_out=Nside)
+            maps[k,2,i] = hp.ud_grade(hp.read_map(path+'%s/%s/LB_%s_%s_binned_wn_1f_030mHz_%04d_splitB.fits' % (t, c, t, c, k), field=None), nside_out=Nside)
+            i += 1
 
-    np.save('./e2e_simulations/maps_noise_nside%s_full.npy' % (Nside), maps)
+    np.save('./e2e_simulations/e2e_noise_nside%s.npy' % (Nside), maps)
