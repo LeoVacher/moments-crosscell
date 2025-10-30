@@ -12,6 +12,10 @@ path = '/global/cfs/cdirs/litebird/simulations/LB_e2e_simulations/e2e_ns512/2ndR
 Nside = 64
 N = 500
 load = False
+telescope = 'HFT'
+channel = 'H3-402'
+
+band = telescope+'_'+channel
 
 # Instrument
 
@@ -21,11 +25,10 @@ channels = {'LFT': ['L1-040', 'L2-050', 'L1-060', 'L3-068', 'L2-068', 'L4-078','
             'HFT': ['H1-195', 'H2-235', 'H1-280', 'H2-337', 'H3-402']
            }
 
-bands = []
-
+bands = np.array([])
 for t in telescopes:
     for c in channels[t]:
-        bands.append(t+'_'+c)
+        bands = np.append(bands, t+'_'+c)
 
 Nfreqs = len(bands)
 Ncross = int(Nfreqs*(Nfreqs+1) / 2)
@@ -34,9 +37,7 @@ instr_name = 'litebird_full'
 instr = np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 beam = instr['beams']
 
-Bls = np.zeros((Nfreqs, 3*Nside))
-for i in range(Nfreqs):
-    Bls[i] = hp.gauss_beam(beam[i], lmax=3*Nside-1, pol=True).T[2]
+Bls = hp.gauss_beam(beam[bands == band][0], lmax=3*Nside-1, pol=True).T
 
 # Initialize cross-spectra
 
@@ -47,7 +48,7 @@ if load:
         k_ini += 1
 
 else:
-    CL_cmb = np.zeros((N, Ncross, 3*Nside))
+    CL_cmb = np.zeros((N, 3, 3*Nside))
 
 # Downgrade simulations and compute cross-spectra
 
@@ -55,24 +56,20 @@ Npixs = hp.nside2npix(Nside)
 mask = np.ones(Npixs)
 
 for k in trange(k_ini, N):
-    cmb = np.zeros((Nfreqs, 2, Npixs))
-    i = 0
-    for t in telescopes:
-        for c in channels[t]:
-            cmb[i] = sim.downgrade_map(hp.read_map(path+'%s/%s/input_cmb/LB_%s_cmb_%04d.fits' % (t, c, bands[i], k), field=None) * 1e6, nside_in=512, nside_out=Nside)[1:]
-            i += 1
+    cmb = sim.downgrade_map(hp.read_map(path+'%s/%s/input_cmb/LB_%s_cmb_%04d.fits' % (telescope, channel, band, k), field=None) * 1e6, nside_in=512, nside_out=Nside)
+            
+    f = nmt.NmtField(mask, [cmb[0]])
+    CL_cmb[k, 0] = nmt.compute_coupled_cell(f, f)[0] / Bls[0]**2
 
-    cross = 0
-    for i in range(Nfreqs):
-        for j in range(i, Nfreqs):
-            f1 = nmt.NmtField(mask, cmb[i])
-            f2 = nmt.NmtField(mask, cmb[j])
-            CL_cmb[k, cross] = nmt.compute_coupled_cell(f1, f2)[3] / (Bls[i]*Bls[j])
-            cross += 1
+    f = nmt.NmtField(mask, cmb[1:])
+    CL_cmb[k, 1:] = nmt.compute_coupled_cell(f, f)[[0,3]] / Bls[[1,2]]**2
                                 
     np.save('./e2e_simulations/CL_cmb_nside%s.npy' % (Nside), CL_cmb)
 
 # Save mean lensing power spetrum
 
-CL_lens = np.mean(CL_cmb, axis=(0,1))
-hp.write_cl('./power_spectra/Cls_LiteBIRD_e2e_r0.npy', CL_lens, overwrite=True)
+CL_cmb_mean = np.zeros((3, 3*Nside))
+for i in range(3):
+    CL_cmb_mean[i] = np.mean(CL_cmb[:, i], axis=0)
+    
+hp.write_cl('./power_spectra/Cls_LiteBIRD_e2e_r0.fits', CL_cmb_mean, overwrite=True)

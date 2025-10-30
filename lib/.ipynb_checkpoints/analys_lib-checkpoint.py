@@ -36,7 +36,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0,bandpass=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0,cmb_e2e=False):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -55,7 +55,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param mompl: only for allell case, fit moments as power-laws in ell.
     :param iterate: if True, iterate the fit of the moments to estimate the best pivot value.
     :param fixr: if 1, fix the tensor to scalar ratio (r) to zero and does not fit for it.
-    :param bandpass: if True, bandpass integration is taken into account in the fit.
+    :param cmb_e2e: #if True, use CMB lensing power spectrum from litebird end-to-end simulations.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -87,7 +87,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         pathlib.Path('./best_fits/results_%s_%s.npy'%(kwsave,kwf)).mkdir(parents=True, exist_ok=True)
 
     # get cmb spectra:
-    DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin)
+    DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,cmb_e2e=cmb_e2e)
 
     #get frequencies:
     ncross = len(nucross)

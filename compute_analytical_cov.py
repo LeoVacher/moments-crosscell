@@ -25,16 +25,17 @@ lmax = nside*3-1
 scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 9
-synctype = 4
+dusttype = 1
+synctype = 1
 kw=''
 use_nmt=True
 mode_cov='BB'
 masking_strat = ''
 gaussbeam = True
-bandpass = False
+bandpass = True
 Ngrid = 100
 path = './'
+cmb_e2e = True
 
 if masking_strat == 'GWD':
      kw += '_maskGWD'
@@ -119,7 +120,10 @@ Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
 #get cmb spectra
-CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+if cmb_e2e == False:
+    CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+else:
+    CLcmb_or = hp.read_cl(path+'power_spectra/Cls_LiteBIRD_e2e_r0.fits') #TT EE BB
 CL_lens_EE = CLcmb_or[1,:nside*3]
 CL_lens_BB = CLcmb_or[2,:nside*3]
 
@@ -135,8 +139,16 @@ if use_nmt==False:
 
 if use_nmt==True:
     cov_an   = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt-fg', output=mode_cov, progress=True)
-    cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', output=mode_cov, progress=True)
+    #cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', output=mode_cov, progress=True)
 
+if cmb_e2e:
+    if dusttype == 1 and synctype == 1:
+        dusttype, synctype = 'b', 'b'
+    if dusttype == 10 and synctype == 5:
+        dusttype, synctype = 'm', 'm'
+    if dusttype == 12 and synctype == 7:
+        dusttype, synctype = 'h', 'h'
+    
 if use_nmt==False:
     np.save(path+'covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
     np.save(path+'covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
@@ -144,4 +156,4 @@ if use_nmt==False:
 
 if use_nmt==True:
     np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-    np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    #np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
