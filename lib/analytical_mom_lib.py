@@ -24,7 +24,7 @@ def getmom_downgr(mom, nside, nside_pysm):
 def get_dl_bb_mom(mom1,mom2,mask,b):
     return sim.compute_cross_simple(mom1[1:], mom2[1:], mask, b)[3]
   
-def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.,momsync=True):
+def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.,momsync=True):
    # to do : add beam effect and add EE moments if needed
     lmax = nside*3-1
     b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
@@ -32,7 +32,7 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     if dusttype >= 9 or synctype >= 4:
         nside_pysm = 2048
     skyd = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype])
-    skys = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%syncrotype])
+    skys = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%synctype])
     dust = skyd.components[0]
     sync = skys.components[0]
     betamap = dust.mbb_index.value
@@ -64,22 +64,22 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
     #amplitudes:
     skyrefcpxd = getmom_downgr(skyrefcpxd, nside, nside_pysm)
     skyrefcpxs = getmom_downgr(skyrefcpxs, nside, nside_pysm)
-    Ad = get_dl_bb_mom(skyrefcpxd,skyrefcpxd,nside,mask,b)
-    As = get_dl_bb_mom(skyrefcpxs,skyrefcpxs,nside,mask,b)
-    Asd = get_dl_bb_mom(skyrefcpxd,skyrefcpxs,nside,mask,b)/np.sqrt(Ad*As)
+    Ad = get_dl_bb_mom(skyrefcpxd,skyrefcpxd,mask,b)
+    As = get_dl_bb_mom(skyrefcpxs,skyrefcpxs,mask,b)
+    Asd = get_dl_bb_mom(skyrefcpxd,skyrefcpxs,mask,b)/np.sqrt(Ad*As)
     
     #dust beta moments:
     mom1b = getmom_downgr(mom1b, nside, nside_pysm)
-    w1bw1b = get_dl_bb_mom(mom1b,mom1b,nside,mask,b)
-    Aw1b = get_dl_bb_mom(skyrefcpxd,mom1b,nside,mask,b)
-    Asw1b = get_dl_bb_mom(skyrefcpxs,mom1b,nside,mask,b)
+    w1bw1b = get_dl_bb_mom(mom1b,mom1b,mask,b)
+    Aw1b = get_dl_bb_mom(skyrefcpxd,mom1b,mask,b)
+    Asw1b = get_dl_bb_mom(skyrefcpxs,mom1b,mask,b)
 
     #dust 1/temp moments:    
     mom1pmet = getmom_downgr(mom1pmet, nside, nside_pysm)
-    Aw1p = get_dl_bb_mom(skyrefcpxd,mom1pmet,nside,mask,b)
-    w1bw1p = get_dl_bb_mom(mom1b,mom1pmet,nside,mask,b)
-    w1pw1p = get_dl_bb_mom(mom1pmet,mom1pmet,nside,mask,b)
-    Asw1p = get_dl_bb_mom(skyrefcpxs,mom1pmet,nside,mask,b)
+    Aw1p = get_dl_bb_mom(skyrefcpxd,mom1pmet,mask,b)
+    w1bw1p = get_dl_bb_mom(mom1b,mom1pmet,mask,b)
+    w1pw1p = get_dl_bb_mom(mom1pmet,mom1pmet,mask,b)
+    Asw1p = get_dl_bb_mom(skyrefcpxs,mom1pmet,mask,b)
 
     #dust spectral parameters:
     beta_d = betabar + Aw1b / Ad
@@ -89,12 +89,12 @@ def getmom(dusttype, syncrotype, betabar, tempbar, betasbar, mask, Nlbin=10,nsid
 
     if momsync:
         mom1bs = getmom_downgr(mom1bs, nside, nside_pysm)
-        Aw1bs = get_dl_bb_mom(skyrefcpxd,mom1bs,nside,mask,b)    
-        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)    
-        w1bw1bs = get_dl_bb_mom(mom1b,mom1bs,nside,mask,b)
-        w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,nside,mask,b)
-        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,nside,mask,b)  
-        w1pw1bs = get_dl_bb_mom(mom1pmet,mom1bs,nside,mask,b)
+        Aw1bs = get_dl_bb_mom(skyrefcpxd,mom1bs,mask,b)    
+        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,mask,b)    
+        w1bw1bs = get_dl_bb_mom(mom1b,mom1bs,mask,b)
+        w1bsw1bs = get_dl_bb_mom(mom1bs,mom1bs,mask,b)
+        Asw1bs = get_dl_bb_mom(skyrefcpxs,mom1bs,mask,b)  
+        w1pw1bs = get_dl_bb_mom(mom1pmet,mom1bs,mask,b)
         beta_s = betasbar + Asw1bs / As
         analytical_mom = np.array([Ad,beta_d,T_d,As,beta_s,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1pw1bs,w1bw1bs])
         name = ['A_d','beta_d','T_d','A_s','beta_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1tw1bs','w1bw1bs']
