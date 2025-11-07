@@ -36,7 +36,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0,bandpass=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -55,7 +55,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param mompl: only for allell case, fit moments as power-laws in ell.
     :param iterate: if True, iterate the fit of the moments to estimate the best pivot value.
     :param fixr: if 1, fix the tensor to scalar ratio (r) to zero and does not fit for it.
-    :param bandpass: if True, bandpass integration is taken into account in the fit.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -137,7 +136,13 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)  
-        
+            if mode == 'TT':
+                parinfopl[L,3] = {'value':0, 'fixed':1} #As
+                parinfopl[L,4] = {'value':0, 'fixed':1} #betas
+                parinfopl[L,5] = {'value':0, 'fixed':1} #Asd
+                parinfopl[L,11] = {'value':0, 'fixed':1} #Asw1b
+                parinfopl[L,12] = {'value':0, 'fixed':1} #Asw1t
+
         if adaptative:
             res0 = np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
             keys = np.array(list(res0.keys()))

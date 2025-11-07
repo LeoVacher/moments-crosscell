@@ -20,21 +20,21 @@ lmax = nside*3-1 #maximum multipole
 scale = '10C1' #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
-dusttype = 9 #index of Pysm's dust model
-synctype = 4 #index of Pysm's synchrotron model
-order_to_fit= ['1bts'] #orders to fit ('0', '1bt' or '1bts')
+dusttype = 12 #index of Pysm's dust model
+synctype = 7 #index of Pysm's synchrotron model
+order_to_fit= ['1bt'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './' #Home path. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 all_ell = False #all ell or each ell independently (True/False)
 fix = 1 #fix beta and T (0:fit, 1:fix)?
 fixr= 1 #fix r (0:fit, 1:fix)?
 adaptative = False #adapt to fix to 0 non detected moments (True/False)
-N = 1000 #number of simulations
+N = 250 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
-pivot_o0 = True #use the best fit of order 0?
+pivot_o0 = False #use the best fit of order 0?
 iterate = True #iterate to obtain ideal ell-dependent pivots (True/False)
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
-kw='_BB' #additional keyword to add?
+kw='_TT' #additional keyword to add?
 kws='' #keyword for the simulations?
 dusttype_cov = dusttype #dust type for the covariance matrix
 synctype_cov = synctype #synchrotron type for the covariance matrix
@@ -46,6 +46,7 @@ Ngrid = 100 #number of points on bandpass grid to integrate the model
 
 if kw == '_TT':
     mode = 0
+    order_to_fit = ['1bt']
 elif kw == '_EE':
     mode = 1
 elif kw == '_BB':
@@ -88,7 +89,7 @@ Nell = 12#len(l)
 instr_name = 'litebird_full'
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
-freq = np.sort(freq)
+#freq = np.sort(freq)
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
 
@@ -107,6 +108,33 @@ for i in range(0,N_freqs):
         nucross.append(np.sqrt(freq[i]*freq[j]))
 nucross = np.array(nucross)
 
+# Keep only high frequencies when fitting TT spectra
+
+if mode == 0:
+    threshold = 100
+
+    doublets = cvl.band_doublet(N_freqs)
+    nu_i, nu_j = freq[doublets][:,0], freq[doublets][:,1]
+    Nfreqs_red = len(freq[freq >= threshold])
+    Ncross_red = int(Nfreqs_red*(Nfreqs_red+1) / 2)
+    
+    keep = np.zeros(Ncross, dtype=bool)
+    for i in range(Ncross):
+        if nu_i[i] >= threshold:
+            keep[i] = True
+
+    DLdc = DLdc[:, keep]
+    nucross = nucross[keep]
+
+    mask_cov = np.zeros((Ncross*Nell, Ncross*Nell), dtype=bool)
+    for i in range(Ncross):
+        for j in range(i, Ncross):
+            if nu_i[i] >= threshold and nu_i[j] >= threshold:
+                for k in range(Nell):
+                    for l in range(Nell):
+                        mask_cov[Ncross*k+i, Ncross*l+j] = True
+                        mask_cov[Ncross*k+j, Ncross*l+i] = True
+
 #compute Cholesky matrix:
 
 if np.shape(np.argwhere(DLdc == 0))[0] == 0:
@@ -119,14 +147,22 @@ if all_ell:
         Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
         cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[mode, :Ncross*Nell, :Ncross*Nell]
-        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
+        if mode == 0:
+            cov = cov[mask_cov].reshape(Ncross_red*Nell, Ncross_red*Nell)
+            Linvdc = cvl.inverse_covmat(cov, Ncross_red, neglect_corbins=False, return_cholesky=True, return_new=False)
+        else:
+            Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 
 else:
     if cov_type == 'sim':
         Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
         cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[mode, :Ncross*Nell, :Ncross*Nell]
-        Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
+        if mode == 0:
+            cov = cov[mask_cov].reshape(Ncross_red*Nell, Ncross_red*Nell)
+            Linvdc = cvl.inverse_covmat(cov, Ncross_red, neglect_corbins=True, return_cholesky=True, return_new=False)
+        else:
+            Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.
 DLdc = DLdc[:N,:,:Nell]
@@ -141,9 +177,12 @@ if pivot_o0:
         if cov_type == 'sim':
             Linvdc0 = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
         else:
-            Linvdc0 = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
+            if mode == 0:
+                Linvdc0 = cvl.inverse_covmat(cov, Ncross_red, neglect_corbins=False, return_cholesky=True, return_new=False)
+            else:
+                Linvdc0 = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
         p0 = [np.abs(DLdc[0,-1]), 1.5, 20, np.abs(DLdc[0,0]), -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr,bandpass=bandpass)
+        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
     betabar = np.mean(o0['beta_d'])
     tempbar = np.mean(o0['T_d'])
     betasbar = np.mean(o0['beta_s'])
@@ -154,18 +193,18 @@ else:
 
 if '0' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,bandpass=bandpass)
+    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
 
 # fit order 1 in beta and T, get results, save and plot
 
 if '1bt' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,bandpass=bandpass)
+    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 if '1bts' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,bandpass=bandpass)
+    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr)
 
 

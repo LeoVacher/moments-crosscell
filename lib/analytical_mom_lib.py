@@ -21,13 +21,19 @@ def getmom_downgr(mom, nside, nside_pysm):
     momdg = sim.downgrade_map(momarr, nside_out=nside, nside_in=nside_pysm)
     return momdg
 
-def get_dl_mom(mom1,mom2,nside,mask,b, mode='BB'):
-    sp_dict = {'EE':[0,True,False], 'EB':[1,True,True], 'BE': [2,True,True], 'BB': [3,False,True]}
+def get_dl_mom(mom1,mom2,mask,b, mode='BB'):
+    sp_dict = {'TT':[0,False,False], 'EE':[0,True,False], 'EB':[1,True,True], 'BE': [2,True,True], 'BB': [3,False,True]}
     sp, purify_e, purify_b = sp_dict.get(mode, None)
-    return sim.compute_cross_simple(mom1[1:], mom2[1:], mask, b, purify_e=purify_e, purify_b=purify_b)[sp]
+    if mode == 'TT':
+        mom1 = [mom1[0]]
+        mom2 = [mom2[0]]
+    else:
+        mom1 = mom1[1:]
+        mom2 = mom2[1:]
+    return sim.compute_cross_simple(mom1, mom2, mask, b, purify_e=purify_e, purify_b=purify_b)[sp]
   
 def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=64,nu0d=353.,nu0s=23.,momsync=True, mode='BB'):
-   # to do : add beam effect and add EE moments if needed
+   # to do : add beam effect if needed
     lmax = nside*3-1
     b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
     nside_pysm = 512
@@ -44,12 +50,19 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     pmetmap = 1/tempmap
     if dusttype==12:
         Ampl = dust.layers.value * func.unit_conversion(353, input_unit='uK_RJ', output_unit='uK_CMB')
-        Amplcpxd = (Ampl[:,1]+1j*Ampl[:,2]) / func.mbb_uK(353, betamap, pmetmap, nu0=nu0d)
+        if mode != 'TT':
+            Amplcpxd = (Ampl[:,1]+1j*Ampl[:,2]) / func.mbb_uK(353, betamap, pmetmap, nu0=nu0d)
+        else:
+            Amplcpxd = Ampl[:,0] / func.mbb_uK(353, betamap, pmetmap, nu0=nu0d)
     skyrefd = skyd.get_emission(nu0d * u.GHz).value * func.unit_conversion(nu0d, input_unit='uK_RJ', output_unit='uK_CMB')
     skyrefs = skys.get_emission(nu0s * u.GHz).value * func.unit_conversion(nu0s, input_unit='uK_RJ', output_unit='uK_CMB')
 
-    skyrefcpxd = skyrefd[1]+1j*skyrefd[2]
-    skyrefcpxs = skyrefs[1]+1j*skyrefs[2]
+    if mode != 'TT':
+        skyrefcpxd = skyrefd[1]+1j*skyrefd[2]
+        skyrefcpxs = skyrefs[1]+1j*skyrefs[2]
+    else:
+        skyrefcpxd = skyrefd[0]
+        skyrefcpxs = skyrefs[0]
 
     if dusttype == 12:
         mom1b = np.sum(Amplcpxd*(betamap-betabar),axis=0)
@@ -66,22 +79,22 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     #amplitudes:
     skyrefcpxd = getmom_downgr(skyrefcpxd, nside, nside_pysm)
     skyrefcpxs = getmom_downgr(skyrefcpxs, nside, nside_pysm)
-    Ad = get_dl_mom(skyrefcpxd,skyrefcpxd,nside,mask,b, mode=mode)
-    As = get_dl_mom(skyrefcpxs,skyrefcpxs,nside,mask,b, mode=mode)
-    Asd = get_dl_mom(skyrefcpxd,skyrefcpxs,nside,mask,b, mode=mode)/np.sqrt(Ad*As)
+    Ad = get_dl_mom(skyrefcpxd,skyrefcpxd,mask,b, mode=mode)
+    As = get_dl_mom(skyrefcpxs,skyrefcpxs,mask,b, mode=mode)
+    Asd = get_dl_mom(skyrefcpxd,skyrefcpxs,mask,b, mode=mode)/np.sqrt(Ad*As)
     
     #dust beta moments:
     mom1b = getmom_downgr(mom1b, nside, nside_pysm)
-    w1bw1b = get_dl_mom(mom1b,mom1b,nside,mask,b, mode=mode)
-    Aw1b = get_dl_mom(skyrefcpxd,mom1b,nside,mask,b, mode=mode)
-    Asw1b = get_dl_mom(skyrefcpxs,mom1b,nside,mask,b, mode=mode)
+    w1bw1b = get_dl_mom(mom1b,mom1b,mask,b, mode=mode)
+    Aw1b = get_dl_mom(skyrefcpxd,mom1b,mask,b, mode=mode)
+    Asw1b = get_dl_mom(skyrefcpxs,mom1b,mask,b, mode=mode)
 
     #dust 1/temp moments:
     mom1pmet = getmom_downgr(mom1pmet, nside, nside_pysm)
-    Aw1p = get_dl_mom(skyrefcpxd,mom1pmet,nside,mask,b, mode=mode)
-    w1bw1p = get_dl_mom(mom1b,mom1pmet,nside,mask,b, mode=mode)
-    w1pw1p = get_dl_mom(mom1pmet,mom1pmet,nside,mask,b, mode=mode)
-    Asw1p = get_dl_mom(skyrefcpxs,mom1pmet,nside,mask,b, mode=mode)
+    Aw1p = get_dl_mom(skyrefcpxd,mom1pmet,mask,b, mode=mode)
+    w1bw1p = get_dl_mom(mom1b,mom1pmet,mask,b, mode=mode)
+    w1pw1p = get_dl_mom(mom1pmet,mom1pmet,mask,b, mode=mode)
+    Asw1p = get_dl_mom(skyrefcpxs,mom1pmet,mask,b, mode=mode)
 
     #dust spectral parameters:
     beta_d = betabar + Aw1b / Ad
@@ -91,12 +104,12 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
 
     if momsync:
         mom1bs = getmom_downgr(mom1bs, nside, nside_pysm)
-        Aw1bs = get_dl_mom(skyrefcpxd,mom1bs,nside,mask,b, mode=mode)    
-        Asw1bs = get_dl_mom(skyrefcpxs,mom1bs,nside,mask,b, mode=mode)    
-        w1bw1bs = get_dl_mom(mom1b,mom1bs,nside,mask,b, mode=mode)
-        w1bsw1bs = get_dl_mom(mom1bs,mom1bs,nside,mask,b, mode=mode)
-        Asw1bs = get_dl_mom(skyrefcpxs,mom1bs,nside,mask,b, mode=mode)  
-        w1pw1bs = get_dl_mom(mom1pmet,mom1bs,nside,mask,b, mode=mode)
+        Aw1bs = get_dl_mom(skyrefcpxd,mom1bs,mask,b, mode=mode)    
+        Asw1bs = get_dl_mom(skyrefcpxs,mom1bs,mask,b, mode=mode)    
+        w1bw1bs = get_dl_mom(mom1b,mom1bs,mask,b, mode=mode)
+        w1bsw1bs = get_dl_mom(mom1bs,mom1bs,mask,b, mode=mode)
+        Asw1bs = get_dl_mom(skyrefcpxs,mom1bs,mask,b, mode=mode)  
+        w1pw1bs = get_dl_mom(mom1pmet,mom1bs,mask,b, mode=mode)
         beta_s = betasbar + Asw1bs / As
         analytical_mom = np.array([Ad,beta_d,T_d,As,beta_s,Asd,w1bw1b,Aw1b,Aw1p,w1bw1p,w1pw1p,Asw1b,Asw1p,Asw1bs,w1bsw1bs,Aw1bs,Asw1bs,w1pw1bs,w1bw1bs])
         name = ['A_d','beta_d','T_d','A_s','beta_s','A_sd','w1bw1b','Aw1b','Aw1t','w1bw1t','w1tw1t','Asw1b','Asw1t','Asw1bs','w1bsw1bs','Aw1bs','Asw1bs','w1tw1bs','w1bw1bs']
