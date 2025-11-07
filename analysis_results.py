@@ -23,10 +23,10 @@ lmax = nside*2-1 #maximum multipole
 scale = '10C1' #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
-dusttype = 9 #index of Pysm's dust model
-synctype = 4 #index of Pysm's synchrotron model
+dusttype = 12 #index of Pysm's dust model
+synctype = 7 #index of Pysm's synchrotron model
 fix=1 #fix beta and T (0:fit, 1:fix)?
-order = '1bts' #0, 1bt or 1bts 
+order = '1bt' #0, 1bt or 1bts 
 kw = '' #keyword for the fitting scheme
 kwsim = '' #keyword for the simulation 
 Pathload = './' #Home path
@@ -35,7 +35,7 @@ all_ell=False #all ell or each ell independently (True/False)
 nu0d=402. #dust reference frequency
 nu0s=40. #synchrotron reference frequency
 ell_pivot = True #plot theoretical ideal pivot as a function of ell
-mode = 'EE' #mode to analyze. Should be 'EE' or 'BB'
+mode = 'TT' #mode to analyze. Should be 'TT', 'EE' or 'BB'
 
 if all_ell==True:
     kw=kw+'_all_ell'
