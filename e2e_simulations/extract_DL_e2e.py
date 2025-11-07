@@ -12,20 +12,23 @@ import simu_lib as sim
 nside = 64 # HEALPix nside
 N = 250  # Number of sims
 lmax = nside*3-1 # Maximum multipole
-scale = 10 # Apodization scale in degrees
+masking_strat = 'intersection' # Masking strategy. Should be '', 'intersection' or 'union'
+scale = 3 # Apodization scale in degrees
 Nlbin = 10 # Binning scheme of the Cls
 fsky = 0.7 # Fraction of sky for the raw mask
-complexity = 'baseline' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
+complexity = 'medium_complexity' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
 load = False # Load previous sims 
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
-load_maps = False # Load already downgraded maps stored in path
-save_maps = True # Save downgraded maps in path
+load_maps = True # Load already downgraded maps stored in path
+save_maps = False # Save downgraded maps in path
 
 Npix = hp.nside2npix(nside) # Number of pixels
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=Nlbin, is_Dell=True) # Binning scheme for the cross-spectra
 leff = b.get_effective_ells()
 Nell = len(leff)
 Pathload = '/global/cfs/cdirs/litebird/simulations/maps/E_modes_postptep/2ndRelease/mock_splits_coadd_sims/e2e_noise/%s' % (complexity) # Path to the simulations on the NERSC
+
+fg_type = complexity[0]
 
 # Load instrument
 
@@ -57,8 +60,10 @@ for t in telescopes:
 
 if fsky == 1:
     mask = np.ones(Npix)
-else:
+elif masking_strat == '':
     mask = hp.read_map(path+'masks/mask_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))
+else:
+    mask = hp.read_map(path+'masks/mask_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))
 
 # Initialize workspace
 
@@ -71,7 +76,11 @@ for i in range(Nfreqs):
 # Initialize simulations
 
 if load:
-    DLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity)) 
+    if masking_strat == '':
+        DLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type))
+    else:
+        DLcross = np.load(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type))
+    
     k_ini = np.argwhere(DLcross == 0)[0,0]
 
     if k_ini == N:
@@ -90,7 +99,7 @@ else:
 k_downgrade = 0
 if load_maps:
     maps = np.load(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity))
-    while np.any(maps[k_downgrade] != 0):
+    while k_downgrade < N and np.any(maps[k_downgrade] != 0):
         k_downgrade += 1
 else:
     maps = np.zeros((N, 3, Nfreqs, 2, Npix))
@@ -116,4 +125,7 @@ for k in trange(k_ini, N):
     DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,1], maps[k,2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     # Save
-    np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_e2e_%s.npy' % (nside, fsky, scale, Nlbin, complexity), DLcross)
+    if masking_strat == '':
+        np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type), DLcross)
+    else:
+        np.save(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type), DLcross)

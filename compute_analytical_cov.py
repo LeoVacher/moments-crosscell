@@ -22,7 +22,7 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*3-1
-scale = 10
+scale = 3
 Nlbin = 10
 fsky = 0.7
 dusttype = 1
@@ -30,11 +30,11 @@ synctype = 1
 kw=''
 use_nmt=True
 mode_cov='BB'
-masking_strat = ''
+masking_strat = 'union'
 gaussbeam = True
 bandpass = True
 Ngrid = 100
-path = './'
+path = '/pscratch/sd/s/svinzl/B_modes_project'
 cmb_e2e = True
 
 if masking_strat == 'GWD':
@@ -61,8 +61,16 @@ Bls_BB = np.ones((N_freqs, 3*nside))
 
 if masking_strat == 'GWD':
      mask = hp.read_map(path+"masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
-else:
+elif masking_strat == '':
     mask = hp.read_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
+else:
+    if dusttype == 1 and synctype == 1:
+        complexity = 'baseline'
+    elif dusttype == 10 and synctype == 5:
+        complexity = 'medium_complexity'
+    elif dusttype == 12 and synctype == 7:
+        complexity = 'high_complexity'
+    mask = hp.read_map(path+'masks/mask_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))
 fsky_eff = np.mean(mask**2)
 
 if gaussbeam:
@@ -150,10 +158,19 @@ if cmb_e2e:
         dusttype, synctype = 'h', 'h'
     
 if use_nmt==False:
-    np.save(path+'covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-    np.save(path+'covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
-    np.save(path+'covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    if masking strat not in ['intersection', 'union']:
+        np.save(path+'covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+        np.save(path+'covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
+        np.save(path+'covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    else:
+        np.save(path+'covariances/cov_Knox-fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+        np.save(path+'covariances/cov_signal_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
+        np.save(path+'covariances/cov_Knox+fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
 
 if use_nmt==True:
-    np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-    #np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    if masking_strat not in ['intersection', 'union']:
+        np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+        #np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+    else:
+        np.save(path+'covariances/cov_Nmt-fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+        #np.save(path+'covariances/cov_Nmt+fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)

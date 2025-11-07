@@ -19,9 +19,9 @@ nside = 64 #HEALPix nside
 lmax = nside*3-1 #maximum multipole
 scale = 10 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
-fsky = 0.8 #sky fraction of the raw mask
-dusttype = 1 #index of Pysm's dust model
-synctype = 1 #index of Pysm's synchrotron model
+fsky = 0.7 #sky fraction of the raw mask
+dusttype = 10 #index of Pysm's dust model
+synctype = 5 #index of Pysm's synchrotron model
 order_to_fit= ['1bts'] #orders to fit ('0', '1bt' or '1bts')
 Pathload = './' #Home path. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 all_ell = False #all ell or each ell independently (True/False)
@@ -31,7 +31,7 @@ adaptative = True #adapt to fix to 0 non detected moments (True/False)
 N = 250 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
-pivot_o0 = False #use the best fit of order 0?
+pivot_o0 = True #use the best fit of order 0?
 iterate = False #iterate to obtain ideal ell-dependent pivots (True/False)
 cov_type = 'Nmt-fg' #choices: sim, Knox-fg, Knox+fg, Nmt-fg, Nmt+fg, signal.
 kw='' #additional keyword to add?
@@ -42,8 +42,9 @@ nu0d = 402. #dust reference frequency
 nu0s = 40. #synchrotron reference frequency
 gaussbeam = False #are simulations smoothed with gaussian beam?
 bandpass = False #are simulatuions bandpass integrated? (top-hat functions)
-Ngrid = 100 #number of points on bandpass grid to integrate the model
-cmb_e2e = True #if True, use CMB lensing power spectrum from litebird end-to-end simulations
+Ngrid = 50 #number of points on bandpass grid to integrate the model
+cmb_e2e = False #if True, use CMB lensing power spectrum from litebird end-to-end simulations
+masking_strat = '' #masking strategy. Should be '', 'GWD', 'intersection' or 'union'
 
 
 
@@ -53,6 +54,10 @@ if iterate == True :
     kw+= '_iterate'
 if fixr==1:
     kw+= '_fixr'
+if masking_strat == 'GWD':
+    kws += '_maskGWD'
+elif masking_strat in ['intersection', 'union']:
+    fsky = masking_strat
 if gaussbeam:
     kws += '_gaussbeam'
 if bandpass:
@@ -69,7 +74,10 @@ if parallel:
 if synctype == None:
     DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws+'.npy')
 else:
-    DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws+'.npy')
+    if masking_strat not in ['intersection', 'union']:
+        DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws+'.npy')
+    else:
+        DLdc = np.load(Pathload+"/power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc"%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kws+'.npy')
 
 # Initialize binning scheme with Nlbin ells per bandpower
 
@@ -112,14 +120,20 @@ if all_ell:
     if cov_type == 'sim':
         Linvdc = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        if masking_strat not in ['intersection', 'union']:
+            cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        else:
+            cov = np.load(Pathload+"/covariances/cov_%s_nside%s_%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,masking_strat,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
         Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
 
 else:
     if cov_type == 'sim':
         Linvdc = cvl.getLinvdiag(DLdc[:Ncov,:,:Nell],printdiag=True)
     else:
-        cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        if masking_strat not in ['intersection', 'union']:
+            cov = np.load(Pathload+"/covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,fsky,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
+        else:
+            cov = np.load(Pathload+"/covariances/cov_%s_nside%s_%s_scale%s_Nlbin%s_d%ss%sc"%(cov_type,nside,masking_strat,scale,Nlbin,dusttype_cov,synctype_cov)+kws+'.npy')[:Ncross*Nell, :Ncross*Nell]
         Linvdc = cvl.inverse_covmat(cov, Ncross, neglect_corbins=True, return_cholesky=True, return_new=False)
 
 #N = len(DLdc[:,0,0]) #in order to have a quicker run, replace by e.g. 50 or 100 here for testing.

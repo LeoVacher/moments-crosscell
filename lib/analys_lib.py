@@ -321,16 +321,23 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             # mask (used to compute theoretical expectations)
             dusttype,synctype,fsky = tuple(str(n) if '.' not in n else float(n) for n in re.findall(r'd(\S+)s(\S+)_([\d.]+)', kwsave)[0])
             if dusttype == 'b' and synctype == 'b':
+                complexity = 'baseline'
                 dusttype, synctype = 1, 1
             elif dusttype == 'm' and synctype == 'm':
+                complexity = 'medium_complexity'
                 dusttype, synctype = 10, 5
             elif dusttype == 'h' and synctype == 'h':
+                complexity = 'high_complexity'
                 dusttype, synctype = 12, 7
             else:
                 dusttype, synctype = int(dusttype), int(synctype)
             print("dusttype=%s,synctype=%s,fsky=%s"%(dusttype,synctype,fsky))
             if fsky==1:
                 mask = np.ones(hp.nside2npix(nside))
+            elif fsky in ['intersection', 'union']:
+                mask = hp.read_map("./masks/mask_%s_%s_nside%s_aposcale%s.npy"%(fsky,complexity,nside,3))
+            elif 'maskGWD' in kwsave:
+                mask = hp.read_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,10))
             else:
                 mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,10))
             betabar = np.median(results['beta_d'][~np.isnan(results['X2red'])])
