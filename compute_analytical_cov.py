@@ -23,7 +23,7 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*3-1
-scale = 3
+scale = 10
 Nlbin = 10
 fsky = 0.7
 dusttype = 1
@@ -31,7 +31,7 @@ synctype = 1
 kw=''
 use_nmt=True
 mode_cov='BB'
-masking_strat = 'union'
+masking_strat = ''
 gaussbeam = True
 bandpass = True
 Ngrid = 100
@@ -138,20 +138,17 @@ else:
         m = mpfit(fit.chi2_Nl, parinfo=p, functkw=fa, quiet=1)
         CL_cross_noise_EE[cross, 2:] = m.params[0] * np.ones(3*nside-2)
         CL_cross_noise_BB[cross] = CL_cross_noise_EE[cross]
-        print(m.params[0], 4*np.pi/Npix * sigpix[i]**2)
-raise ValueError
-Nls_EE=[]
-Nls_BB=[]
+
+Nls_EE = np.zeros((Ncross, 3*nside))
+Nls_BB = np.zeros((Ncross, 3*nside))
 for i in range(N_freqs): 
     cross = cvl.cross_index(i, i, N_freqs)
     CL_cross_noise_EE[cross] /= Bls_EE[i]**2
     CL_cross_noise_BB[cross] /= Bls_BB[i]**2
     coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise_EE[cross], np.zeros_like(CL_cross_noise_EE[cross]), np.zeros_like(CL_cross_noise_EE[cross]), CL_cross_noise_EE[cross]])[0]
     coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise_BB[cross], np.zeros_like(CL_cross_noise_BB[cross]), np.zeros_like(CL_cross_noise_BB[cross]), CL_cross_noise_BB[cross]])[3]
-    Nls_EE.append(coupled_noise_EE)
-    Nls_BB.append(coupled_noise_BB)
-Nls_EE=np.array(Nls_EE)
-Nls_BB=np.array(Nls_BB)
+    Nls_EE[cross] = coupled_noise_EE
+    Nls_BB[cross] = coupled_noise_BB
 
 #get cmb spectra
 if cmb_e2e == False:
