@@ -12,11 +12,11 @@ import simu_lib as sim
 nside = 64 # HEALPix nside
 N = 250  # Number of sims
 lmax = nside*3-1 # Maximum multipole
-masking_strat = 'intersection' # Masking strategy. Should be '', 'intersection' or 'union'
+masking_strat = 'union' # Masking strategy. Should be '', 'intersection' or 'union'
 scale = 3 # Apodization scale in degrees
 Nlbin = 10 # Binning scheme of the Cls
 fsky = 0.7 # Fraction of sky for the raw mask
-complexity = 'medium_complexity' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
+complexity = 'baseline' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
 load = False # Load previous sims 
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 load_maps = True # Load already downgraded maps stored in path

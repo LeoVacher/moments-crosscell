@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./lib/')
+sys.path.append('./lib')
 import numpy as np
 import healpy as hp
 import pymaster as nmt
@@ -10,35 +10,55 @@ import simu_lib as sim
 
 Nside = 64
 Nsims = 250
+fsky = 0.7
+scale = 3
+masking_strat = 'union_high_complexity' # Should be '' for Planck mask, 'GWD', 'intersection_<complexity>' or 'union_<complexity>'
 
-Npixs = hp.nside2npix(Nside)
+if masking_strat == '':
+    kwsave = '_fsky%s_nside%s_aposcale%s' % (fsky, Nside, scale)
+elif masking_strat = 'GWD':
+    kwsave = '_GWD_fsky%s_nside%s_aposcale%s' % (fsky, Nside, scale)
+else:
+    kwsave = '_%s_nside%s_aposcale%s' % (masking_strat, Nside, scale)
 
-# Load instrument
+# Load noise simulations
 
-instr_name = 'litebird_full'
-instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
+maps = np.load('./e2e_simulations/e2e_noise_nside%s.npy' % (Nside))[:,0]
 
-freq = instr['frequencies']
-Nfreqs = len(freq)
-Ncross = int(Nfreqs*(Nfreqs+1) / 2)
+if masking_strat == '':
+    mask = hp.read_map('./masks/mask_fsky%s_nside%s_aposcale%s.npy'%(fsky, Nside, scale))
+else:
+    mask = hp.read_map('./masks/mask_%s_nside%s_aposcale%s.npy' % (masking_strat, Nside, scale))
 
-# Load downgraded noise simulations
+Nfreqs = maps.shape[1]
 
-maps = np.load('./e2e_simulations/maps_noise_nside%s_full.npy' % (Nside))
-mask = np.ones(Npixs)
+# Compute CL_noise for each simulation
 
-# Compute DL_noise for each simulations
+b = nmt.NmtBin.from_nside_linear(Nside, nlb=1)
 
-DL_noise = np.zeros((Nsims, Ncross, 2, 3*Nside-2))
+f = nmt.NmtField(mask, None, spin=0)
+wT = nmt.NmtWorkspace()
+wT.compute_coupling_matrix(f, f, b)
 
-for s in trange(Nsims):
-    c = 0
+f = nmt.NmtField(mask, None, spin=2, purify_e=True)
+wE = nmt.NmtWorkspace()
+wE.compute_coupling_matrix(f, f, b)
+
+f = nmt.NmtField(mask, None, spin=2, purify_b=True)
+wB = nmt.NmtWorkspace()
+wB.compute_coupling_matrix(f, f, b)
+
+CL_noise = np.zeros((Nsims, Nfreqs, 3, 3*Nside))
+
+for k in trange(Nsims):
     for i in range(Nfreqs):
-        for j in range(i, Nfreqs):
-            f1 = nmt.NmtField(mask, maps[s, i])
-            f2 = nmt.NmtField(mask, maps[s, j])
-            DL_noise[s, c] = nmt.compute_coupled_cell(f1, f2)[[0,3], 2:]
-            
-            c += 1
+        f = nmt.NmtField(mask, [maps[k,i,0]])
+        CL_noise[k,i,0] = np.concatenate((np.zeros(2), sim.compute_master(f, f, wT)[0]))
 
-    np.save('./e2e_simulations/CL_noise_nside%s_full.npy' % (Nside), DL_noise)
+        f = nmt.NmtField(mask, maps[k,i,1:], purify_e=True)
+        CL_noise[k,i,1] = np.concatenate((np.zeros(2), sim.compute_master(f, f, wE)[0]))
+
+        f = nmt.NmtField(mask, maps[k,i,1:], purify_b=True)
+        CL_noise[k,i,2] = np.concatenate((np.zeros(2), sim.compute_master(f, f, wB)[3]))
+
+    np.save('./e2e_simulations/CL_noise%s.npy' % (kwsave), CL_noise)

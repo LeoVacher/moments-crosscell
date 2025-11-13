@@ -94,6 +94,12 @@ def lnprob(p, y, invcov, model_func=None, all_ell=True, **kwargs):
 
     return lp + lnlike(p, y, invcov, model_func=model_func, **kwargs)
 
+def chi2_Nl(p, fjac=None, Cl_noise=None, sigma_Cl=None):
+    '''Simple Gaussian chi2 for noise model'''
+    
+    status = 0
+    return [status, (Cl_noise - p[0])**2 / sigma_Cl**2]
+
 #models##########################################################
 
 def Gaussian(p, fjac=None, x=None, y=None, err=None):

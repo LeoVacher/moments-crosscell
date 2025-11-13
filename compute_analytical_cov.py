@@ -17,7 +17,8 @@ import scipy.stats as st
 import basicfunc as func
 import analys_lib as an
 import simu_lib as sim
-import covlib as cvl 
+import fitlib as fit
+import covlib as cvl
 
 r=0.
 nside = 64
@@ -34,8 +35,9 @@ masking_strat = 'union'
 gaussbeam = True
 bandpass = True
 Ngrid = 100
-path = '/pscratch/sd/s/svinzl/B_modes_project'
-cmb_e2e = True
+path = '/pscratch/sd/s/svinzl/B_modes_project/' # Path for saving covariance matrix
+cl_noise = './e2e_simulations/' # Path to noise power spectra. Use 'white' for a Gaussian white noise model
+cmb_e2e = True # If True, use CMB lensing power spectrum from litebird end-to-end simulations
 
 if masking_strat == 'GWD':
      kw += '_maskGWD'
@@ -56,9 +58,6 @@ Ncross= int(N_freqs*(N_freqs+1)/2)
 Npix = hp.nside2npix(nside)
 sigpix= sens_P/(np.sqrt((4*np.pi)/Npix*(60*180/np.pi)**2))
 
-Bls_EE = np.ones((N_freqs, 3*nside))
-Bls_BB = np.ones((N_freqs, 3*nside))
-
 if masking_strat == 'GWD':
      mask = hp.read_map(path+"masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 elif masking_strat == '':
@@ -73,6 +72,8 @@ else:
     mask = hp.read_map(path+'masks/mask_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))
 fsky_eff = np.mean(mask**2)
 
+Bls_EE = np.ones((N_freqs, 3*nside))
+Bls_BB = np.ones((N_freqs, 3*nside))
 if gaussbeam:
 	kw += '_gaussbeam'
 	for i in range(N_freqs):
@@ -108,22 +109,47 @@ ell_unbined= np.arange(3*nside)
 
 CL_fg_EE = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspE_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='EE')
 CL_fg_BB = sim.computecross(mapfg,mapfg,mapfg,mapfg,wsp=wspB_unbined,Nell=len(ell_unbined),mask=mask,b=b_unbined,coupled=True,mode='BB')
-  
+
 #get noise spectra
-CL_cross_noise_EE = np.ones((Ncross,3*nside))
-CL_cross_noise_BB = np.ones((Ncross,3*nside))
-z=0
+
+CL_cross_noise_EE = np.zeros((Ncross,3*nside))
+CL_cross_noise_BB = np.zeros((Ncross,3*nside))
+
+if cl_noise == 'white':
+	for i in range(Nfreqs):
+		cross = cvl.cross_index(i, i, N_freqs)
+		CL_cross_noise_EE[cross] = 4*np.pi/Npix * sigpix[i]**2
+		CL_cross_noise_BB[cross] = Nls_EE[cross]
+        
+else:
+    if masking_strat == '':
+        Cl_noise = np.load(cl_noise+'CL_noise_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))[:, :, 1:, 2:2*nside]
+    elif masking_strat == 'GWD':
+        Cl_noise = np.load(cl_noise+'CL_noise_GWD_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))[:, :, 1:, 2:2*nside]
+    else:
+        Cl_noise = np.load(cl_noise+'CL_noise_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))[:, :, 1:, 2:2*nside]
+    Cl_noise_mean = np.mean(Cl_noise, axis=(0,2))
+    Cl_noise_std = np.std(Cl_noise, axis=(0,2))
+
+    for i in range(N_freqs):
+        cross = cvl.cross_index(i, i, N_freqs)
+        p = [{'value': 4*np.pi/Npix * sigpix[i]**2, 'fixed': 0, 'limited': [1,1], 'limits': [0,np.inf]}]
+        fa = {'Cl_noise': Cl_noise_mean[i], 'sigma_Cl': Cl_noise_std[i]}
+        m = mpfit(fit.chi2_Nl, parinfo=p, functkw=fa, quiet=1)
+        CL_cross_noise_EE[cross, 2:] = m.params[0] * np.ones(3*nside-2)
+        CL_cross_noise_BB[cross] = CL_cross_noise_EE[cross]
+        print(m.params[0], 4*np.pi/Npix * sigpix[i]**2)
+raise ValueError
 Nls_EE=[]
 Nls_BB=[]
-for i in range(0,N_freqs): 
-    for j in range(i,N_freqs): 
-        CL_cross_noise_EE[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix / (Bls_EE[i] * Bls_EE[j])
-        CL_cross_noise_BB[z]= 4*np.pi*sigpix[i]*sigpix[j]/Npix / (Bls_BB[i] * Bls_BB[j])
-        coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise_EE[z], np.zeros_like(CL_cross_noise_EE[z]), np.zeros_like(CL_cross_noise_EE[z]), CL_cross_noise_EE[z]])[0]
-        coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise_BB[z], np.zeros_like(CL_cross_noise_BB[z]), np.zeros_like(CL_cross_noise_BB[z]), CL_cross_noise_BB[z]])[3]
-        Nls_EE.append(coupled_noise_EE)
-        Nls_BB.append(coupled_noise_BB)
-        z=z+1
+for i in range(N_freqs): 
+    cross = cvl.cross_index(i, i, N_freqs)
+    CL_cross_noise_EE[cross] /= Bls_EE[i]**2
+    CL_cross_noise_BB[cross] /= Bls_BB[i]**2
+    coupled_noise_EE = wspE_unbined.couple_cell([CL_cross_noise_EE[cross], np.zeros_like(CL_cross_noise_EE[cross]), np.zeros_like(CL_cross_noise_EE[cross]), CL_cross_noise_EE[cross]])[0]
+    coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise_BB[cross], np.zeros_like(CL_cross_noise_BB[cross]), np.zeros_like(CL_cross_noise_BB[cross]), CL_cross_noise_BB[cross]])[3]
+    Nls_EE.append(coupled_noise_EE)
+    Nls_BB.append(coupled_noise_BB)
 Nls_EE=np.array(Nls_EE)
 Nls_BB=np.array(Nls_BB)
 
@@ -158,7 +184,7 @@ if cmb_e2e:
         dusttype, synctype = 'h', 'h'
     
 if use_nmt==False:
-    if masking strat not in ['intersection', 'union']:
+    if masking_strat not in ['intersection', 'union']:
         np.save(path+'covariances/cov_Knox-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
         np.save(path+'covariances/cov_signal_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_sg)
         np.save(path+'covariances/cov_Knox+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)

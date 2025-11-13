@@ -43,7 +43,7 @@ results = np.load('./best_fits/results_d%ss%s_%s_%s_gaussbeam_bandpass_ds_o%s_fi
 
 keys = list(results.keys())
 
-params = np.array([results[k] for k in keys])
+params = np.array([results[k] if k != 'T_d' else 1/results[k] for k in keys])
 
 # Compute CMB BB spectrum for each simulation
 
@@ -73,16 +73,18 @@ for k in range(Nsims):
 
 # Compute systematic foreground residuals
 
-sysFGRs = Cl_cmb_mean - Cl_lens
+sysFGRs = (Cl_cmb_mean - Cl_lens) * 0
 
 # Compute foreground template
 
-nu = np.array([402])
-
-tempFGRs = np.zeros((Nsims, Nbins))
+'''
+nu = np.array([353, 402])
+dust = np.zeros((Nsims, Nbins))
 for k in range(Nsims):
     for i in range(Nbins):
-        tempFGRs[k, i] = fit.func_ds_o1bts(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0) / leff[i]/(leff[i]+1) * 2*np.pi
+        dust[k, i] = fit.func_ds_o1bts(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0)[1] / leff[i]/(leff[i]+1) * 2*np.pi
+'''
+tempFGRs = (Cl_cmb_mean - Cl_lens) * 0
 
 # Save inputs
 
