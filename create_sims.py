@@ -43,7 +43,7 @@ instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
-sens_P = instr['sens_P']*0
+sens_P = instr['sens_P']
 beam = instr['beams']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
