@@ -17,14 +17,14 @@ from matplotlib.backends.backend_pdf import PdfPages
 from plotlib import plotrespdf
 import analytical_mom_lib as anmomlib
 
-nres=3 #number of results to plot
+nres=4 #number of results to plot
 nside = 64 #HEALPix nside
 lmax = nside*2-1 #maximum multipole
-scale = 10 #scale of apodisaton of the mask
+scale = 3 #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
-dusttype = 10 #index of Pysm's dust model
-synctype = 5 #index of Pysm's synchrotron model
+dusttype = 'b' #index of Pysm's dust model
+synctype = 'b' #index of Pysm's synchrotron model
 fix=1 #fix beta and T (0:fit, 1:fix)?
 order = '1bts' #0, 1bt or 1bts 
 kw = '' #keyword for the fitting scheme
@@ -34,7 +34,7 @@ plot_contours=True #plot contours for best fit parameters
 all_ell=False #all ell or each ell independently (True/False)
 nu0d=402. #dust reference frequency
 nu0s=40. #synchrotron reference frequency
-masking_strat = 'intersection' #masking strategy. Should be '', 'GWD', 'intersection' or 'union'
+masking_strat = 'union' #masking strategy. Should be '', 'GWD', 'intersection' or 'union'
 
 if all_ell==True:
     kw=kw+'_all_ell'
@@ -52,17 +52,18 @@ else:
         complexity = 'medium_complexity'
     elif dusttype == 'h' and synctype == 'h':
         complexity = 'high_complexity'
-    mask = hp.read_map(path+'masks/mask_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))
+    mask = hp.read_map(Pathload+'masks/mask_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))
 
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 l = b.get_effective_ells()
 Nell = len(l)
 
 #loads the results:
-res1 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
-res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s_adaptative.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
-res3 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt',fix),allow_pickle=True).item()
-#res4 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_gaussbeam_bandpass_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'0',0),allow_pickle=True).item()
+fsky = masking_strat
+res1 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_gaussbeam_bandpass_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res2 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_gaussbeam_bandpass_ds_o%s_fix%s_adaptative.npy'%(dusttype,synctype,fsky,order,fix),allow_pickle=True).item()
+res3 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_gaussbeam_bandpass_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'1bt',fix),allow_pickle=True).item()
+res4 = np.load('best_fits/results_d%ss%s_%s_Nmt-fg_gaussbeam_bandpass_ds_o%s_fix%s.npy'%(dusttype,synctype,fsky,'0',0),allow_pickle=True).item()
 
 #labels and legend for the results
 legs1 = 'd%ss%s_fsky%s_o%s'%(dusttype,synctype,fsky,order)
@@ -95,7 +96,10 @@ try:
 except:
     print('Computing theoretical expecations for the fitted quantities ...')
     mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
-    np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
+    if masking_strat not in ['intersection', 'union']:
+        np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
+    else:
+        np.save('./analytical_mom/analytical_mom_nside%s_%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, masking_strat, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
 
 #plot:
 

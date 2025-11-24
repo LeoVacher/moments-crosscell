@@ -15,11 +15,11 @@ import fitlib as fit
 nside = 64
 lmax = 2*nside-1
 Nlbin = 10
-fsky = 0.7
+fsky = 'union_scaleSmooth1'
 complexity = 'baseline' # Should be 'baseline', 'medium_complexity' or 'high_complexity'
-order = '1bts'
-fix = 1
-adaptative = True
+order = '0'
+fix = 0
+adaptative = False
 cov_type = 'Nmt-fg'
 kw = ''
 
@@ -28,7 +28,7 @@ if complexity == 'baseline':
 elif complexity == 'medium_complexity':
     dusttype, synctype = 'm', 'm'
 elif complexity == 'high_complexity':
-    dusttype, synctype == 'h', 'h'
+    dusttype, synctype = 'h', 'h'
 
 if adaptative:
     kw += '_adaptative'
@@ -77,13 +77,19 @@ sysFGRs = (Cl_cmb_mean - Cl_lens) * 0
 
 # Compute foreground template
 
-'''
 nu = np.array([353, 402])
 dust = np.zeros((Nsims, Nbins))
+tempFGRs = np.zeros((Nsims, Nbins))
 for k in range(Nsims):
     for i in range(Nbins):
-        dust[k, i] = fit.func_ds_o1bts(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0)[1] / leff[i]/(leff[i]+1) * 2*np.pi
-'''
+        if order == '0':
+            dust[k, i] = fit.func_ds_o0(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0)[1] / leff[i]/(leff[i]+1) * 2*np.pi
+        elif order == '1bt':
+            dust[k, i] = fit.func_ds_o1bt(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0)[1] / leff[i]/(leff[i]+1) * 2*np.pi
+        else:
+            dust[k, i] = fit.func_ds_o1bts(params[:, i, k], x1=nu, x2=nu, nu0d=402, nu0s=40, ell=i, DL_lensbin=Cl_lens*0, DL_tens=Cl_tens*0)[1] / leff[i]/(leff[i]+1) * 2*np.pi
+        
+#tempFGRs = dust * np.mean((Cl_cmb_mean-Cl_lens) / dust)
 tempFGRs = (Cl_cmb_mean - Cl_lens) * 0
 
 # Save inputs
@@ -95,6 +101,8 @@ np.save(path+'/namaster_statFGRs.npy', statFGRs)
 np.save(path+'/namaster_sysFGRs.npy', sysFGRs)
 np.save(path+'/namaster_tempFGRs.npy', tempFGRs)
 np.save(path+'/namaster_total.npy', Cl_cmb)
+np.save(path+'/namaster_total_0gauswin_spectra_CMB_QML.npy', Cl_cmb)
+hp.write_cl(path+'/beam_0TP_pixwin16.fits', np.ones((3, Nbins)), overwrite=True)
 
 print('Inputs saved in subfolder %s! Bin edges to put in the config file:\n' % (name))
 print('nmtbin_lmins =', lmins)

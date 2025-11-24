@@ -17,17 +17,17 @@ import covlib as cvl
 
 nside = 64 #HEALPix nside
 lmax = nside*3-1 #maximum multipole
-scale = 10 #scale of apodisaton of the mask
+scale = 'Smooth1' #scale of apodisaton of the mask
 Nlbin = 10 #binning for bandpower
 fsky = 0.7 #sky fraction of the raw mask
-dusttype = 10 #index of Pysm's dust model
-synctype = 5 #index of Pysm's synchrotron model
-order_to_fit= ['1bts'] #orders to fit ('0', '1bt' or '1bts')
-Pathload = './' #Home path. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
+dusttype = 'h' #index of Pysm's dust model
+synctype = 'h' #index of Pysm's synchrotron model
+order_to_fit= ['0'] #orders to fit ('0', '1bt' or '1bts')
+Pathload = '/pscratch/sd/s/svinzl/B_modes_project/' #Home path. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 all_ell = False #all ell or each ell independently (True/False)
-fix = 1 #fix beta and T (0:fit, 1:fix)?
+fix = 0 #fix beta and T (0:fit, 1:fix)?
 fixr= 0 #fix r (0:fit, 1:fix)?
-adaptative = True #adapt to fix to 0 non detected moments (True/False)
+adaptative = False #adapt to fix to 0 non detected moments (True/False)
 N = 250 #number of simulations
 plotres = True #plot and save pdf?
 parallel = False #parallelize?
@@ -40,11 +40,11 @@ dusttype_cov = dusttype #dust type for the covariance matrix
 synctype_cov = synctype #synchrotron type for the covariance matrix
 nu0d = 402. #dust reference frequency
 nu0s = 40. #synchrotron reference frequency
-gaussbeam = False #are simulations smoothed with gaussian beam?
-bandpass = False #are simulatuions bandpass integrated? (top-hat functions)
+gaussbeam = True #are simulations smoothed with gaussian beam?
+bandpass = True #are simulatuions bandpass integrated? (top-hat functions)
 Ngrid = 50 #number of points on bandpass grid to integrate the model
-cmb_e2e = False #if True, use CMB lensing power spectrum from litebird end-to-end simulations
-masking_strat = '' #masking strategy. Should be '', 'GWD', 'intersection' or 'union'
+cmb_e2e = True #if True, use CMB lensing power spectrum from litebird end-to-end simulations
+masking_strat = 'union' #masking strategy. Should be '', 'GWD', 'intersection' or 'union'
 
 
 
@@ -142,16 +142,16 @@ DLdc = DLdc[:N,:,:Nell]
 if pivot_o0:
     try:
         if cov_type == 'sim':
-            o0 = np.load('best_fits/results_d%ss%s_%s%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,kws,'0','0'),allow_pickle=True).item()
+            o0 = np.load('best_fits/results_d%ss%s_%s_scale%s%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,scale,kws,'0','0'),allow_pickle=True).item()
         else:
-            o0 = np.load('best_fits/results_d%ss%s_%s_%s%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,cov_type,kws,'0','0'),allow_pickle=True).item()
+            o0 = np.load('best_fits/results_d%ss%s_%s_scale%s_%s%s_ds_o%s_fix%s_all_ell.npy'%(dusttype,synctype,fsky,scale,cov_type,kws,'0','0'),allow_pickle=True).item()
     except:
         if cov_type == 'sim':
             Linvdc0 = cvl.getLinv_all_ell(DLdc[:Ncov,:,:Nell],printdiag=True)
         else:
             Linvdc0 = cvl.inverse_covmat(cov, Ncross, neglect_corbins=False, return_cholesky=True, return_new=False)
         p0 = [np.abs(DLdc[0,-1]), 1.5, 20, np.abs(DLdc[0,0]), -3,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=False,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
+        o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc0,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=0, all_ell=True,kwsave='d%ss%s_%s_scale%s'%(dusttype,synctype,fsky,scale)+kw,plotres=False,iterate=False,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
     betabar = np.mean(o0['beta_d'])
     tempbar = np.mean(o0['T_d'])
     betasbar = np.mean(o0['beta_s'])
@@ -162,18 +162,18 @@ else:
 
 if '0' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0, 0] #first guess for mbb A, beta, T, A_s, beta_s, A_sd and r
-    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
+    results_ds_o0 = an.fit_mom('ds_o0',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,kwsave='d%ss%s_%s_scale%s'%(dusttype,synctype,fsky,scale)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
 
 # fit order 1 in beta and T, get results, save and plot
 
 if '1bt' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
+    results_ds_o1bt = an.fit_mom('ds_o1bt',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix,all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s_scale%s'%(dusttype,synctype,fsky,scale)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
 
 # fit order 1 in beta, T and beta_s, get results, save and plot
 
 if '1bts' in order_to_fit:
     p0 = [np.abs(DLdc[0,-1]), betabar, tempbar, np.abs(DLdc[0,0]), betasbar,0,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0]
-    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s'%(dusttype,synctype,fsky)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
+    results_ds_o1bts = an.fit_mom('ds_o1bts',nucross,DLdc,Linvdc,p0,quiet=True,nside=nside, Nlbin=Nlbin, fix=fix, all_ell=all_ell,adaptative=adaptative,kwsave='d%ss%s_%s_scale%s'%(dusttype,synctype,fsky,scale)+kw,plotres=plotres,iterate=iterate,nu0d=nu0d,nu0s=nu0s,fixr=fixr,cmb_e2e=cmb_e2e)
 
 

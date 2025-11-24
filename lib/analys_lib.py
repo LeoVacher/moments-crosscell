@@ -142,9 +142,11 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 
                 elif kw == 'ds_o1bt':
                     dust_keys = np.array(keys[6:-2])
+                    '''
                     if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                         for k in dust_keys:
-                            parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
+                            parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}*
+                    '''
 
                 else:
                     dust_keys = np.concatenate((keys[6:11], keys[13:15]))
@@ -152,9 +154,11 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     if all(adaptafix(res0[k][L]) == 1 for k in sync_keys):
                         for k in sync_keys:
                             parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
+                        '''
                         if all(adaptafix(res0[k][L]) == 1 for k in dust_keys):
                             for k in dust_keys:
                                 parinfopl[L][np.argwhere(keys==k)[0,0]] = {'value':0, 'fixed':1}
+                        '''
 
             kwf += '_adaptative'
 
@@ -319,37 +323,40 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         
         if plotres:
             # mask (used to compute theoretical expectations)
-            dusttype,synctype,fsky = tuple(str(n) if '.' not in n else float(n) for n in re.findall(r'd(\S+)s(\S+)_([\d.]+)', kwsave)[0])
+            dusttype,synctype,fsky,scale = tuple(str(n) if '.' not in n else float(n) for n in re.findall(r'd(\S+)s(\S+)_(\S+)_scale(\S+\d+)_', kwsave)[0])
             if dusttype == 'b' and synctype == 'b':
-                complexity = 'baseline'
                 dusttype, synctype = 1, 1
             elif dusttype == 'm' and synctype == 'm':
-                complexity = 'medium_complexity'
                 dusttype, synctype = 10, 5
             elif dusttype == 'h' and synctype == 'h':
-                complexity = 'high_complexity'
                 dusttype, synctype = 12, 7
             else:
                 dusttype, synctype = int(dusttype), int(synctype)
-            print("dusttype=%s,synctype=%s,fsky=%s"%(dusttype,synctype,fsky))
+            print("dusttype=%s,synctype=%s,fsky=%s,aposcale=%s"%(dusttype,synctype,fsky,scale))
             if fsky==1:
                 mask = np.ones(hp.nside2npix(nside))
             elif fsky in ['intersection', 'union']:
-                mask = hp.read_map("./masks/mask_%s_%s_nside%s_aposcale%s.npy"%(fsky,complexity,nside,3))
+                if dusttype == 1 and synctype == 1:
+                    complexity = 'baseline'
+                elif dusttype == 10 and synctype == 5:
+                    complexity = 'medium_complexity'
+                elif dusttype == 12 and synctype == 7:
+                    complexity = 'high_complexity'
+                mask = hp.read_map("./masks/mask_%s_%s_nside%s_aposcale%s.npy"%(fsky,complexity,nside,scale))
             elif 'maskGWD' in kwsave:
-                mask = hp.read_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,10))
+                mask = hp.read_map("./masks/mask_GWD_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
             else:
-                mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,10))
+                mask = hp.read_map("./masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
             betabar = np.median(results['beta_d'][~np.isnan(results['X2red'])])
             tempbar = np.median(results['T_d'][~np.isnan(results['X2red'])])
             betasbar= np.median(results['beta_s'][~np.isnan(results['X2red'])])
             fsky = np.mean(mask**2)
             try:
-                mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), allow_pickle=True).item()
+                mom_an = np.load('./analytical_mom/analytical_mom_nside%s_fsky%s_scale%s_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, scale, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), allow_pickle=True).item()
             except:
                 print('Computing theoretical expecations for the fitted quantities ...')
                 mom_an = anmomlib.getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=Nlbin, nside=nside,nu0d=nu0d,nu0s=nu0s)
-                np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale10_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
+                np.save('./analytical_mom/analytical_mom_nside%s_fsky%s_scale%s_Nlbin10_d%ss%s_%s%s%s_%s%s.npy' % (nside, fsky, scale, dusttype, synctype, np.round(betabar,3), np.round(tempbar,3), np.round(betasbar,3),int(nu0d),int(nu0s)), mom_an)
             if all_ell:
                 plot_contours=False
             else:

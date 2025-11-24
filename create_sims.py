@@ -22,12 +22,12 @@ N = 250  #number of sims
 lmax = nside*3-1 #maximum multipole
 scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
-fsky = 0.5 #fraction of sky for the raw mask
+fsky = 0.7 #fraction of sky for the raw mask
 dusttype = 1 #Pysm dust model
 synctype = 1 #Pysm syncrotron model
 kws = '' #keyword for the simulation
 load=False #load previous sims 
-masking_strat='GWD' #keywords for choice of mask. If '', use Planck mask 
+masking_strat='' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = False #smooth with gaussian beam?
 bandpass = False #integrate on bandpass assuming top-hat functions
 Ngrid = 100 #number of points on bandpass grid
@@ -43,7 +43,7 @@ instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
-sens_P = instr['sens_P']
+sens_P = instr['sens_P']*0
 beam = instr['beams']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
@@ -87,6 +87,14 @@ if masking_strat=='GWD':
 else:
     if fsky==1:
         mask=np.ones(Npix)
+    elif masking_strat in ['intersection', 'union']:
+        if dusttype == 1 and synctype == 1:
+            complexity = 'baseline'
+        elif dusttype == 10 and synctype == 5:
+            complexity = 'medium_complexity'
+        elif dusttype == 12 and synctype == 7:
+            complexity = 'high_complexity'
+        mask = hp.read_map(path+"masks/mask_%s_%s_nside%s_aposcale%s.npy"%(masking_strat,complexity,nside,scale))
     else:
         mask = hp.read_map(path+"masks/mask_fsky%s_nside%s_aposcale%s.npy"%(fsky,nside,scale))
 
@@ -105,9 +113,15 @@ else:
 if load == True:
     # TO DO: ADD here load options for all cases (dust=None...) 
     if synctype == None:
-        CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,kws))
+        if masking_strat in ['intersection', 'union']:
+            CLcross = np.load(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%sc%s.npy'%(nside,masking_strat,scale,Nlbin,dusttype,kws))
+        else:
+            CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,kws))
     else:
-        CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype,kws))  
+        if masking_strat in ['intersection', 'union']:
+            CLcross = np.load(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc%s.npy'%(nside,masking_strat,scale,Nlbin,dusttype,synctype,kws))
+        else:
+            CLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc%s.npy'%(nside,fsky,scale,Nlbin,dusttype,synctype,kws))  
     kini=np.argwhere(CLcross == 0)[0,0]
     if kini ==N:
         print("All sims already computed and saved")
@@ -151,22 +165,46 @@ for k in tqdm(range(kini,N)):
     #save:
     if synctype==None and dusttype==None:
         if r == 0:
-            np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kws,CLcross)
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_c"%(nside,masking_strat,scale,Nlbin)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_c"%(nside,fsky,scale,Nlbin)+kws,CLcross)
         else :
-            np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin)+kws,CLcross)
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_%s_scale%s_Nlbin%s_c"%(r,nside,masking_strat,scale,Nlbin)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_c"%(r,nside,fsky,scale,Nlbin)+kws,CLcross)
     elif synctype==None:
-    	if r == 0:
-    		np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
-    	else :
-    		np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
+        if r == 0:
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%sc"%(nside,masking_strat,scale,Nlbin,dusttype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
+        else :
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_%s_scale%s_Nlbin%s_d%sc"%(r,nside,masking_strat,scale,Nlbin,dusttype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%sc"%(r,nside,fsky,scale,Nlbin,dusttype)+kws,CLcross)
     elif dusttype==None:
         if r == 0:
-            np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_s%sc"%(nside,masking_strat,scale,Nlbin,synctype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
         else :
-            np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_%s_scale%s_Nlbin%s_s%sc"%(r,nside,masking_strat,scale,Nlbin,synctype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_s%sc"%(r,nside,fsky,scale,Nlbin,synctype)+kws,CLcross)
     elif synctype!=None and dusttype!=None:
-    	if r == 0:
-    		np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
-    	else :
-    		np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+        if r == 0:
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc"%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+        else :
+            if masking_strat in ['intersection', 'union']:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,masking_strat,scale,Nlbin,dusttype,synctype)+kws,CLcross)
+            else:
+                np.save(path+"power_spectra/DLcross_r%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc"%(r,nside,fsky,scale,Nlbin,dusttype,synctype)+kws,CLcross)
 

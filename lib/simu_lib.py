@@ -166,7 +166,7 @@ def get_fg_QU(freq, nside, dusttype=None, synctype=None):
     N_freqs = len(freq)
     Npix = hp.nside2npix(nside)
     if dusttype==None and synctype==None:
-        mapfg=np.zeros((N_freqs,2,Npix))
+        mapfg=np.zeros((N_freqs,3,Npix))
     else:
         nside_pysm = 512
         if dusttype==None:

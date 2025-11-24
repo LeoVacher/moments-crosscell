@@ -11,19 +11,19 @@ import simu_lib as sim
 Nside = 64
 Nsims = 250
 fsky = 0.7
-scale = 3
+scale = 'Smooth1'
 masking_strat = 'union_high_complexity' # Should be '' for Planck mask, 'GWD', 'intersection_<complexity>' or 'union_<complexity>'
 
 if masking_strat == '':
     kwsave = '_fsky%s_nside%s_aposcale%s' % (fsky, Nside, scale)
-elif masking_strat = 'GWD':
+elif masking_strat == 'GWD':
     kwsave = '_GWD_fsky%s_nside%s_aposcale%s' % (fsky, Nside, scale)
 else:
     kwsave = '_%s_nside%s_aposcale%s' % (masking_strat, Nside, scale)
 
 # Load noise simulations
 
-maps = np.load('./e2e_simulations/e2e_noise_nside%s.npy' % (Nside))[:,0]
+maps = np.load('/pscratch/sd/s/svinzl/B_modes_project/maps/e2e_noise_nside%s.npy' % (Nside))[:,0]
 
 if masking_strat == '':
     mask = hp.read_map('./masks/mask_fsky%s_nside%s_aposcale%s.npy'%(fsky, Nside, scale))

@@ -6,7 +6,7 @@ import healpy as hp
 import pymaster as nmt 
 import urllib.request
 
-fsky=0.99
+fsky=0.7
 scale=10
 nside=64
 path = './' #path for saving mask. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory

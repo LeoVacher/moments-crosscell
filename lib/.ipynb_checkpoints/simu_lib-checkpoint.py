@@ -1,6 +1,8 @@
 import healpy as hp
 import numpy as np
 import pymaster as nmt
+import pysm3
+import pysm3.units as u
 
 def downgrade_alm(input_alm,nside_in,nside_out):
     """
@@ -38,8 +40,147 @@ def downgrade_map(input_map,nside_out,nside_in):
     output_map = hp.alm2map(output_alm,nside=nside_out)#  output alm → output map
     return output_map
 
-def compute_master(f_a, f_b, wsp):
+def compute_master(f_a, f_b, wsp,coupled=False):
     cl_coupled = nmt.compute_coupled_cell(f_a, f_b)
-    cl_decoupled = wsp.decouple_cell(cl_coupled)
-    return cl_decoupled
-   
+    if coupled==False:
+        cl_decoupled = wsp.decouple_cell(cl_coupled)
+        return cl_decoupled
+    elif coupled==True:
+        return cl_coupled
+
+def get_wsp(map_FM1,map_FM2,map_HM1,map_HM2,mask,b,purify='BB', beam1=None, beam2=None):
+    """
+    Get a namaster working space from maps before computation
+    """
+    if purify == 'EE':
+        purify_e = True
+        purify_b = False
+    elif purify == 'BB':
+        purify_e = False
+        purify_b = True
+    elif purify == 'all':
+        purify_e = True
+        purify_b = True
+
+    wsp = nmt.NmtWorkspace()
+    wsp.compute_coupling_matrix(nmt.NmtField(mask, 1*map_FM1[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask,1*map_FM2[0],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), b)
+    return wsp
+
+def computecross(map_FM1,map_FM2,map_HM1,map_HM2,wsp,mask,Nell,b,coupled=False,mode='BB', beams=None):
+    """
+    Compute the cross-spectra
+    """
+    N_freqs=len(map_HM1)
+    Ncross=int(N_freqs*(N_freqs+1)/2)
+    sp_dict = {'EE': 0, 'EB': 1, 'BE':2, 'BB': 3}
+    sp = sp_dict.get(mode, None)
+    if sp!=None:
+        CLcross = np.zeros((Ncross,Nell))
+    if sp==None:
+        CLcross = np.zeros((4,Ncross,Nell))
+
+    if mode == 'EE':
+        purify_e = True
+        purify_b = False
+    else:
+        purify_e = False
+        purify_b = True
+
+    z=0
+    if sp!=None:
+        for i in range(0,N_freqs):
+            for j in range(i,N_freqs):
+                if beams is None:
+                    beam1 = None
+                    beam2 = None
+                    w = wsp
+                else:
+                    beam1 = beams[i]
+                    beam2 = beams[j]
+                    w = wsp[z]
+
+                if i != j :
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_FM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
+                if i==j :
+                    CLcross[z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_HM2[j],purify_e=purify_e, purify_b=purify_b,lmax=b.lmax, beam=beam2), w, coupled=coupled)[sp])
+                z = z +1
+        return CLcross
+
+    elif sp==None:
+        for i in range(0,N_freqs):
+            for j in range(i,N_freqs):
+                if beams is None:
+                    beam1 = None
+                    beam2 = None
+                    w = wsp
+                else:
+                    beam1 = beams[i]
+                    beam2 = beams[j]
+                    w = wsp[z]
+
+                if i != j :
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_FM1[i],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_FM2[j],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2), w, coupled=coupled))
+                if i==j :
+                    CLcross[:,z]=np.array(compute_master(nmt.NmtField(mask, 1*map_HM1[i],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1), nmt.NmtField(mask, 1*map_HM2[j],purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2), w, coupled=coupled))
+                z = z +1
+    return CLcross
+
+def compute_cross_simple(mapd1,mapd2,mask,b, beam1=None, beam2=None):
+    nside = len(mask)
+    lmax = 3*nside-1
+    fa1 = nmt.NmtField(mask, (mapd1)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam1)
+    fa2 = nmt.NmtField(mask, (mapd2)*1,purify_e=False, purify_b=True,lmax=b.lmax, beam=beam2)
+    wsp = nmt.NmtWorkspace()
+    wsp.compute_coupling_matrix(fa1, fa2, b)
+    return compute_master(fa1,fa2,wsp) 
+
+def masks_GWD(map_for_dust_mask, 
+          per_cent_to_keep = 85, 
+          smooth_mask_deg = 2, 
+          apo_mask_deg = 2, 
+          verbose=False):
+    #Gilles W.D. code for mask
+    # smooth it 2°
+    P_dust_smoothed = hp.smoothing(map_for_dust_mask, fwhm=np.radians(smooth_mask_deg)) ; del map_for_dust_mask
+    # tu peux aussi smooth Q & U puis construire P mais bon ca change pas grand chose
+    if verbose : print('P map 2° smoothed') ; hp.mollview(P_dust_smoothed, unit='mK', norm='hist') ; plt.show()
+
+    # 15% most important binary masked 
+    N = int((1-per_cent_to_keep/100)*len(P_dust_smoothed))
+    mask_raw = np.array(len(P_dust_smoothed)*[1])
+    for i in np.argsort(np.abs(P_dust_smoothed))[-N:]:
+        mask_raw[i] = 0
+    if verbose : print(str(per_cent_to_keep)+'% binary mask') ; hp.mollview(mask_raw, unit='mK', norm='hist') ; plt.show()
+
+    # Apodize the binary mask by a 2° gaussian smoothing
+    apo_mask = hp.smoothing(mask_raw, fwhm=np.radians(apo_mask_deg))
+    if verbose : print('2° gauss apo mask') ; hp.mollview(apo_mask, unit='mK', norm='hist') ; plt.show()
+    apo_mask[apo_mask>1]=1
+    apo_mask[apo_mask<0]=0
+    
+    return apo_mask
+
+
+def get_fg_QU(freq, nside, dusttype=None, synctype=None):
+    #returns Pysm Q and U fg maps for given frequencies and nside.
+    N_freqs = len(freq)
+    Npix = hp.nside2npix(nside)
+    if dusttype==None and synctype==None:
+        mapfg=np.zeros((N_freqs,3,Npix))
+    else:
+        nside_pysm = 512
+        if dusttype==None:
+            if synctype >= 4:
+                nside_pysm = 2048
+            sky = pysm3.Sky(nside=nside_pysm, preset_strings=['s%s'%synctype], output_unit='uK_CMB')
+        if synctype==None:
+            if dusttype >= 9:
+                nside_pysm = 2048
+            sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype], output_unit='uK_CMB')
+        if synctype!=None and dusttype!=None:
+            if dusttype >= 9 or synctype >= 4:
+                nside_pysm = 2048
+            sky = pysm3.Sky(nside=nside_pysm, preset_strings=['d%s'%dusttype,'s%s'%synctype], output_unit='uK_CMB')
+        mapfg= np.array([downgrade_map(sky.get_emission(freq[f] * u.GHz).value,nside_in=nside_pysm,nside_out=nside) for f in range(N_freqs)])
+    mapfg=mapfg[:,1:]
+    return mapfg

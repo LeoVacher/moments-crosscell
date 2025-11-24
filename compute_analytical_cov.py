@@ -23,18 +23,18 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*3-1
-scale = 10
+scale = 'Smooth1'
 Nlbin = 10
 fsky = 0.7
-dusttype = 1
-synctype = 1
+dusttype = 12
+synctype = 7
 kw=''
 use_nmt=True
 mode_cov='BB'
-masking_strat = ''
+masking_strat = 'intersection'
 gaussbeam = True
 bandpass = True
-Ngrid = 100
+Ngrid = 50
 path = '/pscratch/sd/s/svinzl/B_modes_project/' # Path for saving covariance matrix
 cl_noise = './e2e_simulations/' # Path to noise power spectra. Use 'white' for a Gaussian white noise model
 cmb_e2e = True # If True, use CMB lensing power spectrum from litebird end-to-end simulations
@@ -116,10 +116,10 @@ CL_cross_noise_EE = np.zeros((Ncross,3*nside))
 CL_cross_noise_BB = np.zeros((Ncross,3*nside))
 
 if cl_noise == 'white':
-	for i in range(Nfreqs):
+	for i in range(N_freqs):
 		cross = cvl.cross_index(i, i, N_freqs)
 		CL_cross_noise_EE[cross] = 4*np.pi/Npix * sigpix[i]**2
-		CL_cross_noise_BB[cross] = Nls_EE[cross]
+		CL_cross_noise_BB[cross] = CL_cross_noise_EE[cross]
         
 else:
     if masking_strat == '':
