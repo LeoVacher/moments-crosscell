@@ -4,7 +4,7 @@ import fitlib as ftl
 import scipy
 import matplotlib.pyplot as plt 
 import basicfunc as func
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import mpi4py
 from mpi4py import MPI
 import plotlib as plib
@@ -128,7 +128,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             parinfopl[L,1]= {'value':p0L[L,1], 'fixed':fix,'limited':[1,1],'limits':[0.5,2]} #betad
             parinfopl[L,2]= {'value':1/p0L[L,2], 'fixed':fix,'limited':[1,1],'limits':[1/100,1/3]} #1/Td
             parinfopl[L,3]= {'value':p0L[L,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]} #As
-            parinfopl[L,4]= {'value':p0L[L,4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas    
+            parinfopl[L,4]= {'value':p0L[L,4], 'fixed':fix,'limited':[1,1],'limits':[-5,-2]} #betas
             if fixr == 1:
                 if kw == 'ds_o0':
                     parinfopl[L,6] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
@@ -136,12 +136,6 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                     parinfopl[L,13] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)
                 elif kw == 'ds_o1bts':
                     parinfopl[L,18] = {'value': 0, 'fixed': fixr}  # tensor-to-scalar ratio (r)  
-            if mode == 'TT':
-                parinfopl[L,3] = {'value':0, 'fixed':1} #As
-                parinfopl[L,4] = {'value':0, 'fixed':1} #betas
-                parinfopl[L,5] = {'value':0, 'fixed':1} #Asd
-                parinfopl[L,11] = {'value':0, 'fixed':1} #Asw1b
-                parinfopl[L,12] = {'value':0, 'fixed':1} #Asw1t
 
         if adaptative:
             res0 = np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()
@@ -192,30 +186,53 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
                 chi2l[L,n]=m.fnorm/m.dof            
         
         if iterate:
+            tol = 1e-6
+            iter_max = 10
             if kw=='ds_o0':
                 raise ValueError('No iteration possible for order 0!')
             elif kw=='ds_o1bt':
                 while any(any(np.array([adaptafix(paramiterl[i, :, 6]), adaptafix(paramiterl[i, :, 8])]) == 0) for i in range(Nell)):
                     for n in tqdm(range(Nmin,Nmax)):
                         for L in range(Nell):
-                            parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
-                            parinfopl[L][2] = {'value': paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0] , 'fixed':1}
+                            parinfopl[L][1] = {'value': np.clip(paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0], 0.5, 2), 'fixed':1}
+                            parinfopl[L][2] = {'value': np.clip(paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0], 1/100, 1/3), 'fixed':1}
                             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
                             m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                             paramiterl[L,n]= m.params
                             chi2l[L,n]=m.fnorm/m.dof
             else:
+                for n in trange(Nmin, Nmax):
+                    for L in range(Nell):
+                        converged = all(np.abs(np.array([paramiterl[L,n,6]/paramiterl[L,n,0] / paramiterl[L,n,1]], paramiterl[L,n,8]/paramiterl[L,n,0] / paramiterl[L,n,2])) < tol)
+                        if mode != 'TT':
+                            converged = converged and np.abs(paramiterl[L,n,11]/paramiterl[L,n,3] / paramiterl[L,n,4]) < tol
+                        iter = 0
+                        while not(converged) and iter < iter_max:
+                            parinfopl[L][1] = {'value': np.clip(paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0], 0.5, 2), 'fixed':1}
+                            parinfopl[L][2] = {'value': np.clip(paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0], 1/100, 1/3), 'fixed':1}
+                            if mode != 'TT':
+                                parinfopl[L][4] = {'value': np.clip(paramiterl[L,n,4] + paramiterl[L,n,11]/paramiterl[L,n,3], -5, -2), 'fixed':1}
+                            fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
+                            m = mpfit(ftl.lkl_mpfit, parinfo=list(parinfopl[L]) , functkw=fa, quiet=quiet)
+                            paramiterl[L,n] = m.params
+                            chi2l[L,n] = m.fnorm / m.dof
+                            converged = all(np.abs(np.array([paramiterl[L,n,6]/paramiterl[L,n,0] / paramiterl[L,n,1]], paramiterl[L,n,8]/paramiterl[L,n,0] / paramiterl[L,n,2])) < tol)
+                            if mode != 'TT':
+                                converged = converged and np.abs(paramiterl[L,n,11]/paramiterl[L,n,3] / paramiterl[L,n,4]) < tol
+                            iter += 1
+
+                '''
                 while any(any(np.array([adaptafix(paramiterl[i, :, 6]), adaptafix(paramiterl[i, :, 8]), adaptafix(paramiterl[i, :, 11])]) == 0) for i in range(Nell)):
                     for n in tqdm(range(Nmin,Nmax)):
                         for L in range(Nell):
-                            parinfopl[L][1] = {'value': paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0] , 'fixed':1}
-                            parinfopl[L][2] = {'value': paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0] , 'fixed':1}
-                            parinfopl[L][4] = {'value': paramiterl[L,n,4] + paramiterl[L,n,11]/paramiterl[L,n,3], 'fixed':1}
+                            parinfopl[L][1] = {'value': np.clip(paramiterl[L,n,1] + paramiterl[L,n,6]/paramiterl[L,n,0], 0.5, 2), 'fixed':1}
+                            parinfopl[L][2] = {'value': np.clip(paramiterl[L,n,2] + paramiterl[L,n,8]/paramiterl[L,n,0], 1/100, 1/3), 'fixed':1}
+                            parinfopl[L][4] = {'value': np.clip(paramiterl[L,n,4] + paramiterl[L,n,11]/paramiterl[L,n,3], -5, -2), 'fixed':1}
                             fa = {'x1':nu_i, 'x2':nu_j, 'y':DL[n,:,L], 'err': Linv[L],'ell':L, 'DL_lensbin': DL_lensbin, 'DL_tens': DL_tens,'model_func':funcfit, 'nu0d' : nu0d, 'nu0s' : nu0s}
                             m = mpfit(ftl.lkl_mpfit,parinfo= list(parinfopl[L]) ,functkw=fa,quiet=quiet)
                             paramiterl[L,n]= m.params
                             chi2l[L,n]=m.fnorm/m.dof
-
+                '''
 
     
         #return result dictionnary:
@@ -237,7 +254,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
         parinfopl =  []
         [parinfopl.append({'value':p0L[i,0], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_d
         [parinfopl.append({'value':p0L[i,3], 'fixed':0,'limited':[1,0],'limits':[0,np.inf]}) for i in range(Nell)] #A_s
-        [parinfopl.append({'value':p0L[i,5], 'fixed':0,'limited':[0,0],'limits':[-np.inf,np.inf]}) for i in range(Nell)] #A_sd
+        [parinfopl.append({'value':p0L[i,5], 'fixed':0,'limited':[0,0],'limits':[-1,1]}) for i in range(Nell)] #A_sd
         if kw=='ds_o1bt' and mompl==False:
             if adaptafix:
                 res0=np.load('./best_fits/results_%s_%s.npy'%(kwsave,kwf),allow_pickle=True).item()

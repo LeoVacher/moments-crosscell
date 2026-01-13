@@ -16,8 +16,11 @@ import simu_lib as sim
 import basicfunc as func
 
 
-def getmom_downgr(mom, nside, nside_pysm):
-    momarr = np.array([np.zeros(hp.nside2npix(nside_pysm)), mom.real, mom.imag])
+def getmom_downgr(mom, nside, nside_pysm, mode='BB'):
+    if mode == 'TT':
+        momarr = np.array([mom, np.zeros(hp.nside2npix(nside_pysm)), np.zeros(hp.nside2npix(nside_pysm))])
+    else:
+        momarr = np.array([np.zeros(hp.nside2npix(nside_pysm)), mom.real, mom.imag])
     momdg = sim.downgrade_map(momarr, nside_out=nside, nside_in=nside_pysm)
     return momdg
 
@@ -77,20 +80,20 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     mom1bs = skyrefcpxs*(betasmap-betasbar)
 
     #amplitudes:
-    skyrefcpxd = getmom_downgr(skyrefcpxd, nside, nside_pysm)
-    skyrefcpxs = getmom_downgr(skyrefcpxs, nside, nside_pysm)
+    skyrefcpxd = getmom_downgr(skyrefcpxd, nside, nside_pysm, mode=mode)
+    skyrefcpxs = getmom_downgr(skyrefcpxs, nside, nside_pysm, mode=mode)
     Ad = get_dl_mom(skyrefcpxd,skyrefcpxd,mask,b, mode=mode)
     As = get_dl_mom(skyrefcpxs,skyrefcpxs,mask,b, mode=mode)
     Asd = get_dl_mom(skyrefcpxd,skyrefcpxs,mask,b, mode=mode)/np.sqrt(Ad*As)
     
     #dust beta moments:
-    mom1b = getmom_downgr(mom1b, nside, nside_pysm)
+    mom1b = getmom_downgr(mom1b, nside, nside_pysm, mode=mode)
     w1bw1b = get_dl_mom(mom1b,mom1b,mask,b, mode=mode)
     Aw1b = get_dl_mom(skyrefcpxd,mom1b,mask,b, mode=mode)
     Asw1b = get_dl_mom(skyrefcpxs,mom1b,mask,b, mode=mode)
 
     #dust 1/temp moments:
-    mom1pmet = getmom_downgr(mom1pmet, nside, nside_pysm)
+    mom1pmet = getmom_downgr(mom1pmet, nside, nside_pysm, mode=mode)
     Aw1p = get_dl_mom(skyrefcpxd,mom1pmet,mask,b, mode=mode)
     w1bw1p = get_dl_mom(mom1b,mom1pmet,mask,b, mode=mode)
     w1pw1p = get_dl_mom(mom1pmet,mom1pmet,mask,b, mode=mode)
@@ -103,7 +106,7 @@ def getmom(dusttype, synctype, betabar, tempbar, betasbar, mask, Nlbin=10,nside=
     #syncrotron beta moments:
 
     if momsync:
-        mom1bs = getmom_downgr(mom1bs, nside, nside_pysm)
+        mom1bs = getmom_downgr(mom1bs, nside, nside_pysm, mode=mode)
         Aw1bs = get_dl_mom(skyrefcpxd,mom1bs,mask,b, mode=mode)    
         Asw1bs = get_dl_mom(skyrefcpxs,mom1bs,mask,b, mode=mode)    
         w1bw1bs = get_dl_mom(mom1b,mom1bs,mask,b, mode=mode)
