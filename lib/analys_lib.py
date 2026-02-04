@@ -36,7 +36,7 @@ def adaptafix(arr):
 
 # FIT FUNCTIONS ##################################################################################################################
 
-def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0,cmb_e2e=False):
+def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 10,fix=1,all_ell=False,adaptative=False,kwsave="",plotres=False,mompl=False,iterate=False,nu0d=353.,nu0s=23.,fixr=0,cmb_e2e=False,gnilc=False):
     """
     Fit using a first order moment expansion in both beta and T on a DL
     :param: kw, should be a string of the form 'X_Y' where X={d,s,ds} for dust,syncrotron or dust and syncrotron, and Y={o0,o1bt,o1bts} for order 0, first order in beta and T or first order in beta, T, betas
@@ -56,6 +56,7 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
     :param iterate: if True, iterate the fit of the moments to estimate the best pivot value.
     :param fixr: if 1, fix the tensor to scalar ratio (r) to zero and does not fit for it.
     :param cmb_e2e: #if True, use CMB lensing power spectrum from litebird end-to-end simulations.
+    :param gnilc: #if True, fit the computed GNILC spectra instead of the full mock data.
     :return results: dictionnary containing A_d, beta_d, T_d, Aw1b, w1bw1b, r and X2red for each (ell,n)
     """
     N,_,Nell=DL.shape
@@ -88,6 +89,8 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
 
     # get cmb spectra:
     DL_lensbin, DL_tens= ftl.getDL_cmb(nside=nside,Nlbin=Nlbin,cmb_e2e=cmb_e2e)
+    if gnilc:
+        DL_lensbin *= 0
 
     #get frequencies:
     ncross = len(nucross)
@@ -315,6 +318,9 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             raise ValueError('unexisting keyword')
 
     #save and plot results
+
+    if gnilc:
+        kwf += '_gnilc'
     
     if parallel:
         np.save('best_fits/results_%s_%s_p0/res%s.npy'%(kwsave,kwf,rank))    
