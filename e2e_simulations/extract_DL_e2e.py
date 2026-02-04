@@ -12,9 +12,9 @@ import simu_lib as sim
 nside = 64 # HEALPix nside
 N = 250  # Number of sims
 lmax = nside*3-1 # Maximum multipole
-masking_strat = 'union' # Masking strategy. Should be '', 'intersection' or 'union'
-scale = 'Smooth1' # Apodization scale in degrees
-Nlbin = 10 # Binning scheme of the Cls
+masking_strat = '' # Masking strategy. Should be '', 'intersection' or 'union'
+scale = 10 # Apodization scale in degrees
+Nlbin = 1 # Binning scheme of the Cls
 fsky = 0.7 # Fraction of sky for the raw mask
 complexity = 'high_complexity' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
 load = False # Load previous sims 

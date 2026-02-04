@@ -18,16 +18,16 @@ from tqdm import tqdm
 r = 0 # input tensor-to-scalar ratio in the simulation
 nside = 64 #HEALPix nside
 Npix = hp.nside2npix(nside) #number of pixels
-N = 250  #number of sims
+N = 10000  #number of sims
 lmax = nside*3-1 #maximum multipole
-scale = 10 #apodization scale in degrees
+scale = 'Smooth3' #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
 fsky = 0.7 #fraction of sky for the raw mask
-dusttype = 1 #Pysm dust model
-synctype = 1 #Pysm syncrotron model
+dusttype = None #Pysm dust model
+synctype = None #Pysm syncrotron model
 kws = '' #keyword for the simulation
 load=False #load previous sims 
-masking_strat='' #keywords for choice of mask. If '', use Planck mask 
+masking_strat='intersection' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = False #smooth with gaussian beam?
 bandpass = False #integrate on bandpass assuming top-hat functions
 Ngrid = 100 #number of points on bandpass grid
@@ -40,10 +40,10 @@ if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
 
 instr_name ='litebird_full' #instrument name in ./lib/instr_dict/
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
-freq = instr['frequencies']
+freq = np.array([instr['frequencies'][0]])
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
-sens_P = instr['sens_P']
+sens_P = instr['sens_P']*0
 beam = instr['beams']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
@@ -88,7 +88,9 @@ else:
     if fsky==1:
         mask=np.ones(Npix)
     elif masking_strat in ['intersection', 'union']:
-        if dusttype == 1 and synctype == 1:
+        if dusttype == None and synctype == None:
+            complexity = 'baseline'
+        elif dusttype == 1 and synctype == 1:
             complexity = 'baseline'
         elif dusttype == 10 and synctype == 5:
             complexity = 'medium_complexity'
