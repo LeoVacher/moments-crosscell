@@ -4,7 +4,7 @@ import fitlib as ftl
 import scipy
 import matplotlib.pyplot as plt 
 import basicfunc as func
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import mpi4py
 from mpi4py import MPI
 import plotlib as plib
@@ -13,6 +13,7 @@ import pathlib
 import analytical_mom_lib as anmomlib
 import re
 import healpy as hp
+import covlib as cvl
 
 #contains all function for moment fitting.
 
@@ -379,3 +380,271 @@ def fit_mom(kw,nucross,DL,Linv,p0,quiet=True,parallel=False,nside = 64, Nlbin = 
             else:
                 plib.plotr_gaussproduct_analytical(results,Nmax=Nell,debug=False,color='darkorange',save=True,kwsave='%s-%s'%(kwsave,kwf))
     return results
+
+# ANALYTICAL LIKELIHOOD MAXIMIZATION
+
+class gauss_like:
+    """
+    Class for analytical maximization of cross-Cl-based Gaussian likelihood.
+    """
+    def __init__(self, freq, covmat, comp, beta_d, T_d, beta_s, nu0_d, nu0_s):
+        """
+        Initialize class by computing mixing matrix A and weight matrix W.
+    
+        Parameters
+        ----------
+        freq : array_like
+            Array of frequencies at which the mixing matrix should be computed. Can be of shape (Nfreqs,) or (Nfreqs, Ngrid) depending on whether bandpass integration is taken into account.
+        covmat : array_like
+            Fiducial covariance matrix of dimension (Ncross*Nbins, Ncross*Nbins)
+        comp : list
+            List of components to be included in the mixing matrix for each bandpower. Each element of comp should be a list of components associated with the considered multipole bin.
+        beta_d : array_like
+            Pivot dust spectral index as a function of multipole bin.
+        T_d : array_like
+            Pivot dust temperature as a function of multipole bin.
+        beta_s : array_like
+            Pivot synchrotron spectral index as a function of multipole bin.
+        nu0_d : float
+            Reference frequency for the polarized dust SED.
+        nu0_s : float
+            Reference frequency for the polarized synchrotron SED.
+    
+        Returns
+        -------
+        None
+        """
+        self.Nfreqs = len(freq)
+        self.Ncross = int(self.Nfreqs * (self.Nfreqs+1)/2)
+        freq_pairs = np.array([(i, j) for i in range(self.Nfreqs) for j in range(i, self.Nfreqs)])
+        self.nu_i = freq[freq_pairs[:, 0]]
+        self.nu_j = freq[freq_pairs[:, 1]]
+        
+        self.Nbins = len(comp)
+        self.components = [comp[i].copy() for i in range(self.Nbins)]
+        self.Ncomps = 0
+        for i in range(self.Nbins):
+            self.Ncomps += len(comp[i])
+        
+        self.beta_d = beta_d * np.ones(self.Nbins)
+        self.T_d = T_d * np.ones(self.Nbins)
+        self.beta_s = beta_s * np.ones(self.Nbins)
+        self.nu0_d, self.nu0_s = nu0_d, nu0_s
+        
+        self.N_inv = cvl.inverse_covmat(covmat, Ncross=self.Ncross, neglect_corbins=False)        
+        self.A = self.compute_mixing_matrix()
+        self.W = self.compute_weight_matrix()
+
+    def compute_mixing_matrix(self):
+        """
+        Compute block-diagonal cross-Cl-based mixing matrix given pivot spectral parameters.
+    
+        Parameters
+        ----------
+        self
+    
+        Returns
+        -------
+        A : array_like
+            Computed mixing matrix of shape (Ncross*Nbins, Ncomps)
+        """
+        A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+        c_index = 0
+        
+        for i in range(self.Nbins):
+            Nc = len(self.components[i])
+            A_ell = np.zeros((self.Ncross, Nc))
+            
+            for j, c in enumerate(self.components[i]):
+                if c == 'cmb':
+                    A_ell[:, j] = 1
+                else:
+                    A_ell[:, j] = eval('self._'+c)(i)
+    
+            A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+Nc] = A_ell
+            c_index += Nc
+    
+        return A
+
+    def compute_weight_matrix(self):
+        """
+        Compute block-diagonal cross-Cl-based weight matrix given pre-computed mixing matrix.
+    
+        Parameters
+        ----------
+        self
+    
+        Returns
+        -------
+        W : array_like
+            Computed weight matrix of shape (Ncomps*Nbins, Ncross*Nbins)
+        """
+        W = np.linalg.inv(self.A.T @ self.N_inv @ self.A) @ self.A.T @ self.N_inv
+        
+        return W
+
+    def maximize(self, data):
+        """
+        Compute the maximum likelihood estimator of the component amplitudes for the input simulations.
+
+        Parameters
+        ----------
+        self
+        data : array_like
+            Input simulations. Must be of shape (N, Ncross, Nbins).
+
+        Returns
+        ----------
+        results : dict
+            Dictionnary of the estimated component amplitudes for the input simulations.
+        """
+        N = len(data)
+        
+        moms = []
+        chi2r = np.zeros(N)
+
+        for k in range(N):
+            moms.append([])
+            d = np.concatenate(data[k].T)
+            s = self.W @ d
+            c_index = 0
+            
+            for i in range(self.Nbins):
+                Nc = len(self.components[i])
+                moms[k].append(s[c_index : c_index+Nc])
+                c_index += Nc
+
+            res = d - self.A @ s
+            dof = len(d) - len(s)
+
+            chi2r[k] = res.T @ self.N_inv @ res / dof
+
+        keys = ['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs', 'cmb']
+        results = {k: np.zeros((self.Nbins, N)) for k in keys}
+
+        for i in range(self.Nbins):
+            c = np.array(self.components[i])
+            for key in keys:
+                if key in c:
+                    for k in range(N):
+                        results[key][i, k] = moms[k][i][c==key]
+                else:
+                    results[key][i] = 0
+
+        results['beta_d'] = self.beta_d
+        results['T_d'] = self.T_d
+        results['beta_s'] = self.beta_s
+        results['chi2r'] = chi2r
+
+        return results
+
+    def run(self, data, n_iter=3, adaptative=True):
+        """
+        Run component separation for the input simulations.
+
+        Parameters
+        ----------
+        self
+        data : array_like
+            Input simulations. Must be of shape (N, Ncross, Nbins).
+        n_iter : int, optional
+            Number of iterations to run to find ideal pivot values. Default: 3.
+        adaptative : bool, optional
+            Whether to re-run the component separation after deleting the undetected moments. Default: True.
+
+        Returns
+        ----------
+        results : dict
+            Dictionnary of the estimated component amplitudes for the input simulations.
+        """
+        for i in trange(n_iter, desc='Iterations'):
+            results = self.maximize(data)
+            
+            self.beta_d += np.mean(results['Aw1b'] / results['A'], axis=1)
+            self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A'], axis=1))
+            self.beta_s += np.mean(results['Asw1bs'] / results['As'], axis=1)
+
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+        print('Fit simulations using updated pivot values...')
+        if n_iter > 0:
+            self.beta_d[:] = np.mean(self.beta_d)
+            self.T_d[:] = np.mean(self.T_d)
+            self.beta_s[:] = np.mean(self.beta_s)
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+        results = self.maximize(data)
+
+        if adaptative:
+            print('Run adaptative fits...')
+            dust_keys = ['Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1b', 'Asw1t']
+            sync_keys = ['Asw1bs', 'w1bsw1bs', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']
+
+            for i in range(self.Nbins):
+                if all(adaptafix(results[k][i]) == 1 for k in sync_keys):
+                    for k in sync_keys:
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+                        
+                    if all(adaptafix(results[k][i]) == 1 for k in dust_keys):
+                        for k in dust_keys:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+                
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data)
+            print('Done!')
+
+        return results
+
+    ############## Internal functions for model definition ##############
+    ##############  Components are computed using beta(l)  ##############
+    
+    def _A(self, l):
+        return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) * func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _As(self, l):
+        return func.PL_uK(self.nu_i, self.beta_s[l], nu0=self.nu0_s) * func.PL_uK(self.nu_j, self.beta_s[l], nu0=self.nu0_s)
+    
+    def _Asd(self, l):
+        return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.PL_uK(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.PL_uK(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _Aw1b(self, l):
+        return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _Aw1t(self, l):
+        return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _w1bw1b(self, l):
+        return func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) * func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _w1tw1t(self, l):
+        return func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) * func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _w1bw1t(self, l):
+        return func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _Asw1bs(self, l):
+        return func.PL_uK(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.PL_uK(self.nu_j, self.beta_s[l], nu0=self.nu0_s)
+    
+    def _w1bsw1bs(self, l):
+        return func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s) * func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s)
+    
+    def _Asw1b(self, l):
+        return func.PL_uK(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.PL_uK(self.nu_j, self.beta_s[l], nu0=self.nu0_s)
+    
+    def _Asw1t(self, l):
+        return func.PL_uK(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.PL_uK(self.nu_j, self.beta_s[l], nu0=self.nu0_s)
+    
+    def _Aw1bs(self, l):
+        return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _w1bw1bs(self, l):
+        return func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+    
+    def _w1tw1bs(self, l):
+        return func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
