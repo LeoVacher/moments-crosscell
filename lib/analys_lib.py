@@ -387,7 +387,7 @@ class gauss_like:
     """
     Class for analytical maximization of cross-Cl-based Gaussian likelihood.
     """
-    def __init__(self, freq, covmat, comp, beta_d, T_d, beta_s, nu0_d, nu0_s):
+    def __init__(self, freq, leff, covmat, comp, beta_d, T_d, beta_s, nu0_d, nu0_s):
         """
         Initialize class by computing mixing matrix A and weight matrix W.
     
@@ -395,10 +395,12 @@ class gauss_like:
         ----------
         freq : array_like
             Array of frequencies at which the mixing matrix should be computed. Can be of shape (Nfreqs,) or (Nfreqs, Ngrid) depending on whether bandpass integration is taken into account.
+        leff : array_like
+            Effective ells at which the mixing matrix should be computed. Must be of shape (Nbins,).
         covmat : array_like
             Fiducial covariance matrix of dimension (Ncross*Nbins, Ncross*Nbins)
         comp : list
-            List of components to be included in the mixing matrix for each bandpower. Each element of comp should be a list of components associated with the considered multipole bin.
+            List of components to be included in the mixing matrix for each bandpower. Each element of comp should be a list of components associated with the considered multipole bin. If len(comp) > Nbins, the last element corresponds to common components to all multipoles.
         beta_d : array_like
             Pivot dust spectral index as a function of multipole bin.
         T_d : array_like
@@ -419,8 +421,10 @@ class gauss_like:
         freq_pairs = np.array([(i, j) for i in range(self.Nfreqs) for j in range(i, self.Nfreqs)])
         self.nu_i = freq[freq_pairs[:, 0]]
         self.nu_j = freq[freq_pairs[:, 1]]
+
+        self.leff = leff
+        self.Nbins = len(leff)
         
-        self.Nbins = len(comp)
         self.components = [comp[i].copy() for i in range(self.Nbins)]
         self.Ncomps = 0
         for i in range(self.Nbins):
@@ -463,6 +467,12 @@ class gauss_like:
     
             A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+Nc] = A_ell
             c_index += Nc
+
+        if len(self.components) > self.Nbins: # Add common components to the mixing matrix
+            for j, c in enumerate(self.components[-1]):
+                for i in range(self.Nbins):
+                    A[i*self.Ncross : (i+1)*self.Ncross, c_index] = eval('self._'+c)(i)
+                c_index += 1
     
         return A
 
@@ -514,6 +524,9 @@ class gauss_like:
                 moms[k].append(s[c_index : c_index+Nc])
                 c_index += Nc
 
+            if len(self.components) > self.Nbins:
+                moms[k].append(s[c_index:])
+
             res = d - self.A @ s
             dof = len(d) - len(s)
 
@@ -536,9 +549,20 @@ class gauss_like:
         results['beta_s'] = self.beta_s
         results['chi2r'] = chi2r
 
+        if len(self.components) > self.Nbins:
+            results['A_w1bsw1bs'], results['w1_w1bsw1bs'] = np.zeros((2, N))
+            results['A_w1tw1bs'], results['w1_w1tw1bs'] = np.zeros((2, N))
+            results['A_w1bw1bs'], results['w1_w1bw1bs'] = np.zeros((2, N))
+            for k in range(N):
+                results['A_w1bsw1bs'][k], results['w1_w1bsw1bs'][k], results['A_w1tw1bs'][k], results['w1_w1tw1bs'][k], results['A_w1bw1bs'][k], results['w1_w1bw1bs'][k] = moms[k][-1]#, results['A_w1tw1bs'], results['w1_w1tw1bs'], results['A_w1bw1bs'], results['w1_w1bw1bs'] = moms[k][-1]
+            
+            results['gamma_w1bsw1bs'] = self.gamma_w1bsw1bs
+            results['gamma_w1tw1bs'] = self.gamma_w1tw1bs
+            results['gamma_w1bw1bs'] = self.gamma_w1bw1bs
+
         return results
 
-    def run(self, data, n_iter=3, adaptative=True):
+    def run(self, data, n_iter=3, adaptative=True, pl_moms=False):
         """
         Run component separation for the input simulations.
 
@@ -551,6 +575,8 @@ class gauss_like:
             Number of iterations to run to find ideal pivot values. Default: 3.
         adaptative : bool, optional
             Whether to re-run the component separation after deleting the undetected moments. Default: True.
+        pl_moms : bool, optional
+            Whether to re-run component separation using a power law of ell parametrization for w1bsw1bs, w1tw1bs, and w1bw1bs. Default: False. 
 
         Returns
         ----------
@@ -560,14 +586,15 @@ class gauss_like:
         for i in trange(n_iter, desc='Iterations'):
             results = self.maximize(data)
             
-            self.beta_d += np.mean(results['Aw1b'] / results['A'], axis=1)
-            self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A'], axis=1))
-            self.beta_s += np.mean(results['Asw1bs'] / results['As'], axis=1)
+            self.beta_d += np.mean(results['Aw1b'] / results['A'])
+            self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A']))
+            self.beta_s += np.mean(results['Asw1bs'] / results['As'])
 
             self.A = self.compute_mixing_matrix()
             self.W = self.compute_weight_matrix()
-
+        
         print('Fit simulations using updated pivot values...')
+        
         if n_iter > 0:
             self.beta_d[:] = np.mean(self.beta_d)
             self.T_d[:] = np.mean(self.T_d)
@@ -576,29 +603,129 @@ class gauss_like:
             self.W = self.compute_weight_matrix()
 
         results = self.maximize(data)
-
+        
         if adaptative:
             print('Run adaptative fits...')
+            """
             dust_keys = ['Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1b', 'Asw1t']
             sync_keys = ['Asw1bs', 'w1bsw1bs', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']
 
             for i in range(self.Nbins):
-                if all(adaptafix(results[k][i]) == 1 for k in sync_keys):
+                if all(np.mean(results[k][i]) / np.std(results[k][i]) < 0.05 for k in sync_keys):
                     for k in sync_keys:
                         self.components[i].remove(k)
                         self.Ncomps -= 1
                         
-                    if all(adaptafix(results[k][i]) == 1 for k in dust_keys):
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < 0.05 for k in dust_keys):
                         for k in dust_keys:
                             self.components[i].remove(k)
                             self.Ncomps -= 1
-                
+            
+            keys = ['Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']
+            for i in range(self.Nbins):
+                for k in keys:
+                    if np.mean(results[k][i]) / np.std(results[k][i]) < 0.05:
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+            """
+            
+            o1d_keys = ['Aw1b', 'Aw1t']
+            o2d_keys = ['w1bw1b', 'w1tw1t', 'w1bw1t']
+            o1s_keys = ['Asw1bs']
+            o2s_keys = ['w1bsw1bs']
+            o1ds_keys1 = ['Asw1b', 'Asw1t']
+            o1ds_keys2 = ['Aw1bs']
+            o2ds_keys = ['w1bw1bs', 'w1tw1bs']
+            
+            ob = ['Aw1b', 'Asw1b', 'w1bw1b']
+            ot = ['Aw1t', 'Asw1t', 'w1tw1t']
+            os = ['Asw1bs', 'Aw1bs', 'w1bsw1bs']
+            obt = ['w1bw1t']
+            obs = ['w1bw1bs']
+            ots = ['w1tw1bs']
+
+            o1b = ['Aw1b', 'Asw1b']
+            o2b= ['w1bw1b']
+            o1t = ['Aw1t', 'Asw1t']
+            o2t = ['w1tw1t']
+            o1s = ['Asw1bs', 'Aw1bs']
+            o2s = ['w1bsw1bs']
+            o2bt = ['w1bw1t']
+            o2bs = ['w1bw1bs']
+            o2ts = ['w1tw1bs']
+            
+            for i in range(self.Nbins):
+                #for keys in [o1d_keys, o2d_keys, o1s_keys, o2s_keys, o1ds_keys1, o1ds_keys2, o2ds_keys]:
+                #for keys in [ob, ot, os, obt, obs, ots]:
+                for keys in [o1b, o2b, o1t, o2t, o1s, o2s, o2bt, o2bs, o2ts]:
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < 0.05 for k in keys):
+                        for k in keys:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+            """
+            threshold = 0.05
+            for i in range(self.Nbins):
+                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2b):
+                    for k in o2b:
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1b):
+                        for k in o1b:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+
+                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2t):
+                    for k in o2t:
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1t):
+                        for k in o1t:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+
+                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2s):
+                    for k in o2s:
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1s):
+                        for k in o1s:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+
+                for keys in [o2bt, o2bs, o2ts]:
+                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in keys):
+                        for k in keys:
+                            self.components[i].remove(k)
+                            self.Ncomps -= 1
+            """
             self.A = self.compute_mixing_matrix()
             self.W = self.compute_weight_matrix()
 
             results = self.maximize(data)
-            print('Done!')
 
+        if pl_moms:
+            for i in range(self.Nbins):
+                for k in ['w1bsw1bs', 'w1tw1bs', 'w1bw1bs']:
+                    self.components[i].remove(k)
+                    self.Ncomps -= 1
+
+            self.components.append(['A_w1bsw1bs', 'w1_w1bsw1bs', 'A_w1tw1bs', 'w1_w1tw1bs', 'A_w1bw1bs', 'w1_w1bw1bs'])
+            self.Ncomps += len(self.components[-1])
+            self.gamma_w1bsw1bs = 0
+            self.gamma_w1tw1bs = 0
+            self.gamma_w1bw1bs = 0
+
+            for i in trange(10, desc='Power law fits'):
+                self.A = self.compute_mixing_matrix()
+                self.W = self.compute_weight_matrix()
+
+                results = self.maximize(data)
+                self.gamma_w1bsw1bs += np.mean(results['w1_w1bsw1bs'] / results['A_w1bsw1bs'])
+                self.gamma_w1tw1bs += np.mean(results['w1_w1tw1bs'] / results['A_w1tw1bs'])
+                self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])
+            
+        print('Done!')
+        
         return results
 
     ############## Internal functions for model definition ##############
@@ -648,3 +775,27 @@ class gauss_like:
     
     def _w1tw1bs(self, l):
         return func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+
+    def _A_w1bsw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1bsw1bs * self._w1bsw1bs(l)
+
+    def _w1_w1bsw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1bsw1bs * np.log(self.leff[l] / 10) * self._w1bsw1bs(l)
+
+    def _A_w1bw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1bw1bs * self._w1bw1bs(l)
+
+    def _w1_w1bw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1bw1bs * np.log(self.leff[l] / 10) * self._w1bw1bs(l)
+
+    def _A_w1tw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1tw1bs * self._w1tw1bs(l)
+
+    def _w1_w1tw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_w1tw1bs * np.log(self.leff[l] / 10) * self._w1tw1bs(l)
+
+    def _A_Asw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_Asw1bs * self._Asw1bs(l)
+
+    def _w1_Asw1bs(self, l):
+        return (self.leff[l] / 10)**self.gamma_Asw1bs * np.log(self.leff[l] / 10) * self._Asw1bs(l)

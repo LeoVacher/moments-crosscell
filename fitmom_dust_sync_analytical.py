@@ -32,7 +32,8 @@ Ngrid = 50
 cmb_e2e = True
 n_iter = 3
 adaptative = True
-gnilc = False
+pl_moms = False
+gnilc = True
 betabar = 1.48
 tempbar = 19.6
 betasbar = -3.1
@@ -47,8 +48,6 @@ if bandpass:
 
 if adaptative:
     kw += '_adaptative'
-if gnilc:
-    kw += '_gnilc'
 
 # Instrument
 
@@ -77,21 +76,14 @@ Nbins = len(leff)
 
 # Perform the fits
 
-if not gnilc:
-    DL = 'DLcross'
-else:
-    DL = 'DLgnilc'
-
-data = np.load(Pathload+'/power_spectra/%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc' % (DL, nside, fsky, scale, Nlbin, dusttype, synctype)+kws+'.npy')[:, :, :Nbins]
+data = np.load(Pathload+'/power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc' % (nside, fsky, scale, Nlbin, dusttype, synctype)+kws+'.npy')[:, :, :Nbins]
 covmat = np.load(Pathload+'covariances/cov_%s_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc' % (cov_type, nside, fsky, scale, Nlbin, dusttype_cov, synctype_cov)+kws+'.npy')[:Ncross*Nbins, :Ncross*Nbins]
 
 comp = [['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs', 'cmb']
        for i in range(Nbins)]
 
-gauss = an.gauss_like(freq, covmat, comp, betabar, tempbar, betasbar, nu0d, nu0s)
-results = gauss.run(data, n_iter=n_iter, adaptative=adaptative)
-
-np.save('./best_fits/results_d%ss%s_%s_scale%s_%s%s_ds_o1bts%s_analytical' % (dusttype, synctype, fsky, scale, cov_type, kws, kw), results)
+gauss = an.gauss_like(freq, leff, covmat, comp, betabar, tempbar, betasbar, nu0d, nu0s)
+results = gauss.run(data, n_iter=n_iter, adaptative=adaptative, pl_moms=pl_moms)
 
 # Tensor-to-scalar ratio
 
@@ -100,6 +92,19 @@ results['r'] = ((results['cmb'].T - Dl_lens) / Dl_tens).T
 
 r, sigma_r = plib.getr_analytical(results)
 print(f'\nGaussian approximation for r:\n'+
-      f'bias:  {r}\n'+
-      f'sigma: {sigma_r}\n'
+      f'bias:       {r}\n'+
+      f'sigma:      {sigma_r}\n'+
+      f'bias/sigma: {np.abs(r/sigma_r)}'
      )
+
+if gnilc:
+    data_gnilc = np.load(Pathload+'/power_spectra/DLgnilc_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc' % (nside, fsky, scale, Nlbin, dusttype, synctype)+kws+'.npy')[:, :, :Nbins]
+    results_gnilc = gauss.maximize(data_gnilc)
+    results_gnilc['r'] = (results_gnilc['cmb'].T / Dl_tens).T
+
+# Save results
+
+np.save('./best_fits/results_d%ss%s_%s_scale%s_Nlbin%s_%s%s_ds_o1bts%s_analytical' % (dusttype, synctype, fsky, scale, Nlbin, cov_type, kws, kw), results)
+
+if gnilc:
+    np.save('./best_fits/results_d%ss%s_%s_scale%s_Nlbin%s_%s%s_ds_o1bts%s_gnilc_analytical' % (dusttype, synctype, fsky, scale, Nlbin, cov_type, kws, kw), results_gnilc)
