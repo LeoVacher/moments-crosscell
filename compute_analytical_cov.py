@@ -23,21 +23,22 @@ import covlib as cvl
 r=0.
 nside = 64
 lmax = nside*3-1
-scale = 'Smooth1'
+scale = 10
 Nlbin = 10
 fsky = 0.7
-dusttype = 12
-synctype = 7
+dusttype = 1
+synctype = 1
 kw=''
 use_nmt=True
 mode_cov='BB'
-masking_strat = 'intersection'
+masking_strat = ''
 gaussbeam = True
 bandpass = True
 Ngrid = 50
 path = '/pscratch/sd/s/svinzl/B_modes_project/' # Path for saving covariance matrix
 cl_noise = './e2e_simulations/' # Path to noise power spectra. Use 'white' for a Gaussian white noise model
 cmb_e2e = True # If True, use CMB lensing power spectrum from litebird end-to-end simulations
+auto = False # If True, compute the covariance matrix considering auto-spectra, otherwise use half missions
 
 if masking_strat == 'GWD':
      kw += '_maskGWD'
@@ -86,6 +87,9 @@ if bandpass:
     for i in range(N_freqs):
         freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
     freq = freq_grids
+
+if auto:
+    kw += '_auto'
 
 #signal
 
@@ -165,12 +169,12 @@ CL_cmb_BB = np.array([ coupled_cmb_BB for i in range(N_freqs) for j in range(i, 
 
 if use_nmt==False:
     cov_sg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_signal=[np.zeros_like(DLdc[0,:,:Nell]), np.zeros_like(DLdc[0,:,:Nell]), DLdc[0,:,:Nell]], type='Knox_signal', output=mode_cov, progress=True)
-    cov_an = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox-fg', output=mode_cov, progress=True)
-    cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox+fg', output=mode_cov, progress=True)
+    cov_an = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox-fg', auto=auto, output=mode_cov, progress=True)
+    cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Knox+fg', auto=auto, output=mode_cov, progress=True)
 
 if use_nmt==True:
-    cov_an   = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt-fg', output=mode_cov, progress=True)
-    #cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', output=mode_cov, progress=True)
+    cov_an   = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt-fg', auto=auto, output=mode_cov, progress=True)
+    #cov_anfg = cvl.compute_covmat(mask, [wspT, wspE, wspB], Cls_cmb=[np.zeros_like(CL_cmb_EE), CL_cmb_EE/fsky_eff, CL_cmb_BB/fsky_eff], Cls_fg=[np.zeros_like(CL_fg_EE), CL_fg_EE/fsky_eff, CL_fg_BB/fsky_eff], Nls=[np.zeros_like(Nls_EE), Nls_EE/fsky_eff, Nls_BB/fsky_eff], type='Nmt+fg', auto=auto, output=mode_cov, progress=True)
 
 if cmb_e2e:
     if dusttype == 1 and synctype == 1:
@@ -192,8 +196,11 @@ if use_nmt==False:
 
 if use_nmt==True:
     if masking_strat not in ['intersection', 'union']:
-        np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
-        #np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
+        if dusttype == None and synctype == None:
+            np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_c'%(nside,fsky,scale,Nlbin)+kw+'.npy',cov_an)
+        else:
+            np.save(path+'covariances/cov_Nmt-fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
+            #np.save(path+'covariances/cov_Nmt+fg_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc'%(nside,fsky,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)
     else:
         np.save(path+'covariances/cov_Nmt-fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_an)
         #np.save(path+'covariances/cov_Nmt+fg_nside%s_%s_scale%s_Nlbin%s_d%ss%sc'%(nside,masking_strat,scale,Nlbin,dusttype,synctype)+kw+'.npy',cov_anfg)

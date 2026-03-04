@@ -18,20 +18,22 @@ from tqdm import tqdm
 r = 0 # input tensor-to-scalar ratio in the simulation
 nside = 64 #HEALPix nside
 Npix = hp.nside2npix(nside) #number of pixels
-N = 10000  #number of sims
+N = 250  #number of sims
 lmax = nside*3-1 #maximum multipole
-scale = 'Smooth3' #apodization scale in degrees
+scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
 fsky = 0.7 #fraction of sky for the raw mask
 dusttype = None #Pysm dust model
 synctype = None #Pysm syncrotron model
 kws = '' #keyword for the simulation
 load=False #load previous sims 
-masking_strat='intersection' #keywords for choice of mask. If '', use Planck mask 
-gaussbeam = False #smooth with gaussian beam?
-bandpass = False #integrate on bandpass assuming top-hat functions
+masking_strat='' #keywords for choice of mask. If '', use Planck mask 
+gaussbeam = True #smooth with gaussian beam?
+bandpass = True #integrate on bandpass assuming top-hat functions
+e2e_noise = True #whether to use already computed noise simulations
 Ngrid = 100 #number of points on bandpass grid
-path = './' #path for saving sims. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
+path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving sims. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
+auto = False # If True, use auto-spectra. Otherwise use half missions
 
 if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
     kws = kws + '_maskGWD'
@@ -40,10 +42,10 @@ if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
 
 instr_name ='litebird_full' #instrument name in ./lib/instr_dict/
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
-freq = np.array([instr['frequencies'][0]])
+freq = instr['frequencies']
 N_freqs = len(freq)
 Ncross = int(N_freqs*(N_freqs+1)/2)
-sens_P = instr['sens_P']*0
+sens_P = instr['sens_P']
 beam = instr['beams']
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
@@ -66,13 +68,20 @@ if bandpass:
         freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
     freq = freq_grids
 
+if auto:
+    kws += '_auto'
+    hm1, hm2 = 0, 0
+else:
+    hm1, hm2 = 1, 2
+
 #call foreground sky
 
 mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
 
 # call cmb
 
-CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+#CLcmb_or = hp.read_cl(path+'power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE
+CLcmb_or = hp.read_cl(path+'power_spectra/Cls_LiteBIRD_e2e_r0.fits') #TT EE BB TE
 
 
 #mask
@@ -136,14 +145,22 @@ else:
     kini=0
     CLcross = np.zeros((N,Ncross,len(leff)))
 
+if e2e_noise:
+    noise = np.load(path+'/maps/e2e_noise_nside64.npy')
+
 for k in tqdm(range(kini,N)):
     noisemaps = np.zeros((3,N_freqs,2,Npix))
+    if e2e_noise:
+        noisemaps = noise[k, :, :, 1:]
+    
+    else:
+        #create three random noises corresponding to full mission and the two half-missions
+        for p in range(3):
+            for i in range(N_freqs):
+                noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix) #Q
+                noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix) #U
 
-    #create three random noises corresponding to full mission and the two half-missions
-    for p in range(3):
-        for i in range(N_freqs):
-            noisemaps[p,i,0] =np.random.normal(0,sigpix[i],size=Npix) #Q
-            noisemaps[p,i,1] =np.random.normal(0,sigpix[i],size=Npix) #U
+                noisemaps[1:] *= np.sqrt(2)
     
     mapcmb0 = hp.synfast(CLcmb_or,nside,pixwin=False,new=True)
     mapcmb = np.array([mapcmb0 for i in range(N_freqs)])
@@ -159,8 +176,8 @@ for k in tqdm(range(kini,N)):
 
     #add noise to maps
     maptotaldc1  = signal + noisemaps[0]
-    maptotaldc21 = signal + noisemaps[1]*np.sqrt(2)
-    maptotaldc22 = signal + noisemaps[2]*np.sqrt(2)
+    maptotaldc21 = signal + noisemaps[hm1]
+    maptotaldc22 = signal + noisemaps[hm2]
 
     CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB',beams=Bls)
 

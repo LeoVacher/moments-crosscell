@@ -221,7 +221,7 @@ def getLinv_all_ell(DL,printdiag=False,offset=0,Ncrdiag=0):
     return Linvdc
 
 
-def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
+def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, auto=False, progress=False):
     """
     Compute analytical covariance matrix using Knox formula from theoretical power spectra and noise model.
     Cls can be mode-decoupled power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
@@ -240,6 +240,8 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
         Workspace used for computing the power spectra.
     corfg : bool, optional
         If True, correct for the cosmic variance of foregrounds. Default: True.
+    auto : bool, optional
+        If True, consider auto-spectra, otherwise use half missions. Default: False.
     progress : bool, optional
         If True, display a progress bar while computing the covariance matrix. Default: False.
 
@@ -280,10 +282,10 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
             
             if A == C and B == D:
                 if A == B:
-                    Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC] + 2*Nls[crossAC]
-                    Cl_BD = Cls_cmb[crossBD] + Cls_fg[crossBD] + 2*Nls[crossBD]
-                    Cl_AD = Cls_cmb[crossAD] + Cls_fg[crossAD]
-                    Cl_BC = Cls_cmb[crossBC] + Cls_fg[crossBC]
+                    Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC] + (2-auto) * Nls[crossAC]
+                    Cl_BD = Cls_cmb[crossBD] + Cls_fg[crossBD] + (2-auto) * Nls[crossBD]
+                    Cl_AD = Cls_cmb[crossAD] + Cls_fg[crossAD] + auto * Nls[crossAD]
+                    Cl_BC = Cls_cmb[crossBC] + Cls_fg[crossBC] + auto * Nls[crossBC]
                 
                 else:
                     Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC] + Nls[crossAC]
@@ -316,6 +318,40 @@ def cov_Knox(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, progress=False):
                 Cl_BD = Cls_cmb[crossBD] + Cls_fg[crossBD]
                 Cl_AD = Cls_cmb[crossAD] + Cls_fg[crossAD]
                 Cl_BC = Cls_cmb[crossBC] + Cls_fg[crossBC]
+
+            elif auto and max(counter.values()) == 3:
+                alone_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 1)][0]
+                alone_ind = np.where(bands == alone_band)[0][0]
+
+                if alone_ind in [0,1]:
+                    bands[alone_ind], bands[1] = bands[1], bands[alone_ind]
+
+                    A, B, C, D = bands
+                
+                    crossAC = cross_index(A, C, Nfreqs)
+                    crossBD = cross_index(B, D, Nfreqs)
+                    crossAD = cross_index(A, D, Nfreqs)
+                    crossBC = cross_index(B, C, Nfreqs)
+
+                    Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC] + Nls[crossAC]
+                    Cl_BD = Cls_cmb[crossBD] + Cls_fg[crossBD]
+                    Cl_AD = Cls_cmb[crossAD] + Cls_fg[crossAD] + Nls[crossAD]
+                    Cl_BC = Cls_cmb[crossBC] + Cls_fg[crossBC]
+
+                elif alone_ind in [2,3]:
+                    bands[alone_ind], bands[3] = bands[3], bands[alone_ind]
+
+                    A, B, C, D = bands
+                
+                    crossAC = cross_index(A, C, Nfreqs)
+                    crossBD = cross_index(B, D, Nfreqs)
+                    crossAD = cross_index(A, D, Nfreqs)
+                    crossBC = cross_index(B, C, Nfreqs)
+
+                    Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC] + Nls[crossAC]
+                    Cl_BD = Cls_cmb[crossBD] + Cls_fg[crossBD]
+                    Cl_AD = Cls_cmb[crossAD] + Cls_fg[crossAD]
+                    Cl_BC = Cls_cmb[crossBC] + Cls_fg[crossBC] + Nls[crossBC]
                 
             else:
                 Cl_AC = Cls_cmb[crossAC] + Cls_fg[crossAC]
@@ -406,7 +442,7 @@ def cov_Knox_signal(mask, Cls, w, progress=False):
         
     return covmat
 
-def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output='all', progress=False):
+def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, auto=False, output='all', progress=False):
     """
     Compute analytical covariance matrix using NaMaster fonctions from theoretical power spectra and noise model.
     Cls can be mode-decoupled unbinned power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
@@ -425,6 +461,8 @@ def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output='all', progre
         List of nmt.NmtWorkspace used for computing TT, EE and BB power spectra.
     corfg : bool, optional
         If True, correct for the cosmic variance of foregrounds. Default: True.
+    auto : bool, optional
+        If True, consider auto-spectra, otherwise use half missions. Default: False.
     output : string, optional
         If 'TT', return covariance matrix for temperature.
         If 'EE', return covariance matrix for E-modes.
@@ -474,20 +512,20 @@ def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output='all', progre
             
             if A == C and B == D:
                 if A == B:
-                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + 2*Nls[0][crossAC]
-                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
-                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
-                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD] + 2*Nls[0][crossBD]
+                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + (2-auto) * Nls[0][crossAC]
+                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD] + auto * Nls[0][crossAD]
+                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC] + auto * Nls[0][crossBC]
+                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD] + (2-auto) * Nls[0][crossBD]
                     
-                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + 2*Nls[1][crossAC]
-                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
-                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
-                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD] + 2*Nls[1][crossBD]
+                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + (2-auto) * Nls[1][crossAC]
+                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD] + auto * Nls[1][crossAD]
+                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC] + auto * Nls[1][crossBC]
+                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD] + (2-auto) * Nls[1][crossBD]
                     
-                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + 2*Nls[2][crossAC]
-                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
-                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
-                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD] + 2*Nls[2][crossBD]
+                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + (2-auto) * Nls[2][crossAC]
+                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD] + auto * Nls[2][crossAD]
+                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC] + auto * Nls[2][crossBC]
+                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD] + (2-auto) * Nls[2][crossBD]
                     
                 else:
                     TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + Nls[0][crossAC]
@@ -541,17 +579,71 @@ def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output='all', progre
                 BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
                 BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD]
                 
+            elif auto and max(counter.values()) == 3:
+                alone_band = np.array(list(counter))[np.where(np.array(list(counter.values())) == 1)][0]
+                alone_ind = np.where(bands == alone_band)[0][0]
+
+                if alone_ind in [0,1]:
+                    bands[alone_ind], bands[1] = bands[1], bands[alone_ind]
+
+                    A, B, C, D = bands
+                
+                    crossAC = cross_index(A, C, Nfreqs)
+                    crossBD = cross_index(B, D, Nfreqs)
+                    crossAD = cross_index(A, D, Nfreqs)
+                    crossBC = cross_index(B, C, Nfreqs)
+
+                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + Nls[0][crossAC]
+                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD] + Nls[0][crossAD]
+                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
+                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD]
+
+                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + Nls[1][crossAC]
+                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD] + Nls[1][crossAD]
+                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
+                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD]
+
+                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + Nls[2][crossAC]
+                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD] + Nls[2][crossAD]
+                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
+                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD]
+
+                elif alone_ind in [2,3]:
+                    bands[alone_ind], bands[3] = bands[3], bands[alone_ind]
+
+                    A, B, C, D = bands
+                
+                    crossAC = cross_index(A, C, Nfreqs)
+                    crossBD = cross_index(B, D, Nfreqs)
+                    crossAD = cross_index(A, D, Nfreqs)
+                    crossBC = cross_index(B, C, Nfreqs)
+
+                    TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC] + Nls[0][crossAC]
+                    TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
+                    TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC] + Nls[0][crossBC]
+                    TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD]
+
+                    EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC] + Nls[1][crossAC]
+                    EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
+                    EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC] + Nls[1][crossBC]
+                    EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD]
+
+                    BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC] + Nls[2][crossAC]
+                    BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
+                    BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC] + Nls[2][crossBC]
+                    BB_a2b2 = Cls_cmb[2][crossBD] + Cls_fg[2][crossBD]
+                        
             else:
                 TT_a1b1 = Cls_cmb[0][crossAC] + Cls_fg[0][crossAC]
                 TT_a1b2 = Cls_cmb[0][crossAD] + Cls_fg[0][crossAD]
                 TT_a2b1 = Cls_cmb[0][crossBC] + Cls_fg[0][crossBC]
                 TT_a2b2 = Cls_cmb[0][crossBD] + Cls_fg[0][crossBD]
-                
+                    
                 EE_a1b1 = Cls_cmb[1][crossAC] + Cls_fg[1][crossAC]
                 EE_a1b2 = Cls_cmb[1][crossAD] + Cls_fg[1][crossAD]
                 EE_a2b1 = Cls_cmb[1][crossBC] + Cls_fg[1][crossBC]
                 EE_a2b2 = Cls_cmb[1][crossBD] + Cls_fg[1][crossBD]
-                
+                    
                 BB_a1b1 = Cls_cmb[2][crossAC] + Cls_fg[2][crossAC]
                 BB_a1b2 = Cls_cmb[2][crossAD] + Cls_fg[2][crossAD]
                 BB_a2b1 = Cls_cmb[2][crossBC] + Cls_fg[2][crossBC]
@@ -775,7 +867,7 @@ def cov_NaMaster_signal(mask, Cls, w, corfg=True, output='all', progress=False):
         
     return covmat
 
-def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None, type='Nmt-fg', output='all', progress=False):
+def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None, type='Nmt-fg', auto=False, output='all', progress=False):
     """
     Compute analytical covariance matrix in different ways.
     Cls can be mode-decoupled power spectra, but better accuracy is achieved if they are mode-coupled pseudo-Cls divided by fsky.
@@ -807,6 +899,8 @@ def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None
     type : string, optional
         Type of the estimate. Can be 'Knox-fg', 'Knox+fg', 'Knox_signal', 'Nmt-fg', 'Nmt+fg', 'Nmt_signal'.
         Default: 'Nmt-fg'.
+    auto : bool, optional
+        If True, consider auto-spectra, otherwise use half missions. Does not have any effect on signal-based estimates. Default: False.
     output : string, optional
         If 'TT', return covariance matrix for temperature.
         If 'EE', return covariance matrix for E-modes.
@@ -876,10 +970,10 @@ def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None
             raise ValueError("Incorrect type for output 'all'")
             
         if type == 'Knox-fg':
-            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=True, progress=progress)
+            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=True, auto=auto, progress=progress)
         
         elif type == 'Knox+fg':
-            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=False, progress=progress)
+            return cov_Knox(mask, Cls_cmb_binned, Cls_fg_binned, Nls_binned, w, corfg=False, auto=auto, progress=progress)
         
     elif type == 'Knox_signal':
         if output == 'TT':
@@ -905,10 +999,10 @@ def compute_covmat(mask, w, Cls_signal=None, Cls_cmb=None, Cls_fg=None, Nls=None
         return cov_Knox_signal(mask, Cls_signal, w, progress=progress)
             
     if type == 'Nmt-fg':
-        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, output=output, progress=progress)
+        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, auto=auto, output=output, progress=progress)
         
     elif type == 'Nmt+fg':
-        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, output=output, progress=progress)
+        return cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=False, auto=auto, output=output, progress=progress)
             
     elif type == 'Nmt_signal':
         return cov_NaMaster_signal(mask, Cls_signal, w, output=output, progress=progress)

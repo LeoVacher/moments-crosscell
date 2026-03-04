@@ -14,13 +14,21 @@ N = 250  # Number of sims
 lmax = nside*3-1 # Maximum multipole
 masking_strat = '' # Masking strategy. Should be '', 'intersection' or 'union'
 scale = 10 # Apodization scale in degrees
-Nlbin = 1 # Binning scheme of the Cls
+Nlbin = 10 # Binning scheme of the Cls
 fsky = 0.7 # Fraction of sky for the raw mask
-complexity = 'high_complexity' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
+complexity = 'baseline' # Sky complexity. Should be 'baseline', 'medium_complexity' or 'high_complexity'
 load = False # Load previous sims 
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 load_maps = True # Load already downgraded maps stored in path
 save_maps = False # Save downgraded maps in path
+auto = False # If True, use auto-spectra. Otherwise use half missions
+kw = ''
+
+if auto:
+    kw += '_auto'
+    hm1, hm2 = 0, 0
+else:
+    hm1, hm2 = 1, 2
 
 Npix = hp.nside2npix(nside) # Number of pixels
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=Nlbin, is_Dell=True) # Binning scheme for the cross-spectra
@@ -122,10 +130,10 @@ for k in trange(k_ini, N):
             np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
 
     # Compute cross-spectra
-    DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,1], maps[k,2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
+    DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,hm1], maps[k,hm2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     # Save
     if masking_strat == '':
-        np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type), DLcross)
+        np.save(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass%s.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type, kw), DLcross)
     else:
-        np.save(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type), DLcross)
+        np.save(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass%s.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type, kw), DLcross)
