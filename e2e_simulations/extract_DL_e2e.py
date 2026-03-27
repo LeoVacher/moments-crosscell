@@ -21,12 +21,16 @@ load = False # Load previous sims
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving downgraded maps and power spectra. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
 load_maps = True # Load already downgraded maps stored in path
 save_maps = False # Save downgraded maps in path
-auto = False # If True, use auto-spectra. Otherwise use half missions
+FM_only = False # If True, use full mission maps for auto-spectra. Otherwise use half missions
+HM_only = False # If True, use only half mission maps (all combinations between HM1 and HM2)
 kw = ''
 
-if auto:
-    kw += '_auto'
+if FM_only:
+    kw += '_FM'
     hm1, hm2 = 0, 0
+elif HM_only:
+    load_maps = True
+    kw += '_HM'
 else:
     hm1, hm2 = 1, 2
 
@@ -45,6 +49,9 @@ instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 
 freq = instr['frequencies']
 beam = instr['beams']
+if HM_only:
+    freq = np.tile(freq, 2)
+    beam = np.tile(beam, 2)
 
 Nfreqs = len(freq)
 Ncross = int(Nfreqs*(Nfreqs+1) / 2)
@@ -63,6 +70,8 @@ bands = []
 for t in telescopes:
     for c in channels[t]:
         bands.append(t+'_'+c)
+if HM_only:
+    bands = np.tile(bands, 2)
 
 # Mask
 
@@ -85,9 +94,9 @@ for i in range(Nfreqs):
 
 if load:
     if masking_strat == '':
-        DLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type))
+        DLcross = np.load(path+'power_spectra/DLcross_nside%s_fsky%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass%s.npy' % (nside, fsky, scale, Nlbin, fg_type, fg_type, kw))
     else:
-        DLcross = np.load(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type))
+        DLcross = np.load(path+'power_spectra/DLcross_nside%s_%s_scale%s_Nlbin%s_d%ss%sc_gaussbeam_bandpass%s.npy' % (nside, masking_strat, scale, Nlbin, fg_type, fg_type, kw))
     
     k_ini = np.argwhere(DLcross == 0)[0,0]
 
@@ -130,7 +139,12 @@ for k in trange(k_ini, N):
             np.save(path+'maps/maps_downgraded_nside%s_e2e_%s.npy' % (nside, complexity), maps)
 
     # Compute cross-spectra
-    DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,hm1], maps[k,hm2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
+    if not HM_only:
+        DLcross[k] = sim.computecross(maps[k,0], maps[k,0], maps[k,hm1], maps[k,hm2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
+    
+    else:
+        maps_k = np.concatenate(maps[k, 1:])
+        DLcross[k] = sim.computecross(maps_k, maps_k, maps_k, maps_k, wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     # Save
     if masking_strat == '':

@@ -38,7 +38,8 @@ Ngrid = 50
 path = '/pscratch/sd/s/svinzl/B_modes_project/' # Path for saving covariance matrix
 cl_noise = './e2e_simulations/' # Path to noise power spectra. Use 'white' for a Gaussian white noise model
 cmb_e2e = True # If True, use CMB lensing power spectrum from litebird end-to-end simulations
-auto = False # If True, compute the covariance matrix considering auto-spectra, otherwise use half missions
+FM_only = False # If True, compute the covariance matrix considering auto-spectra of full mission maps, otherwise use cross-spectra of half missions
+HM_only = False # If True, use all combinations of half mission maps (auto- and cross-spectra)
 
 if masking_strat == 'GWD':
      kw += '_maskGWD'
@@ -51,6 +52,10 @@ instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 sens_P = instr['sens_P']
 freq = instr['frequencies']
 beam = instr['beams']
+if HM_only:
+    freq = np.tile(freq, 2)
+    sens_P = np.tile(freq, 2)
+    beam = np.tile(beam, 2)
 #sens_P = sens_P[np.argsort(freq)]
 #beam = beam[np.argsort(freq)]
 #freq = np.sort(freq)
@@ -83,13 +88,21 @@ if gaussbeam:
 if bandpass:
     kw += '_bandpass'
     bw = instr['bandwidths']
+    if HM_only:
+        bw = np.tile(bw, 2)
     freq_grids = np.zeros((N_freqs, Ngrid))
     for i in range(N_freqs):
         freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
     freq = freq_grids
 
-if auto:
-    kw += '_auto'
+if FM_only:
+    auto = True
+    kw += '_FM'
+elif HM_only:
+    auto = True
+    kw += '_HM'
+else:
+    auto = False
 
 #signal
 
@@ -98,7 +111,11 @@ if use_nmt == False:
 
 #foreground
 
-mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
+if not HM_only:
+    mapfg = sim.get_fg_QU(freq, nside, dusttype=dusttype, synctype=synctype)
+else:
+    mapfg = sim.get_fg_QU(freq[:int(N_freqs/2)], nside, dusttype=dusttype, synctype=synctype)
+    mapfg = np.tile(mapfg.T, 2).T
 
 #get fg spectra
 b_unbined=  nmt.NmtBin.from_lmax_linear(lmax=nside*3-1,nlb=1)
@@ -132,6 +149,8 @@ else:
         Cl_noise = np.load(cl_noise+'CL_noise_GWD_fsky%s_nside%s_aposcale%s.npy' % (fsky, nside, scale))[:, :, 1:, 2:2*nside]
     else:
         Cl_noise = np.load(cl_noise+'CL_noise_%s_%s_nside%s_aposcale%s.npy' % (masking_strat, complexity, nside, scale))[:, :, 1:, 2:2*nside]
+    if HM_only:
+        Cl_noise = np.array([np.tile(Cl_noise[k].T, 2).T for k in range(len(Cl_noise))])
     Cl_noise_mean = np.mean(Cl_noise, axis=(0,2))
     Cl_noise_std = np.std(Cl_noise, axis=(0,2))
 
@@ -153,6 +172,9 @@ for i in range(N_freqs):
     coupled_noise_BB = wspB_unbined.couple_cell([CL_cross_noise_BB[cross], np.zeros_like(CL_cross_noise_BB[cross]), np.zeros_like(CL_cross_noise_BB[cross]), CL_cross_noise_BB[cross]])[3]
     Nls_EE[cross] = coupled_noise_EE
     Nls_BB[cross] = coupled_noise_BB
+if HM_only:
+    Nls_EE *= 2
+    Nls_BB *= 2
 
 #get cmb spectra
 if cmb_e2e == False:
