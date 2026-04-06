@@ -731,6 +731,8 @@ class gauss_like:
         print('Done!')
 
         if HVTWD:
+            print('Run HVTWD...')
+            
             N = len(data)
             keys = list(results)
             Nmoms = 0
