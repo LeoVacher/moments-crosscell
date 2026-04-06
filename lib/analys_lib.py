@@ -726,9 +726,7 @@ class gauss_like:
                 results = self.maximize(data)
                 self.gamma_w1bsw1bs += np.mean(results['w1_w1bsw1bs'] / results['A_w1bsw1bs'])
                 self.gamma_w1tw1bs += np.mean(results['w1_w1tw1bs'] / results['A_w1tw1bs'])
-                self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])
-            
-        print('Done!')
+                self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])  
 
         if HVTWD:
             print('Run HVTWD...')
@@ -766,6 +764,8 @@ class gauss_like:
             self.W = self.compute_weight_matrix()
 
             results = self.maximize(data_cleaned)
+
+        print('Done!')
         
         return results
 
