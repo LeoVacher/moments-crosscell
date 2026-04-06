@@ -434,7 +434,7 @@ class gauss_like:
         self.T_d = T_d * np.ones(self.Nbins)
         self.beta_s = beta_s * np.ones(self.Nbins)
         self.nu0_d, self.nu0_s = nu0_d, nu0_s
-        
+
         self.N_inv = cvl.inverse_covmat(covmat, Ncross=self.Ncross, neglect_corbins=False)        
         self.A = self.compute_mixing_matrix()
         self.W = self.compute_weight_matrix()
@@ -562,7 +562,7 @@ class gauss_like:
 
         return results
 
-    def run(self, data, n_iter=3, adaptative=True, pl_moms=False):
+    def run(self, data, n_iter=3, adaptative=True, pl_moms=False, HVTWD=False):
         """
         Run component separation for the input simulations.
 
@@ -576,7 +576,9 @@ class gauss_like:
         adaptative : bool, optional
             Whether to re-run the component separation after deleting the undetected moments. Default: True.
         pl_moms : bool, optional
-            Whether to re-run component separation using a power law of ell parametrization for w1bsw1bs, w1tw1bs, and w1bw1bs. Default: False. 
+            Whether to re-run component separation using a power law of ell parametrization for w1bsw1bs, w1tw1bs, and w1bw1bs. Default: False.
+        HVTWD : bool, optional
+            Whether to reiterate the fit for the CMB component after smoothing the fitted moments. Defalut: False.
 
         Returns
         ----------
@@ -659,6 +661,8 @@ class gauss_like:
                 #for keys in [ob, ot, os, obt, obs, ots]:
                 for keys in [o1b, o2b, o1t, o2t, o1s, o2s, o2bt, o2bs, o2ts]:
                     if all(np.mean(results[k][i]) / np.std(results[k][i]) < 0.05 for k in keys):
+                    #if True:
+                    #if keys in [o1s, o2s, o2bs, o2ts]:
                         for k in keys:
                             self.components[i].remove(k)
                             self.Ncomps -= 1
@@ -725,6 +729,41 @@ class gauss_like:
                 self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])
             
         print('Done!')
+
+        if HVTWD:
+            N = len(data)
+            keys = list(results)
+            Nmoms = 0
+            
+            for par in keys:
+                if par not in ['A', 'As', 'Asd', 'cmb', 'beta_d', 'T_d', 'beta_s', 'chi2r']:
+                    Nmoms += 1
+                    for k in range(N):
+                        results[par][:, k] = scipy.ndimage.gaussian_filter(results[par][:, k], sigma=10, mode='constant')
+
+            s_fg = np.zeros((N, (Nmoms+3)*self.Nbins))
+            for k in range(N):
+                idx = 0
+                for par in keys:
+                    if par not in ['cmb', 'beta_d', 'T_d', 'beta_s', 'chi2r']:
+                        s_fg[k, np.arange(self.Nbins)*Nmoms + idx] = results[par][:, k]
+                        idx += 1
+
+            for i in range(self.Nbins):
+                self.components[i].remove('cmb')
+                self.Ncomps -= 1
+            A_fg = self.compute_mixing_matrix()
+
+            data_cleaned = np.zeros_like(data)
+            for k in range(N):
+                data_cleaned[k] = (np.concatenate(data[k].T) - A_fg @ s_fg[k]).reshape((self.Nbins, self.Ncross)).T
+
+            self.components = [['cmb'] for i in range(self.Nbins)]
+            self.Ncomps = self.Nbins
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data_cleaned)
         
         return results
 
