@@ -35,6 +35,7 @@ cmb_e2e = True
 n_iter = 3
 adaptative = True
 pl_moms = False
+HVTWD = False
 gnilc = False
 kwv = '_v1' # should be '' or '_v1'
 betabar = 1.48
@@ -43,7 +44,7 @@ betasbar = -3.1
 nu0d = 402
 nu0s = 40
 FM_only = False
-HM_only = True
+HM_only = False
 
 if gaussbeam:
     kws += '_gaussbeam'
@@ -102,7 +103,7 @@ comp = [['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs
        for i in range(Nbins)]
 
 gauss = an.gauss_like(freq, leff, covmat, comp, betabar, tempbar, betasbar, nu0d, nu0s)
-results = gauss.run(data, n_iter=n_iter, adaptative=adaptative, pl_moms=pl_moms)
+results = gauss.run(data, n_iter=n_iter, adaptative=adaptative, pl_moms=pl_moms, HVTWD=HVTWD)
 
 # Tensor-to-scalar ratio
 
