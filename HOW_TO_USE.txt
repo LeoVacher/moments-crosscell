@@ -1,0 +1,294 @@
+HL HM1×HM1 LIKELIHOOD — HOW TO USE
+====================================
+
+REQUIREMENTS
+------------
+Python >= 3.9 and the following packages:
+
+    numpy
+    scipy
+    matplotlib
+    pymaster          (NaMaster — https://github.com/LSSTDESC/NaMaster)
+    tqdm              (optional, for progress bars)
+
+Install with conda (recommended):
+
+    conda create -n lb_fg_env python=3.10 numpy scipy matplotlib tqdm
+    conda activate lb_fg_env
+    pip install pymaster
+
+All other imports (pickle, os, sys) are from the Python standard library.
+
+
+QUICKSTART
+----------
+EVERYTHING is supplied in a single pickle file: data arrays, channel
+names and (optionally) the analysis options.  Run:
+
+    python run_hm1.py /path/to/hl_inputs.pkl
+
+
+USING FROM AN EXTERNAL SCRIPT
+------------------------------
+If you want to call the likelihood from your own pipeline (e.g. inside a
+a notebook, or another analysis script), import directly:
+
+    import sys
+    sys.path.insert(0, "/path/to/Like")   # ← point to this directory
+
+    from hl_stats import run_hl_chi2, print_stats
+
+    results = run_hl_chi2("/path/to/hl_inputs.pkl")
+
+    chi2   = results["chi2"]    # (N_r, N_data)  chi2 for each r and each sim
+    r_grid = results["r_grid"]  # (N_r,)          r values
+
+    # print peak, mean, sigma, 68% and 95% HDI and return interpolated posterior
+    post, fine_grid, posterior = print_stats(
+        "my_run", chi2, r_grid,
+        r_min=0.0, r_max=0.01,
+    )
+
+The only prerequisite is a pickle built with make_input_pickle.py.
+run_hl_chi2 reads everything (arrays, channel names, options) from the
+pickle — no other arguments are needed.
+
+
+
+
+THE INPUT PICKLE — REQUIRED CONTENT
+------------------------------------
+The pickle must contain a Python dict with these keys:
+
+  key             type / shape                     notes
+  --------------  -------------------------------  ---------------------------
+  DLcross         (N_sims, 253, N_ell) ndarray     signal+noise+fg cross-spectra
+  DLnoise         (N_sims, 253, N_ell) ndarray     noise-only sims
+                  or (253, N_ell)                  (mean is used either way)
+  foreground      (253, N_ell) ndarray             fg model INCLUDING lensing
+  covariance      (N_ell*253, N_ell*253) ndarray   ell-major (see below)
+  tensor_grid     (N_r, N_ell) ndarray             tensor BB D_ell per r value
+  channel_names   list of 22 str                   defines the pair ordering
+  options         dict                             OPTIONAL — see next section
+
+Standard values: N_sims=250, N_ell=12, N_r=200 (r from 0 to 0.01).
+
+How to create it:
+
+    import pickle
+    d = {"DLcross": ..., "DLnoise": ..., "foreground": ...,
+         "covariance": ..., "tensor_grid": ...,
+         "channel_names": ["LFT_040", "LFT_050", ...],
+         "options": {...}}          # optional
+    with open("hl_inputs.pkl", "wb") as f:
+        pickle.dump(d, f)
+
+IMPORTANT DETAILS:
+
+  * foreground must INCLUDE the lensing BB spectrum.  The model used in
+    the likelihood is:  model(r) = tensor_grid[r] + foreground + <DLnoise>.
+
+  * tensor_grid row k is the tensor BB D_ell for
+    r = r_min + k*(r_max-r_min)/(n_r-1)  with the r grid set in options
+    (default: 200 values from 0 to 0.01).
+
+  * covariance is ELL-MAJOR:  flat index = ell_bin * 253 + pair_index.
+    If your covariance covers more ell bins than ell_bins_keep, the
+    code slices it automatically (bins are selected, not re-binned).
+
+  * All arrays must share the same NaMaster binning (default:
+    nside=64, nlb=10, D_ell bandpowers).  Set "binning" in options
+    to match how your files were produced.
+
+
+THE "options" KEY — ANALYSIS SETTINGS
+--------------------------------------
+Analysis settings live INSIDE the pickle, under the optional "options"
+key.  Any key you omit takes its default (DEFAULT_OPTIONS in
+hl_stats.py).  Full set with defaults:
+
+    "options": {
+        "binning": {"nside": 64, "nlb": 10, "is_Dell": True,
+                    "ell_bins_keep": [1,2,3,4,5,6,7,8,9,10,11]},
+        "tensor_grid": {"r_min": 0.0, "r_max": 0.01, "n_r": 200},
+        "n_data": 125,              # sims used as test data (the FIRST n_data)
+        "fsky": 0.70,               # sky fraction (lollipop offset only)
+        "pairs_mode": "all",        # "all" (253) | "cross" (231 cross-freq only)
+        "offset_type": "lollipop",  # "zero" | "lollipop" | "mc"
+        "sim_batch_size": 20,       # sims per batch (reduce if low on RAM)
+        "n_iter_lollipop": 30,      # lollipop self-consistency iterations
+        "output_dir": "outputs",    # where results are written
+    }
+
+  binning         NaMaster binning; MUST match the input files.
+                  ell_bins_keep = 0-based indices of bins to use
+                  (bin 0, ell~6.5, is skipped by default).
+
+                  WHAT YOU CAN CHANGE FREELY:
+                    ell_bins_keep — add or remove bins at any time, no need
+                    to regenerate the input files.  Example: drop bin 0 by
+                    setting  "ell_bins_keep": [1, 2, 3, ..., 11].
+
+                  WHAT MUST MATCH THE INPUT FILES:
+                    nside, nlb, is_Dell — these are used to reconstruct the
+                    effective ell values via NaMaster.  If you change them,
+                    you MUST regenerate DLcross, DLnoise, foreground,
+                    covariance and tensor_grid with the same new binning.
+                    Mismatching these causes wrong ell values and an
+                    inconsistent covariance with no error message.
+
+  tensor_grid     r_min/r_max/n_r MUST match the tensor_grid array.
+  cov_ordering    ordering of the covariance matrix flat index:
+                    "ell_major"  (default): flat = ell_bin * N_pairs + pair_index
+                      — this is the NaMaster natural output, used by default.
+                    "pair_major":           flat = pair_index * N_ell + ell_bin
+                      — if you produce the covariance in this order, set this
+                        and the internal reordering step is skipped entirely.
+                  The two orderings only differ in which index varies fastest;
+                  both describe the same (N_pairs*N_ell)^2 matrix, just stored
+                  differently.  Wrong setting → silently wrong icov.
+  offset_type     "lollipop" (Tristram et al. 2112.07961) recommended;
+                  "mc" guarantees positivity if lollipop fails PSD checks.
+
+Unknown keys in "options" raise an error (typo protection).
+
+
+CHANNEL ORDERING — MOST COMMON SOURCE OF ERRORS
+-------------------------------------------------
+The 253 pairs are the upper triangle over the 22 channels:
+
+    pair (i, j) with i <= j  →  position  i*(2*N-i-1)/2 + j
+
+where i, j are positions in the channel_names list.  The list order
+MUST match the ordering used by the pipeline that produced DLcross,
+DLnoise, foreground and covariance.
+
+Standard LiteBIRD HM1 ordering:
+
+    LFT_040, LFT_050, LFT_060, LFT_068a, LFT_068b, LFT_078a, LFT_078b,
+    LFT_089a, LFT_089b, LFT_100, LFT_119, LFT_140,
+    MFT_100, MFT_119, MFT_140, MFT_166, MFT_195a, MFT_195b,
+    HFT_235, HFT_280, HFT_337, HFT_402
+
+The code cannot detect a wrong ordering (shapes stay consistent) —
+always cross-check channel_names against your data pipeline.
+The channel list read from the pickle is printed at load time.
+
+
+CALLING THE LIKELIHOOD FROM YOUR OWN CODE
+------------------------------------------
+run_hm1.py is a thin wrapper.  The single entry point takes ONLY the
+pickle path — there is no other way to pass inputs:
+
+    import sys; sys.path.insert(0, "/path/to/Like")
+    from hl_stats import run_hl_chi2
+
+    results = run_hl_chi2("/path/to/hl_inputs.pkl")
+
+RESULTS DICT — output of run_hl_chi2(pkl_path)
+-----------------------------------------------
+  "chi2"          (N_r, N_data)   HL chi2 for each r value and simulation
+  "r_grid"        (N_r,)          r values used
+  "ell"           (N_ell,)        effective multipoles used
+  "n_pairs_used"  int             pairs used (22 / 231 / 253 depending on mode)
+  "pairs_mode"    str             "all" | "cross" | "auto"
+  "offset_type"   str             "zero" | "lollipop" | "mc"
+  "offset"        (253, N_ell)    cloff array used in the computation
+  "data"          dict            full prepare_data() output (pass to plots)
+  "config"        dict            resolved options actually used
+
+Posterior and plots: see the bottom of run_hm1.py for the standard
+sequence (print_stats, per_sim_posteriors, plot_posterior_single).
+
+
+MODULE OVERVIEW
+----------------
+  run_hm1.py     CLI runner:  python run_hm1.py file.pkl
+
+  hl_stats.py    run_hl_chi2(pkl_path)  ← THE SINGLE ENTRY POINT.
+                 DEFAULT_OPTIONS — defaults for the "options" key.
+                 Also exports:
+                   compute_lollipop_offset / compute_mc_offset
+                   compute_hl_chi2_charmlike  (low-level HL engine)
+                   posterior_from_chi2 / per_sim_posteriors
+                   print_stats
+
+  hl_io.py       load_inputs(config) / prepare_data(raw, config).
+                 Called internally by run_hl_chi2(); normally you do
+                 NOT need to call these directly.
+
+  hl_plots.py    plot_likelihood_inputs(data, config, output_dir)
+                     → 3 diagnostic figures on the inputs.
+                 plot_pair_pull_matrix(data, config, output_dir)
+                     → standalone 22×22 heatmap.
+                 plot_posterior_single(...)
+                     → posterior with per-sim overlays and stats box.
+                 plot_model_vs_data(...)
+                     → quick 3×4 spectral overview.
+
+
+DIAGNOSTIC PLOT GUIDE
+---------------------
+plot_likelihood_inputs() saves three figures:
+
+  Figure 1 — spectra  (likelihood_inputs_spectra_*.png)
+    Balanced selection of AUTO (star) and cross pairs.
+    Grey lines        : individual DLcross test sims
+    Blue band/line    : mean +/- sigma/sqrt(N) of test sims
+    Red dashed        : fiducial r=0 = noise_mean + fg
+    Orange dotted     : noise_mean contribution alone
+    Green dotted      : fg contribution alone
+    Panel title colour: green = chi2/dof < 1.3  |  orange < 2.5  |  red >= 2.5
+    CHECK: red/blue lines should overlap within the grey band.
+
+  Figure 2 — normalised residuals  (likelihood_inputs_residuals_*.png)
+    Pull = (mean_DLcross - fiducial) / (sigma/sqrt(N)) per pair and ell bin.
+    Grey shading      : +/-1 sigma band
+    Red dashes        : +/-2 sigma lines
+    CHECK: points should mostly stay inside the grey band.
+           chi2/dof ~ 1 means perfect model; >> 1 signals mismatch.
+
+  Figure 3 — pair pull matrix  (pair_pull_matrix_*.png)
+    22x22 heatmap. Each cell = max|pull| over ell bins for that pair.
+    Diagonal = AUTO spectra (black border).
+    CHECK: if an entire row/column is red -> that channel has model issues.
+           If only the diagonal is red -> AUTO noise model wrong.
+           If a telescope block is red -> foreground model wrong in that band.
+
+
+TROUBLESHOOTING
+---------------
+[ERROR] pickle is missing 'channel_names'.
+  -> Add the 22-entry channel_names list to the pickle dict (see above).
+
+[ERROR] unknown keys in pickle 'options': [...].
+  -> Typo in an options key, or an option that does not exist.
+     Allowed keys are listed in the error message.
+
+[ERROR] DLcross has X pairs but config has N channels -> expected M pairs.
+  -> DLcross must be pre-cut to the HM1-only 253 pairs, and channel_names
+     must list exactly the 22 HM1 channels.
+
+[ERROR] DLcross has Z ell bins but cov implies W.
+  -> All files must share the same NaMaster binning.
+     Regenerate the covariance with the same nlb and nside as the spectra.
+
+[WARN] noise_mean < 0 for N AUTO (pair, ell) entries.
+  -> Noise_mean for auto spectra must be non-negative.
+  -> Use more noise simulations to reduce sampling noise in the mean,
+     or check that the noise pipeline was applied correctly.
+
+[WARN] F0 not PSD at ell_idx=E.
+  -> The fiducial matrix (noise_mean + fg + offset) has a near-zero or
+     negative eigenvalue at this ell bin.
+  -> Switch to offset_type="mc"; the MC offset guarantees positivity.
+
+[WARN] X entries of (cldata+cloff) are non-positive.
+  -> The chosen offset is not large enough to make all data positive.
+  -> Switch to offset_type="mc".
+
+[WARN] mean(DLcross) vs fiducial: max pull = X sigma/sqrt(N), max rel = Y%.
+  -> If max rel > 1%: noise/fg model does not match the simulations.
+     Check that all files were produced with the same pipeline and masks.
+  -> If max rel is small but pull is large: statistical fluctuation from
+     near-zero sigma/sqrt(N) on cross pairs — safe to ignore.
