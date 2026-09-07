@@ -462,7 +462,7 @@ def cov_NaMaster(mask, Cls_cmb, Cls_fg, Nls, w, corfg=True, auto=False, output='
     corfg : bool, optional
         If True, correct for the cosmic variance of foregrounds. Default: True.
     auto : bool, optional
-        If True, consider auto-spectra, otherwise use half missions. Default: False.
+        If True, include noise bias contribution for auto-spectra. Default: False.
     output : string, optional
         If 'TT', return covariance matrix for temperature.
         If 'EE', return covariance matrix for E-modes.

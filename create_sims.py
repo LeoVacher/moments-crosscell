@@ -23,17 +23,18 @@ lmax = nside*3-1 #maximum multipole
 scale = 10 #apodization scale in degrees
 Nlbin = 10 #binning scheme of the Cls
 fsky = 0.7 #fraction of sky for the raw mask
-dusttype = None #Pysm dust model
-synctype = None #Pysm syncrotron model
+dusttype = 0 #Pysm dust model
+synctype = 0 #Pysm syncrotron model
 kws = '' #keyword for the simulation
-load=False #load previous sims 
+load=True #load previous sims 
 masking_strat='' #keywords for choice of mask. If '', use Planck mask 
 gaussbeam = True #smooth with gaussian beam?
 bandpass = True #integrate on bandpass assuming top-hat functions
 e2e_noise = True #whether to use already computed noise simulations
-Ngrid = 100 #number of points on bandpass grid
+Ngrid = 50 #number of points on bandpass grid
 path = '/pscratch/sd/s/svinzl/B_modes_project/' #path for saving sims. Use './' for local and '/pscratch/sd/s/svinzl/B_modes_project/' for shared directory
-auto = False # If True, use auto-spectra. Otherwise use half missions
+FM_only = False # If True, use full mission maps for auto-spectra. Otherwise use half missions
+HM_only = True # If True, use only half mission maps (all combinations between HM1 and HM2)
 
 if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
     kws = kws + '_maskGWD'
@@ -43,10 +44,19 @@ if masking_strat=='GWD': #masking strategy From Gilles Weyman Depres (test)
 instr_name ='litebird_full' #instrument name in ./lib/instr_dict/
 instr =  np.load("./lib/instr_dict/%s.npy"%instr_name,allow_pickle=True).item()
 freq = instr['frequencies']
-N_freqs = len(freq)
-Ncross = int(N_freqs*(N_freqs+1)/2)
 sens_P = instr['sens_P']
 beam = instr['beams']
+"""
+if HM_only:
+    freq = np.tile(freq, 2)
+    sens_P = np.tile(sens_P, 2)
+    beam = np.tile(beam, 2)
+"""
+N_freqs = len(freq)
+Ncross = int(N_freqs*(N_freqs+1)/2)
+if HM_only:
+    N_freqs_eff = N_freqs * 2
+    Ncross = int(N_freqs_eff*(N_freqs_eff+1)/2)
 sigpix = sens_P/hp.nside2resol(nside, arcmin=True)
 b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
 leff = b.get_effective_ells()
@@ -63,14 +73,20 @@ else:
 if bandpass:
     kws += '_bandpass'
     bw = instr['bandwidths']
+    """
+    if HM_only:
+        bw = np.tile(bw, 2)
+    """
     freq_grids = np.zeros((N_freqs, Ngrid))
     for i in range(N_freqs):
         freq_grids[i] = np.geomspace(freq[i]-bw[i]/2, freq[i]+bw[i]/2, Ngrid)
     freq = freq_grids
 
-if auto:
-    kws += '_auto'
+if FM_only:
+    kws += '_FM'
     hm1, hm2 = 0, 0
+elif HM_only:
+    kws += '_HM'
 else:
     hm1, hm2 = 1, 2
 
@@ -112,12 +128,14 @@ else:
 #Initialise workspace:
 
 if gaussbeam:
-     wsp = []
-     for i in range(N_freqs):
-         for j in range(i, N_freqs):
+    if HM_only:
+        Bls = np.concatenate((Bls, Bls))
+    wsp = []
+    for i in range(len(Bls)):
+        for j in range(i, len(Bls)):
             wsp.append(sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b,purify='BB', beam1=Bls[i], beam2=Bls[j]))
 else:
-     wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
+    wsp = sim.get_wsp(mapfg,mapfg,mapfg,mapfg,mask,b)
 
 #compute sims:
 
@@ -145,13 +163,10 @@ else:
     kini=0
     CLcross = np.zeros((N,Ncross,len(leff)))
 
-if e2e_noise:
-    noise = np.load(path+'/maps/e2e_noise_nside64.npy')
-
 for k in tqdm(range(kini,N)):
     noisemaps = np.zeros((3,N_freqs,2,Npix))
     if e2e_noise:
-        noisemaps = noise[k, :, :, 1:]
+        noisemaps = np.load(path+f'/maps/e2e_noise_nside64/{k}.npy')[:, :, 1:]
     
     else:
         #create three random noises corresponding to full mission and the two half-missions
@@ -173,13 +188,17 @@ for k in tqdm(range(kini,N)):
         for i in range(N_freqs):
             for j in range(2): #smooth Q and U maps
                 signal[i,j] = hp.smoothing(signal[i,j], fwhm=beam[i])
-
     #add noise to maps
-    maptotaldc1  = signal + noisemaps[0]
-    maptotaldc21 = signal + noisemaps[hm1]
-    maptotaldc22 = signal + noisemaps[hm2]
+    maps_k = np.zeros((3, N_freqs, 2, Npix))
+    for i in range(3):
+        maps_k[i] = signal + noisemaps[i]
 
-    CLcross[k]= sim.computecross(maptotaldc1,maptotaldc1,maptotaldc21,maptotaldc22,wsp,mask,Nell,b,coupled=False,mode='BB',beams=Bls)
+    if not HM_only:
+        CLcross[k] = sim.computecross(maps_k[0], maps_k[0], maps_k[hm1], maps_k[hm2], wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
+
+    else:
+        maps_k = np.concatenate(maps_k[1:])
+        CLcross[k] = sim.computecross(maps_k, maps_k, maps_k, maps_k, wsp, mask, Nell, b, coupled=False, mode='BB', beams=Bls)
 
     #save:
     if synctype==None and dusttype==None:
