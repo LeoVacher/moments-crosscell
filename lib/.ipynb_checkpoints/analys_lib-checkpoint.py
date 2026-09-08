@@ -14,6 +14,9 @@ import analytical_mom_lib as anmomlib
 import re
 import healpy as hp
 import covlib as cvl
+import sympy as sym
+from sympy.physics.wigner import wigner_3j
+import astropy.constants as const
 
 #contains all function for moment fitting.
 
@@ -387,7 +390,7 @@ class gauss_like:
     """
     Class for analytical maximization of cross-Cl-based Gaussian likelihood.
     """
-    def __init__(self, freq, leff, covmat, comp, beta_d, T_d, beta_s, nu0_d, nu0_s):
+    def __init__(self, freq, leff, covmat, comp, beta_d, T_d, beta_s, nu0_d, nu0_s, Dl_lens=None, Dl_tens=None):
         """
         Initialize class by computing mixing matrix A and weight matrix W.
     
@@ -395,8 +398,8 @@ class gauss_like:
         ----------
         freq : array_like
             Array of frequencies at which the mixing matrix should be computed. Can be of shape (Nfreqs,) or (Nfreqs, Ngrid) depending on whether bandpass integration is taken into account.
-        leff : array_like
-            Effective ells at which the mixing matrix should be computed. Must be of shape (Nbins,).
+        leff : array-like
+            Effective multipole values at which the mixing matrix has to be computed. Must be of shape (Nbins,).
         covmat : array_like
             Fiducial covariance matrix of dimension (Ncross*Nbins, Ncross*Nbins)
         comp : list
@@ -411,31 +414,39 @@ class gauss_like:
             Reference frequency for the polarized dust SED.
         nu0_s : float
             Reference frequency for the polarized synchrotron SED.
+        Dl_lens : array_like, optional
+            CMB lensing power spectrum in the specified multipole bins. Needed for progressive fits. Default: None.
+        Dl_tens : array_like, optional
+            CMB tensor modes power spectrum in the specified multipole bins, needed for fitting r globally. Default: None.
     
         Returns
         -------
         None
         """
-        self.Nfreqs = len(freq)
+        self.freq = freq
+        self.Nfreqs = len(self.freq)
         self.Ncross = int(self.Nfreqs * (self.Nfreqs+1)/2)
         freq_pairs = np.array([(i, j) for i in range(self.Nfreqs) for j in range(i, self.Nfreqs)])
         self.nu_i = freq[freq_pairs[:, 0]]
         self.nu_j = freq[freq_pairs[:, 1]]
 
         self.leff = leff
-        self.Nbins = len(leff)
+        self.Nbins = len(self.leff)
+        self.Dl_lens = Dl_lens
+        self.Dl_tens = Dl_tens
         
-        self.components = [comp[i].copy() for i in range(self.Nbins)]
+        self.components = [comp[i].copy() for i in range(len(comp))]
         self.Ncomps = 0
-        for i in range(self.Nbins):
+        for i in range(len(comp)):
             self.Ncomps += len(comp[i])
         
         self.beta_d = beta_d * np.ones(self.Nbins)
         self.T_d = T_d * np.ones(self.Nbins)
         self.beta_s = beta_s * np.ones(self.Nbins)
         self.nu0_d, self.nu0_s = nu0_d, nu0_s
-        
-        self.N_inv = cvl.inverse_covmat(covmat, Ncross=self.Ncross, neglect_corbins=False)        
+
+        self.covmat = covmat
+        self.N_inv = cvl.inverse_covmat(self.covmat, Ncross=self.Ncross, neglect_corbins=False)        
         self.A = self.compute_mixing_matrix()
         self.W = self.compute_weight_matrix()
 
@@ -463,7 +474,7 @@ class gauss_like:
                 if c == 'cmb':
                     A_ell[:, j] = 1
                 else:
-                    A_ell[:, j] = eval('self._'+c)(i)
+                    A_ell[:, j] = self.f_ij(l=i, key=c)#eval('self._'+c)(i)
     
             A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+Nc] = A_ell
             c_index += Nc
@@ -511,6 +522,7 @@ class gauss_like:
         N = len(data)
         
         moms = []
+        self.residuals = np.zeros((N, self.Ncross*self.Nbins))
         chi2r = np.zeros(N)
 
         for k in range(N):
@@ -528,11 +540,17 @@ class gauss_like:
                 moms[k].append(s[c_index:])
 
             res = d - self.A @ s
+            self.residuals[k] = res.copy()
             dof = len(d) - len(s)
 
             chi2r[k] = res.T @ self.N_inv @ res / dof
 
-        keys = ['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs', 'cmb']
+        keys = []
+        for i in range(self.Nbins):
+            for key in self.components[i]:
+                if key not in keys:
+                    keys.append(key)
+        
         results = {k: np.zeros((self.Nbins, N)) for k in keys}
 
         for i in range(self.Nbins):
@@ -550,19 +568,51 @@ class gauss_like:
         results['chi2r'] = chi2r
 
         if len(self.components) > self.Nbins:
-            results['A_w1bsw1bs'], results['w1_w1bsw1bs'] = np.zeros((2, N))
-            results['A_w1tw1bs'], results['w1_w1tw1bs'] = np.zeros((2, N))
-            results['A_w1bw1bs'], results['w1_w1bw1bs'] = np.zeros((2, N))
-            for k in range(N):
-                results['A_w1bsw1bs'][k], results['w1_w1bsw1bs'][k], results['A_w1tw1bs'][k], results['w1_w1tw1bs'][k], results['A_w1bw1bs'][k], results['w1_w1bw1bs'][k] = moms[k][-1]#, results['A_w1tw1bs'], results['w1_w1tw1bs'], results['A_w1bw1bs'], results['w1_w1bw1bs'] = moms[k][-1]
-            
-            results['gamma_w1bsw1bs'] = self.gamma_w1bsw1bs
-            results['gamma_w1tw1bs'] = self.gamma_w1tw1bs
-            results['gamma_w1bw1bs'] = self.gamma_w1bw1bs
+            if self.components[-1] == ['r']:
+                results['r'] = np.zeros(N)
+                for k in range(N):
+                    results['r'][k] = moms[k][-1]
+            else:
+                results['A_w1bsw1bs'], results['w1_w1bsw1bs'] = np.zeros((2, N))
+                results['A_w1tw1bs'], results['w1_w1tw1bs'] = np.zeros((2, N))
+                results['A_w1bw1bs'], results['w1_w1bw1bs'] = np.zeros((2, N))
+                for k in range(N):
+                    results['A_w1bsw1bs'][k], results['w1_w1bsw1bs'][k], results['A_w1tw1bs'][k], results['w1_w1tw1bs'][k], results['A_w1bw1bs'][k], results['w1_w1bw1bs'][k] = moms[k][-1]#, results['A_w1tw1bs'], results['w1_w1tw1bs'], results['A_w1bw1bs'], results['w1_w1bw1bs'] = moms[k][-1]
+                    
+                results['gamma_w1bsw1bs'] = self.gamma_w1bsw1bs
+                results['gamma_w1tw1bs'] = self.gamma_w1tw1bs
+                results['gamma_w1bw1bs'] = self.gamma_w1bw1bs
+
+        if self.Dl_lens is not None:
+            total_cmb = results['cmb'].T
+            cov_cmb = np.cov(results['cmb'])
+            N_inv_cmb = np.linalg.inv(cov_cmb)
+    
+            A_cmb = np.zeros((self.Nbins, 1))
+            A_cmb[:, 0] = self.Dl_tens
+    
+            W_cmb = np.linalg.inv(A_cmb.T @ N_inv_cmb @ A_cmb) @ A_cmb.T @ N_inv_cmb
+    
+            samp_nomarg = np.zeros((N, 2))
+            chi2r_nomarg = np.zeros(N)
+    
+            for i in range(N):
+                d_cmb = total_cmb[i] - self.Dl_lens
+                s_cmb = W_cmb @ d_cmb
+        
+                res = d_cmb - A_cmb @ s_cmb
+                dof = len(d_cmb) - len(s_cmb)
+        
+                samp_nomarg[i, 0] = s_cmb[0]
+                chi2r_nomarg[i] = res.T @ N_inv_cmb @ res / dof
+    
+            samp_nomarg[:, 1] = 100
+    
+            results['r'] = samp_nomarg[:, 0]
 
         return results
 
-    def run(self, data, n_iter=3, adaptative=True, pl_moms=False):
+    def run(self, data, n_iter=3, adaptative=True, progressive=False, pl_moms=False, HVTWD=False, PCA=False, Azzoni=False, OMP=False, GS=False):
         """
         Run component separation for the input simulations.
 
@@ -575,20 +625,228 @@ class gauss_like:
             Number of iterations to run to find ideal pivot values. Default: 3.
         adaptative : bool, optional
             Whether to re-run the component separation after deleting the undetected moments. Default: True.
+        progressive : bool, optional
+            Progressive version of adaptative where insignificant moments are removed one by one. Default: False.
         pl_moms : bool, optional
-            Whether to re-run component separation using a power law of ell parametrization for w1bsw1bs, w1tw1bs, and w1bw1bs. Default: False. 
+            Whether to re-run component separation using a power law of ell parametrization for w1bsw1bs, w1tw1bs, and w1bw1bs. Default: False.
+        HVTWD : bool, optional
+            Whether to reiterate the fit for the CMB component after smoothing the fitted moments. Defalut: False.
+        PCA : bool, optional
+            Perform a principal component analysis (PCA) after iterative estimate of the mixing matrix. Default: False.
+        Azzoni : bool, optional
+            Re-iterate the fit à la Azzoni et al. Default: False.
+        OMP : bool, optional
+            Pipeline for orthogonal matching pursuit. Default: False.
+        GS : bool, optional
+            Pipeline for Gram-Schmidt orthogonalization
 
         Returns
         ----------
         results : dict
             Dictionnary of the estimated component amplitudes for the input simulations.
         """
+        if GS:
+            N = len(data)
+            
+            for i in trange(n_iter, desc='Iterations'):
+                results = self.maximize(data)
+                
+                self.beta_d += np.mean(results['Aw1b'] / results['A'], axis=1)
+                self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A'], axis=1))
+                self.beta_s += np.mean(results['Asw1bs'] / results['As'], axis=1)
+                
+                self.beta_d = np.clip(self.beta_d, 1, 2)
+                self.T_d = np.clip(self.T_d, 15, 25)
+                self.beta_s = np.clip(self.beta_s, -4, -2)
+    
+                self.A = self.compute_mixing_matrix()
+                self.W = self.compute_weight_matrix()
+
+            print('Fit simulations using updated pivot values...')
+
+            comp = ['cmb', 'A', 'As', 'Asd']
+            
+            for i in range(self.Nbins):
+                self.components[i] = comp.copy()
+
+            moms = np.array(['A', 'As', 'w1b', 'w1t', 'w1bs',
+                             #'w2b', 'w2t', 'w2bt', 'w2bs',
+                             #'w3b', 'w3t', 'w3bbt', 'w3btt', 'w3bs',
+                             #'w4b', 'w4t', 'w4bbbt', 'w4bbtt', 'w4bttt', 'w4bs',
+                            ])
+            
+            DLmoms = []
+            for i, k1 in enumerate(moms):
+                for j, k2 in enumerate(moms[i:]):
+                    if not(k1[0] == 'A' and k2[0] == 'A'):
+                        k = f'{k1}{k2}'
+                        if k not in comp:
+                            DLmoms.append(k)
+
+            self.Ncomps = (len(comp) + len(DLmoms)) * self.Nbins
+            self.A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            c_index = 0
+            
+            for i in range(self.Nbins):
+                cov = self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross]
+                N_inv = cvl.inverse_covmat(cov, Ncross=self.Ncross, neglect_corbins=False)
+
+                A_ell = np.zeros((self.Ncross, len(comp)+len(DLmoms)))
+
+                for j, c in enumerate(comp):
+                    if c == 'cmb':
+                        A_ell[:, j] = 1
+                    else:
+                        A_ell[:, j] = self.f_ij(i, key=c)
+
+                Nc = len(comp)
+                for j, c in enumerate(DLmoms):
+                    A_ell[:, j+len(comp)] = self.f_ij(i, key=c)
+                    self.components[i].append(f'X{j+1}')
+
+                    for k in range(Nc):
+                        A_ell[:, j+len(comp)] -= (A_ell[:, j+len(comp)].T @ N_inv @ A_ell[:, k]) / (A_ell[:, k].T @ N_inv @ A_ell[:, k]) * A_ell[:, k]
+
+                    Nc += 1
+
+                self.A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+Nc] = A_ell.copy()
+                c_index += Nc
+
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data)
+
+            return results
+            
+        
+        if OMP:
+            N = len(data)
+            
+            for i in trange(n_iter, desc='Iterations'):
+                results = self.maximize(data)
+                
+                self.beta_d += np.mean(results['Aw1b'] / results['A'], axis=1)
+                self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A'], axis=1))
+                self.beta_s += np.mean(results['Asw1bs'] / results['As'], axis=1)
+                
+                self.beta_d = np.clip(self.beta_d, 1, 2)
+                self.T_d = np.clip(self.T_d, 15, 25)
+                self.beta_s = np.clip(self.beta_s, -4, -2)
+    
+                self.A = self.compute_mixing_matrix()
+                self.W = self.compute_weight_matrix()
+
+            print('Fit simulations using updated pivot values...')
+
+            comp = ['cmb', 'A', 'As', 'Asd']
+            
+            for i in range(self.Nbins):
+                self.components[i] = comp.copy()
+            self.Ncomps = len(comp) * self.Nbins
+
+            moms = np.array(['A', 'As', 'w1b', 'w1t', 'w1bs',
+                             #'w2b', 'w2t', 'w2bt', 'w2bs',
+                             #'w3b', 'w3t', 'w3bbt', 'w3btt', 'w3bs',
+                             #'w4b', 'w4t', 'w4bbbt', 'w4bbtt', 'w4bttt', 'w4bs',
+                            ])
+            
+            DLmoms = []
+            for i, k1 in enumerate(moms):
+                for j, k2 in enumerate(moms[i:]):
+                    if not(k1[0] == 'A' and k2[0] == 'A'):
+                        k = f'{k1}{k2}'
+                        if k not in comp:
+                            DLmoms.append(k)
+
+            for i in range(self.Nbins):
+                gauss = gauss_like(self.freq, np.array([self.leff[i]]), self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross], [comp], self.beta_d[i], self.T_d[i], self.beta_s[i], self.nu0_d, self.nu0_s)
+                res = gauss.maximize(data[:, :, i, None])
+                
+                atoms = DLmoms.copy()
+                p_max = np.inf
+                threshold = 1
+
+                while p_max > threshold:
+                    p = np.zeros((len(atoms), N))
+                    for j, c in enumerate(atoms):
+                        a = self.f_ij(i, key=c)
+
+                        for k in range(N):
+                            p[j, k] = np.abs((a.T @ gauss.N_inv @ gauss.residuals[k]) / np.sqrt(a.T @ gauss.N_inv @ a))
+                    
+                    p = np.mean(p, axis=1)
+                        
+                    idx_max = np.argmax(p)
+                    p_max = p[idx_max]
+                    print(i, atoms[idx_max], p_max)
+
+                    if p_max > threshold:
+                        self.components[i].append(atoms[idx_max])
+                        self.Ncomps += 1
+                            
+                        gauss.components[0].append(atoms[idx_max])
+                        gauss.Ncomps += 1
+
+                        gauss.A = gauss.compute_mixing_matrix()
+                        gauss.W = gauss.compute_weight_matrix()
+                            
+                        res = gauss.maximize(data[:, :, i, None]) 
+                            
+                        atoms.remove(atoms[idx_max])
+
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data)
+            
+            return results
+
+            """
+            atoms = [DLmoms.copy() for i in range(self.Nbins)]
+
+            for it in range(100):
+                score = 0
+                
+                for i in range(self.Nbins):
+                    for j, c in enumerate(atoms[i]):
+                        a = np.zeros(self.Ncross*self.Nbins)
+                        a[i*self.Ncross : (i+1)*self.Ncross] = self.f_ij(i, key=c)
+                        
+                        p = np.zeros(N)
+                        for k in range(N):
+                            p[k] = np.abs((a.T @ self.N_inv @ self.residuals[k]) / np.sqrt(a.T @ self.N_inv @ a))
+
+                        print(i, c, np.mean(p))
+                        if np.mean(p) > score:
+                            score = np.mean(p)
+                            idx_bin, comp = i, c
+
+                self.components[idx_bin].append(comp)
+                self.Ncomps += 1
+                atoms[idx_bin].remove(comp)
+
+                self.A = self.compute_mixing_matrix()
+                self.W = self.compute_weight_matrix()
+
+                results = self.maximize(data)
+                print(np.mean(results['chi2r']))
+
+            return results
+            """
+
+        
         for i in trange(n_iter, desc='Iterations'):
             results = self.maximize(data)
             
-            self.beta_d += np.mean(results['Aw1b'] / results['A'])
-            self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A']))
-            self.beta_s += np.mean(results['Asw1bs'] / results['As'])
+            self.beta_d += np.mean(results['Aw1b'] / results['A'], axis=1)
+            self.T_d = 1 / (1/self.T_d + np.mean(results['Aw1t'] / results['A'], axis=1))
+            #self.T_d += np.mean(results['Aw1t'] / results['A'], axis=1)
+            #self.T_d = np.exp(np.log(self.T_d) + np.mean(results['Aw1t'] / results['A'], axis=1))
+            self.beta_s += np.mean(results['Asw1bs'] / results['As'], axis=1)
+            
+            self.beta_d = np.clip(self.beta_d, 1, 2)
+            self.T_d = np.clip(self.T_d, 15, 25)
+            self.beta_s = np.clip(self.beta_s, -4, -2)
 
             self.A = self.compute_mixing_matrix()
             self.W = self.compute_weight_matrix()
@@ -596,9 +854,29 @@ class gauss_like:
         print('Fit simulations using updated pivot values...')
         
         if n_iter > 0:
-            self.beta_d[:] = np.mean(self.beta_d)
-            self.T_d[:] = np.mean(self.T_d)
-            self.beta_s[:] = np.mean(self.beta_s)
+            #self.beta_d[:] = np.mean(self.beta_d)
+            #self.T_d[:] = np.mean(self.T_d)
+            #self.beta_s[:] = np.mean(self.beta_s)
+            
+            for i in range(self.Nbins):
+                #self.components[i].remove('Aw1b')
+                #self.components[i].remove('Aw1t')
+                #self.components[i].remove('Asw1bs')
+                bonus = 'w1bw3b'
+                to_append = ['Aw2b', 'Aw2t', 'Asw2bs',
+                            #'w1bw2b', 'w1bw2t', 'w1tw2b', 'w1tw2t']
+                            #'w2bw2b', 'w2tw2t', 'w2bw2t', 'w2bsw2bs']
+                            bonus]
+                            #]
+                
+                if not adaptative:
+                    to_append = []
+
+                for comp in to_append:
+                    self.components[i].append(comp)
+                
+                self.Ncomps += len(to_append) - 0
+            
             self.A = self.compute_mixing_matrix()
             self.W = self.compute_weight_matrix()
 
@@ -621,14 +899,15 @@ class gauss_like:
                             self.components[i].remove(k)
                             self.Ncomps -= 1
             
-            keys = ['Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']
+            #keys = ['Aw1b', 'Aw1t', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'Asw1bs', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']
+            keys = ['Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'Asw1t', 'w2bw2b']
             for i in range(self.Nbins):
                 for k in keys:
-                    if np.mean(results[k][i]) / np.std(results[k][i]) < 0.05:
+                    if np.mean(results[k][i]) / np.std(results[k][i]) < 0.01:
                         self.components[i].remove(k)
                         self.Ncomps -= 1
             """
-            
+            """
             o1d_keys = ['Aw1b', 'Aw1t']
             o2d_keys = ['w1bw1b', 'w1tw1t', 'w1bw1t']
             o1s_keys = ['Asw1bs']
@@ -653,56 +932,121 @@ class gauss_like:
             o2bt = ['w1bw1t']
             o2bs = ['w1bw1bs']
             o2ts = ['w1tw1bs']
+            """
+            N = len(data)
             
             for i in range(self.Nbins):
-                #for keys in [o1d_keys, o2d_keys, o1s_keys, o2s_keys, o1ds_keys1, o1ds_keys2, o2ds_keys]:
-                #for keys in [ob, ot, os, obt, obs, ots]:
-                for keys in [o1b, o2b, o1t, o2t, o1s, o2s, o2bt, o2bs, o2ts]:
-                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < 0.05 for k in keys):
-                        for k in keys:
+                """
+                if np.all(np.array([np.abs(np.mean(results[k]i]) / np.std(results[k][i])) for k in ['Aw1b', 'Aw1t']]) < 2 / np.sqrt(N)):
+                    self.components[i].remove('Aw1b')
+                    self.components[i].remove('Aw1t')
+                    self.Ncomps -= 2
+                    
+                if np.abs(np.mean(results['Asw1bs'][i]) / np.std(results['Asw1bs'][i])) < 2 / np.sqrt(N):
+                    self.components[i].remove('Asw1bs')
+                    self.Ncomps -= 1
+                """
+                """
+                if np.any(np.array([np.abs(np.mean(results[k][i]) / np.std(results[k][i])) for k in ['w1tw1t', 'w1bw1t']]) < 2 / np.sqrt(N)):
+                    if np.abs(np.mean(results['w1tw1t'][i]) / np.std(results['w1tw1t'][i])) < np.abs(np.mean(results['w1bw1t'][i]) / np.std(results['w1bw1t'][i])):
+                        self.components[i].remove('w1tw1t')
+                    else:
+                        self.components[i].remove('w1bw1t')
+                            
+                    self.Ncomps -= 1
+                """
+                
+                for k in np.array(self.components[i]):
+                    #if k not in ['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'cmb']:
+                    if k not in ['A', 'As', 'Asd', 'w1bw1b', 'w1tw1t', 'cmb']:
+                        if np.abs(np.mean(results[k][i]) / np.std(results[k][i])) < 2 / np.sqrt(N):
                             self.components[i].remove(k)
                             self.Ncomps -= 1
+    
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+    
+            results = self.maximize(data)
+            
             """
-            threshold = 0.05
             for i in range(self.Nbins):
-                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2b):
-                    for k in o2b:
-                        self.components[i].remove(k)
-                        self.Ncomps -= 1
-                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1b):
-                        for k in o1b:
-                            self.components[i].remove(k)
-                            self.Ncomps -= 1
+                if np.mean(results['w1tw1t'][i]) == 0 and np.abs(np.mean(results['w1bw1t'][i]) / np.std(results['w1bw1t'][i])) < 2 / np.sqrt(N):
+                    self.components[i].remove('w1bw1t')
+                    self.Ncomps -= 1
 
-                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2t):
-                    for k in o2t:
-                        self.components[i].remove(k)
-                        self.Ncomps -= 1
-                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1t):
-                        for k in o1t:
-                            self.components[i].remove(k)
-                            self.Ncomps -= 1
-
-                if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o2s):
-                    for k in o2s:
-                        self.components[i].remove(k)
-                        self.Ncomps -= 1
-                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in o1s):
-                        for k in o1s:
-                            self.components[i].remove(k)
-                            self.Ncomps -= 1
-
-                for keys in [o2bt, o2bs, o2ts]:
-                    if all(np.mean(results[k][i]) / np.std(results[k][i]) < threshold for k in keys):
-                        for k in keys:
-                            self.components[i].remove(k)
-                            self.Ncomps -= 1
+                elif np.mean(results['w1bw1t'][i]) == 0 and np.abs(np.mean(results['w1tw1t'][i]) / np.std(results['w1tw1t'][i])) < 2 / np.sqrt(N):
+                    self.components[i].remove('w1tw1t')
+                    self.Ncomps -= 1
             """
+            for i in range(self.Nbins):
+                if 'w1tw1t' in self.components[i] and np.abs(np.mean(results['w1tw1t'][i]) / np.std(results['w1tw1t'][i])) < 2 / np.sqrt(N):
+                    self.components[i].remove('w1tw1t')
+                    self.Ncomps -= 1
+
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+    
+            results = self.maximize(data)
+
+            for i in range(self.Nbins):
+                if 'w1bw1b' in self.components[i] and np.abs(np.mean(results['w1bw1b'][i]) / np.std(results['w1bw1b'][i])) < 2 / np.sqrt(N):
+                    self.components[i].remove('w1bw1b')
+                    self.Ncomps -= 1
+            
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+    
+            results = self.maximize(data)
+
+        if progressive:
+            #peak_ini = np.mean(results['r'])
+            #sigma_ini = np.std(results['r'])
+            for i in trange(self.Nbins, desc='Adaptative fits'):
+                peak_ini = np.mean(results['cmb'][i])
+                sigma_ini = np.std(results['cmb'][i])
+                
+                cov = np.cov(np.array([results[k][i] if k != 'r' else results[k] for k in np.concatenate((self.components[i], ['r']))]))
+                sig = np.sqrt(np.diag(cov))
+                cor = cov / np.outer(sig, sig)
+
+                stop = False
+                while not stop and len(self.components[i]) > 5:
+                    components = [self.components[i].copy() for i in range(self.Nbins)]
+                    Ncomps = self.Ncomps
+                
+                    score = np.zeros(len(self.components[i]))
+                    for j, k in enumerate(self.components[i]):
+                        if k not in ['A', 'As', 'Asd', 'cmb', 'w1bw1b']:
+                            score[j] = np.abs(np.std(results[k][i]) / np.mean(results[k][i]) )#/ cor[np.where(np.array(self.components[i]) == k)[0][0], -1])
+    
+                    to_remove = self.components[i][np.argmax(score)]
+                    self.components[i].remove(to_remove)
+                    self.Ncomps -= 1
+
+                    self.A = self.compute_mixing_matrix()
+                    self.W = self.compute_weight_matrix()
+                    res = self.maximize(data)
+
+                    if np.abs(np.mean(res['cmb'][i]) - np.mean(results['cmb'][i])) / np.std(results['cmb'][i]) < 0.2:
+                        #if np.abs(np.mean(res['r']) - np.mean(results['r'])) / np.std(results['r']) < 0.2:
+                        #if np.abs(np.mean(res['r']) - peak_ini) / sigma_ini < 0.1:
+                        results = res
+                        #print(f'did remove {to_remove}')
+
+                    else:
+                        self.components = [components[i].copy() for i in range(self.Nbins)]
+                        self.Ncomps = Ncomps
+                        stop = True
+                        #print(f'did NOT remove {to_remove}')
+
+                    self.res = res
+                    self.score = score
+
             self.A = self.compute_mixing_matrix()
             self.W = self.compute_weight_matrix()
 
             results = self.maximize(data)
-
+                
         if pl_moms:
             for i in range(self.Nbins):
                 for k in ['w1bsw1bs', 'w1tw1bs', 'w1bw1bs']:
@@ -722,14 +1066,549 @@ class gauss_like:
                 results = self.maximize(data)
                 self.gamma_w1bsw1bs += np.mean(results['w1_w1bsw1bs'] / results['A_w1bsw1bs'])
                 self.gamma_w1tw1bs += np.mean(results['w1_w1tw1bs'] / results['A_w1tw1bs'])
-                self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])
+                self.gamma_w1bw1bs += np.mean(results['w1_w1bw1bs'] / results['A_w1bw1bs'])  
+
+        if HVTWD:
+            print('Run HVTWD...')
             
-        print('Done!')
+            N = len(data)
+            keys = list(results)
+            Nmoms = 0
+            
+            for par in keys:
+                if par not in ['A', 'As', 'Asd', 'cmb', 'beta_d', 'T_d', 'beta_s', 'chi2r']:
+                    Nmoms += 1
+                    for k in range(N):
+                        results[par][:, k] = scipy.ndimage.gaussian_filter(results[par][:, k], sigma=10, mode='constant')
+
+            s_fg = np.zeros((N, (Nmoms+3)*self.Nbins))
+            for k in range(N):
+                idx = 0
+                for par in keys:
+                    if par not in ['cmb', 'beta_d', 'T_d', 'beta_s', 'chi2r']:
+                        s_fg[k, np.arange(self.Nbins)*Nmoms + idx] = results[par][:, k]
+                        idx += 1
+
+            for i in range(self.Nbins):
+                self.components[i].remove('cmb')
+                self.Ncomps -= 1
+            A_fg = self.compute_mixing_matrix()
+
+            data_cleaned = np.zeros_like(data)
+            for k in range(N):
+                data_cleaned[k] = (np.concatenate(data[k].T) - A_fg @ s_fg[k]).reshape((self.Nbins, self.Ncross)).T
+
+            self.components = [['cmb'] for i in range(self.Nbins)]
+            self.Ncomps = self.Nbins
+            self.A = self.compute_mixing_matrix()
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data_cleaned)
+             
+        if PCA:
+            print('Run PCA...')
+            
+            N = len(data)
+
+            self.Npc = np.zeros(self.Nbins, dtype=np.int64)            
+            
+            moms = np.array(['A', 'As', 'w1b', 'w1t', 'w1bs',
+                             'w2b', 'w2t', 'w2bt', 'w2bs',
+                             'w3b', 'w3t', 'w3bbt', 'w3btt', 'w3bs',
+                             'w4b', 'w4t', 'w4bbbt', 'w4bbtt', 'w4bttt', 'w4bs',
+                            ])
+            
+            comp = ['cmb', 'A', 'As', 'Asd', 'w1bw1b']
+            Nfix = len(comp)
+
+            for i in range(self.Nbins):
+                self.components[i] = comp.copy()
+            self.Ncomps = Nfix * self.Nbins
+            
+            comp_tot = comp.copy()
+            
+            for i, k1 in enumerate(moms):
+                for j, k2 in enumerate(moms[i:]):
+                    if not(k1[0] == 'A' and k2[0] == 'A'):
+                        key = f'{k1}{k2}'
+                        if key not in comp_tot:
+                            comp_tot.append(f'{k1}{k2}')
+                        
+            idx_fix = np.arange(Nfix)
+            idx_pca = np.arange(Nfix, len(comp_tot))
+
+            self.eigenvals_sorted = np.zeros((self.Nbins, len(comp_tot)-len(idx_fix)))
+            self.eigenvects_sorted = np.zeros((self.Nbins, len(comp_tot)-len(idx_fix), len(comp_tot)-len(idx_fix)))
+
+            A = []
+            
+            for i in range(self.Nbins):
+                # Create orthogonal atoms in bin i
+                gauss = gauss_like(self.freq, np.array([self.leff[i]]), self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross], [comp_tot], self.beta_d[i], self.T_d[i], self.beta_s[i], self.nu0_d, self.nu0_s)
+                
+                F = gauss.A.T @ gauss.N_inv @ gauss.A
+
+                F_ff = F[np.ix_(idx_fix, idx_fix)]
+                F_fp = F[np.ix_(idx_fix, idx_pca)]
+                F_pf = F_fp.T
+                F_pp = F[np.ix_(idx_pca, idx_pca)]
+
+                F_ell = F_pp - F_pf @ np.linalg.inv(F_ff) @ F_fp
+                F_ell = (F_ell + F_ell.T) / 2
+                
+                eigenvals, eigenvects = np.linalg.eigh(F_ell)
+                sort = np.argsort(eigenvals)[::-1]
+                self.eigenvals_sorted[i] = eigenvals[sort]
+                self.eigenvects_sorted[i] = eigenvects[:, sort]
+
+                atoms = list((gauss.A[:, idx_pca] @ self.eigenvects_sorted[i]).T)
+
+                # Add atoms iteratively
+                gauss = gauss_like(self.freq, np.array([self.leff[i]]), self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross], [comp], self.beta_d[i], self.T_d[i], self.beta_s[i], self.nu0_d, self.nu0_s)
+                res = gauss.maximize(data[:, :, i, None])
+
+                p_max = np.inf
+                threshold = 0.2
+                idx_added = []
+
+                while p_max > threshold:
+                    p = np.zeros((len(atoms), N))
+                    for j, a in enumerate(atoms):
+                        if j not in idx_added:
+                            for k in range(N):
+                                p[j, k] = np.abs((a.T @ gauss.N_inv @ gauss.residuals[k]) / np.sqrt(a.T @ gauss.N_inv @ a))
+
+                    p = np.mean(p, axis=1)
+
+                    idx_max = np.argmax(p)
+                    p_max = p[idx_max]
+                    print(i, f'X{idx_max+1}', p_max)
+
+                    if p_max > threshold:
+                        self.components[i].append(f'X{idx_max+1}')
+                        self.Ncomps += 1
+                        
+                        gauss.components[0].append(f'X{idx_max+1}')
+                        gauss.Ncomps += 1
+
+                        A_ell = np.zeros((gauss.Ncross, gauss.Ncomps))
+                        A_ell[:, :gauss.Ncomps-1] = gauss.A.copy()
+                        A_ell[:, -1] = atoms[idx_max].copy()
+
+                        gauss.A = A_ell.copy()
+                        gauss.W = gauss.compute_weight_matrix()
+
+                        res = gauss.maximize(data[:, :, i, None])
+
+                        idx_added.append(idx_max)
+
+                A.append(gauss.A.copy())
+
+            self.A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            
+            Nc = 0
+            for i in range(self.Nbins):
+                dNc = len(A[i].T)
+                self.A[i*self.Ncross : (i+1)*self.Ncross, Nc : Nc+dNc] = A[i].copy()
+                Nc += dNc
+
+            self.W = self.compute_weight_matrix()
+
+            results = self.maximize(data)
+            
+            """
+                self.Npc[i] = len(comp) - len(idx_fix)
+                self.Npc[i] = np.argmax(np.cumsum(self.eigenvals_sorted[i]) / np.sum(self.eigenvals_sorted[i]) > 0.99)
+            
+            self.Ncomps = np.sum(self.Npc + len(idx_fix))
+            self.A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            self.components = [list(comp[idx_fix])
+                               for j in range(self.Nbins)]
+
+            c_index = 0
+            for i in range(self.Nbins):
+                A_ell = np.zeros((self.Ncross, self.Npc[i]+len(idx_fix)))
+
+                for j, idx in enumerate(idx_fix):
+                    if comp[idx] == 'cmb':
+                        A_ell[:, j] = 1
+                    else:
+                        A_ell[:, j] = self.f_ij(l=i, key=comp[idx])
+
+                A_pca = gauss[i].A[:, idx_pca] @ self.eigenvects_sorted[i]
+                
+                for j in range(self.Npc[i]):
+                    self.components[i].append(f'X{j+1}')
+                    A_ell[:, j+len(idx_fix)] = A_pca[:, j].copy()
+
+                self.A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+self.Npc[i]+len(idx_fix)] = A_ell.copy()
+                c_index += self.Npc[i] + len(idx_fix)
+
+            self.W = self.compute_weight_matrix()
+            results = self.maximize(data)
+            """
         
+        if PCA and 0==1:
+            print('Run PCA...')
+            """
+            self.Npc = np.zeros(self.Nbins, dtype=np.int64)
+            comp = [['A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs']]
+
+            self.eigenvals_sorted = np.zeros((self.Nbins, len(comp[0])))
+            self.eigenvects_sorted = np.zeros((self.Nbins, len(comp[0]),  len(comp[0])))
+            
+            for i in range(self.Nbins):
+                gauss_ell = gauss_like(self.freq, np.array([self.leff[i]]), self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross], comp, self.beta_d, self.T_d, self.beta_s, self.nu0_d, self.nu0_s)
+                
+                F_ell = gauss_ell.A.T @ gauss_ell.N_inv @ gauss_ell.A
+                eigenvals, eigenvects = np.linalg.eigh(F_ell)
+                sort = np.argsort(eigenvals)[::-1]
+                self.eigenvals_sorted[i] = eigenvals[sort]
+                self.eigenvects_sorted[i] = eigenvects[:, sort]
+
+                #cum = np.cumsum(self.eigenvals_sorted[i]) / np.sum(self.eigenvals_sorted[i])
+                #self.Npc[i] = np.searchsorted(cum, 0.99) + 1
+                self.Npc[i] = len(comp[0])
+
+            self.Ncomps = np.sum(self.Npc+0)
+            self.A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            self.components = [[]
+                               for i in range(self.Nbins)]
+
+            c_index = 0
+            for i in range(self.Nbins):    
+                A_ell = np.zeros((self.Ncross, self.Npc[i]+0))
+
+                for j in range(self.Npc[i]):
+                    self.components[i].append(f'X{j+1}')
+                    for k, c in enumerate(comp[0]):
+                        A_ell[:, j+0] += self.eigenvects_sorted[i, k, j] * eval('self._'+c)(i)
+
+                self.A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+self.Npc[i]+0] = A_ell
+                c_index += self.Npc[i] + 0
+            """
+            
+            self.Npc = np.zeros(self.Nbins, dtype=np.int64)
+            comp = np.array(['cmb', 'A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs'])
+            #comp = np.array(['cmb', 'A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'w1bsw1bs', 'Asw2bs'])
+            #comp = np.array(['cmb', 'A', 'As', 'Asd', 'Aw1b', 'Aw1t', 'Asw1bs', 'w1bw1b', 'w1tw1t', 'w1bw1t', 'w1bsw1bs', 'Asw1b', 'Asw1t', 'Aw1bs', 'w1bw1bs', 'w1tw1bs', 'Aw2b', 'Aw2t', 'Asw2bs', 'w1bw3b'])
+            idx_fix = np.arange(8)
+            idx_pca = np.arange(8, len(comp))
+
+            self.eigenvals_sorted = np.zeros((self.Nbins, len(comp)-len(idx_fix)))
+            self.eigenvects_sorted = np.zeros((self.Nbins, len(comp)-len(idx_fix),  len(comp)-len(idx_fix)))
+
+            gauss = []
+            for i in range(self.Nbins):
+                gauss_ell = gauss_like(self.freq, np.array([self.leff[i]]), self.covmat[i*self.Ncross:(i+1)*self.Ncross, i*self.Ncross:(i+1)*self.Ncross], [list(comp)], self.beta_d, self.T_d, self.beta_s, self.nu0_d, self.nu0_s)
+                gauss.append(gauss_ell)
+                
+                F = gauss_ell.A.T @ gauss_ell.N_inv @ gauss_ell.A
+
+                F_ff = F[np.ix_(idx_fix, idx_fix)]
+                F_fp = F[np.ix_(idx_fix, idx_pca)]
+                F_pf = F_fp.T
+                F_pp = F[np.ix_(idx_pca, idx_pca)]
+
+                F_ell = F_pp - F_pf @ np.linalg.inv(F_ff) @ F_fp
+                F_ell = 0.5 * (F_ell + F_ell.T)
+                
+                eigenvals, eigenvects = np.linalg.eigh(F_ell)
+                sort = np.argsort(eigenvals)[::-1]
+                self.eigenvals_sorted[i] = eigenvals[sort]
+                self.eigenvects_sorted[i] = eigenvects[:, sort]
+
+                self.Npc[i] = len(comp) - len(idx_fix)
+
+            self.Ncomps = np.sum(self.Npc + len(idx_fix))
+            self.A = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            self.components = [list(comp[idx_fix])
+                               for j in range(self.Nbins)]
+
+            c_index = 0
+            for i in range(self.Nbins):              
+                A_ell = np.zeros((self.Ncross, self.Npc[i]+len(idx_fix)))
+                for j, idx in enumerate(idx_fix):
+                    if comp[idx] == 'cmb':
+                        A_ell[:, j] = 1
+                    else:
+                        A_ell[:, j] = self.f_ij(l=i, key=comp[idx])#eval('self._'+comp[idx])(i)
+
+                A_pca = gauss[i].A[:, idx_pca] @ self.eigenvects_sorted[i]
+                for j in range(self.Npc[i]):
+                    self.components[i].append(f'X{j+1}')
+                    A_ell[:, j+len(idx_fix)] = A_pca[:, j]
+
+                self.A[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+self.Npc[i]+len(idx_fix)] = A_ell
+                c_index += self.Npc[i] + len(idx_fix)
+            
+            self.W = self.compute_weight_matrix()
+            
+            results = self.maximize(data)
+            """
+            for i in range(self.Nbins):
+                for k in [f'X{j+1}' for j in range(self.Npc[i])]:
+                    if np.abs(np.mean(results[k][i]) / np.std(results[k][i])) < 3 / np.sqrt(len(results[k][i])):
+                        self.components[i].remove(k)
+                        self.Ncomps -= 1
+                        self.Npc[i] -= 1
+
+            self.A_new = np.zeros((self.Ncross*self.Nbins, self.Ncomps))
+            self.A_old = np.copy(self.A)
+
+            c_index = 0
+            for i in range(self.Nbins):
+                A_ell = np.zeros((self.Ncross, self.Npc[i]+len(idx_fix)))
+                for j, idx in enumerate(idx_fix):
+                    if comp[idx] == 'cmb':
+                        A_ell[:, j] = 1
+                    else:
+                        A_ell[:, j] = self.f_ij(l=i, key=comp[idx])#eval('self._'+comp[idx])(i)
+
+                for j in range(self.Npc[i]):
+                    A_ell[:, j+len(idx_fix)] = self.A[i*self.Ncross : (i+1)*self.Ncross, i*len(comp)+len(idx_fix)+int(self.components[i][j+len(idx_fix)][1:])-1]
+
+                self.A_new[i*self.Ncross : (i+1)*self.Ncross, c_index : c_index+self.Npc[i]+len(idx_fix)] = A_ell
+                c_index += self.Npc[i] + len(idx_fix)
+
+            self.A = self.A_new            
+            self.W = self.compute_weight_matrix()
+            
+            results = self.maximize(data)
+            """
+            
+
+        if Azzoni:
+            N = len(data)
+            keys = ['cmb', 'A', 'As', 'rho', 'beta_d', 'T_d', 'beta_s', 'B_bb', 'y_bb', 'B_tt', 'y_tt', 'B_bt', 'y_bt', 'B_bsbs', 'y_bsbs', 'chi2r']
+            Npars = len(keys) - 1
+            Npars_ell = 4
+            Npars_fixed = Npars - Npars_ell
+            
+            self.wigner = np.zeros((self.Nbins, self.Nbins, self.Nbins))
+            for i, l in enumerate(self.leff):
+                for j, l1 in enumerate(self.leff):
+                    for k, l2 in enumerate(self.leff):
+                        self.wigner[i, j, k] = (2*l1+1)*(2*l2+1)/(4*np.pi) * wigner_3j(l, l1, l2, 0, 0, 0)**2
+
+            self._w2t = self._mbb_derivative('1/T', 2)
+            def _w2t_uK(nu, l):
+                S_nu = self._w2t(nu, self.beta_d[l], self.T_d[l], self.nu0_d)
+
+                if np.array(nu).ndim == 2:
+                    Ngrid = nu.shape[1]
+                    weights = np.ones_like(nu)
+                    bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+                    weights /= np.tile(bw, [Ngrid,1]).T
+                    S_nu = np.trapezoid(S_nu * weights, nu)
+
+                return S_nu * func.bandpass_unit_conversion(nu, input_unit='MJy/sr', output_unit='uK_CMB') / func.unit_conversion(self.nu0_d, input_unit='MJy/sr', output_unit='uK_CMB')
+            self._w2t_uK = _w2t_uK
+
+            self._w2bt = self._mbb_derivative(['beta', '1/T'], [1, 1])
+            def _w2bt_uK(nu, l):
+                S_nu = self._w2bt(nu, self.beta_d[l], self.T_d[l], self.nu0_d)
+
+                if np.array(nu).ndim == 2:
+                    Ngrid = nu.shape[1]
+                    weights = np.ones_like(nu)
+                    bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+                    weights /= np.tile(bw, [Ngrid,1]).T
+                    S_nu = np.trapezoid(S_nu * weights, nu)
+
+                return S_nu * func.bandpass_unit_conversion(nu, input_unit='MJy/sr', output_unit='uK_CMB') / func.unit_conversion(self.nu0_d, input_unit='MJy/sr', output_unit='uK_CMB')
+            self._w2bt_uK = _w2bt_uK
+
+            def _Aw2t(l):
+                return 1/2 * (func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*self._w2t_uK(self.nu_j, l) + self._w2t_uK(self.nu_i, l)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d))
+            self._Aw2t = _Aw2t
+
+            def _Aw2bt(l):
+                return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*self._w2bt_uK(self.nu_j, l) + self._w2bt_uK(self.nu_i, l)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+            self._Aw2bt = _Aw2bt
+
+            pars = [{'value': 0, 'fixed': 0, 'limited': [1,1], 'limits': [-np.inf, np.inf]} for i in range(Npars_ell*self.Nbins + Npars_fixed)]
+            for i in range(self.Nbins):
+                pars[i] = pars[i] # cmb
+                pars[self.Nbins + i]['limits'] = [0, np.inf] # A
+                pars[2*self.Nbins + i]['limits'] = [0, np.inf] # As
+                pars[3*self.Nbins + i]['limits'] = [-1, 1] # rho
+            pars[4*self.Nbins]['limits'], pars[4*self.Nbins]['value'] = [1, 2], 1.48 # beta_d
+            pars[4*self.Nbins + 1]['limits'], pars[4*self.Nbins + 1]['value'] = [15, 25], 19.6 # T_d
+            pars[4*self.Nbins + 2]['limits'], pars[4*self.Nbins + 2]['value'] = [-4, -2], -3.1 # beta_s
+            pars[4*self.Nbins + 3]['limits'] = [0, np.inf] # B_bb
+            pars[4*self.Nbins + 4]['limits'], pars[4*self.Nbins + 4]['value'] = [-6, -2], -4 # y_bb
+            pars[4*self.Nbins + 5]['limits'] = [0, np.inf] # B_tt
+            pars[4*self.Nbins + 6]['limits'], pars[4*self.Nbins + 6]['value'] = [-6, -2], -4 # y_tt
+            pars[4*self.Nbins + 7]['limits'] = [0, np.inf] # B_bt
+            pars[4*self.Nbins + 8]['limits'], pars[4*self.Nbins + 8]['value'] = [-6, -2], -4 # y_bt
+            pars[4*self.Nbins + 9]['limits'] = [0, np.inf] # B_bsbs
+            pars[4*self.Nbins + 10]['limits'], pars[4*self.Nbins + 10]['value'] = [-6, -2], -4 # y_bsbs
+
+            results = {k: 0 for k in keys}
+            for i in range(Npars_ell):
+                results[keys[i]] = np.zeros((self.Nbins, N))
+            for i in range(Npars_fixed+1):
+                results[keys[i+Npars_ell]] = np.zeros(N)
+
+            L_inv = np.linalg.cholesky(self.N_inv)
+            for k in trange(1, desc='Fits à la Azzoni...'):
+                fa = {'y': np.concatenate(data[k].T), 'err': L_inv, 'model_func': self._Azzoni}
+                self.m = mpfit(ftl.lkl_mpfit, parinfo=pars, functkw=fa, quiet=1)
+
+                for i in range(Npars_ell):
+                    results[keys[i]][:, k] = self.m.params[i*self.Nbins + np.arange(self.Nbins)]
+                for i in range(Npars_fixed):
+                    results[keys[i+Npars_ell]][k] = self.m.params[Npars_ell*self.Nbins + i]
+
+                results['chi2r'][k] = self.m.fnorm / self.m.dof
+
+        print('Done!')
+
         return results
 
     ############## Internal functions for model definition ##############
     ##############  Components are computed using beta(l)  ##############
+
+    def _symbolic_derivative_mbb(self, variable, order):
+        """
+        Compute the symbolic derivative of a modified black-body
+        """
+        nu, beta, T, nu0 = sym.symbols('nu beta T nu_0')
+        h, c, k = sym.symbols('h c k')
+
+        x = h*nu / (k*T)
+        x0 = h*nu0 / (k*T)
+
+        B_nu = 2*h*nu**3/c**2 / (sym.exp(x) - 1) * 1e20
+        B_nu0 = 2*h*nu0**3/c**2 / (sym.exp(x0) - 1) * 1e20
+        I_nu = (nu/nu0)**beta * B_nu/B_nu0
+
+        if type(variable) == str:
+            variable = [variable]
+            order = [order]
+
+        for i in range(len(variable)):
+            if variable[i] == 'beta':
+                I_nu *= sym.log(nu/nu0)**order[i]
+            elif variable[i] == 'T':
+                I_nu = sym.diff(I_nu, T, order[i])
+            elif variable[i] == '1/T':
+                _T = sym.symbols('1/T')
+                I_nu = sym.diff(I_nu.subs(T, 1/_T), _T, order[i]).subs(_T, 1/T)
+            elif variable[i] == 'log(T)':
+                logT = sym.symbols('log(T)')
+                I_nu = sym.diff(I_nu.subs(T, sym.exp(logT)), logT, order[i]).subs(logT, sym.log(T))
+
+        return I_nu
+
+    def _mbb_derivative(self, variable, order):
+        """
+        Generate function for computing MBB derivative at given orders with respect to specified variables
+        """
+        nu, beta, T, nu0 = sym.symbols('nu beta T nu_0')
+        h, c, k = sym.symbols('h c k')
+
+        derivative = self._symbolic_derivative_mbb(variable, order).subs([(nu, nu*1e9), (nu0, nu0*1e9), (h, const.h.value), (c, const.c.value), (k, const.k_B.value)])
+
+        return sym.lambdify((nu, beta, T, nu0), derivative, 'numpy')
+    
+    def _mbb_derivative_uK(self, nu, l, variable=None, order=0):
+        """
+        Compute MBB derivative at given orders with respect to specified variables in uK_CMB
+        """
+        if order == 0:
+            return func.mbb_uK(nu, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
+        
+        S_nu = self._mbb_derivative(variable, order)(nu, self.beta_d[l], self.T_d[l], self.nu0_d)
+
+        if np.array(nu).ndim == 2:
+            Ngrid = nu.shape[1]
+            weights = np.ones_like(nu)
+            bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+            weights /= np.tile(bw, [Ngrid,1]).T
+            S_nu = np.trapezoid(S_nu * weights, nu)
+
+        return S_nu * func.bandpass_unit_conversion(nu, input_unit='MJy/sr', output_unit='uK_CMB') / func.unit_conversion(self.nu0_d, input_unit='MJy/sr', output_unit='uK_CMB')
+
+    def _pl_derivative_uK(self, nu, l, order):
+        """
+        Compute PL derivative at given orders with respect to specified variables in uK_CMB
+        """
+        S_nu = (nu/self.nu0_s)**self.beta_s[l] * np.log(nu/self.nu0_s)**order
+
+        if np.array(nu).ndim < 2:
+            return S_nu * func.bandpass_unit_conversion(nu, 'uK_RJ', 'uK_CMB') / func.unit_conversion(self.nu0_s, 'uK_RJ', 'uK_CMB')
+
+        else:
+            S_nu *= func.unit_conversion(nu, 'uK_RJ', 'MJy/sr') / func.unit_conversion(self.nu0_s, 'uK_RJ', 'MJy/sr')
+            Ngrid = nu.shape[1]
+            weights = np.ones_like(nu)
+            bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+            weights /= np.tile(bw, [Ngrid,1]).T
+            S_nu = np.trapezoid(S_nu * weights, nu)
+
+            return S_nu * func.bandpass_unit_conversion(nu, input_unit='MJy/sr', output_unit='uK_CMB') / func.unit_conversion(self.nu0_s, input_unit='MJy/sr', output_unit='uK_CMB')
+
+    def f_ij(self, l, key):
+        """
+        Compute the emissivity of the moment named 'key' in all cross-frequencies
+        """
+        vars = {'b': 'beta', 't': '1/T', 'bs': 'beta_s'}
+
+        if key[0] == 'A':
+            split = key.split('w')
+            if len(split) == 1:
+                if key == 'A':
+                    var, order = [vars['b'], vars['b']], [0, 0]
+                elif key == 'As':
+                    var, order = [vars['bs'], vars['bs']], [0, 0]
+                else:
+                    var, order = [vars['b'], vars['bs']], [0, 0]
+
+            else:
+                if split[0] == 'A':
+                    var, order = [vars['b']], [0]
+                else:
+                    var, order = [vars['bs']], [0]
+
+                if split[1][1:] == 'bs':
+                    var.append(vars['bs'])
+                    order.append(int(split[1][0]))
+                elif len(split[1][1:]) == 1:
+                    var.append(vars[split[1][1:]])
+                    order.append(int(split[1][0]))
+                else:
+                    var.append([vars['b'], vars['t']])
+                    order.append([split[1][1:].count('b'), split[1][1:].count('t')])
+
+        else:
+            split = key.split('w')[1:]
+            var, order = [], []
+            for i in range(2):
+                if split[i][1:] == 'bs':
+                    var.append(vars['bs'])
+                    order.append(int(split[i][0]))
+                elif len(split[i][1:]) == 1:
+                    var.append(vars[split[i][1:]])
+                    order.append(int(split[i][0]))
+                else:
+                    var.append([vars['b'], vars['t']])
+                    order.append([split[i][1:].count('b'), split[i][1:].count('t')])
+
+        f_nu = np.zeros((2, 2, self.Ncross))
+        for i in range(2):
+            if var[i] == 'beta_s':
+                f_nu[i] = 1 / np.prod(scipy.special.factorial(order[i])) * self._pl_derivative_uK(self.nu_i, l, order[i]), 1 / np.prod(scipy.special.factorial(order[i])) * self._pl_derivative_uK(self.nu_j, l, order[i])
+            else:
+                f_nu[i] = 1 / np.prod(scipy.special.factorial(order[i])) * self._mbb_derivative_uK(self.nu_i, l, var[i], order[i]), 1 / np.prod(scipy.special.factorial(order[i])) * self._mbb_derivative_uK(self.nu_j, l, var[i], order[i])
+
+        f_ij = f_nu[0,0] * f_nu[1,1]
+        if var[0] != var[1] or order[0] != order[1]:
+            f_ij += f_nu[1,0] * f_nu[0,1]
+
+        return f_ij
+
     
     def _A(self, l):
         return func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) * func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
@@ -776,6 +1655,21 @@ class gauss_like:
     def _w1tw1bs(self, l):
         return func.dust_o1t(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.sync_o1b(self.nu_j, self.beta_s[l], nu0=self.nu0_s) + func.sync_o1b(self.nu_i, self.beta_s[l], nu0=self.nu0_s)*func.dust_o1t(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)
 
+    def _Aw2b(self, l):
+        return 1/2 * (func.mbb_uK(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o2b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o2b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.mbb_uK(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d))
+
+    def _w1bw2b(self, l):
+        return 1/2 * (func.dust_o1b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o2b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) + func.dust_o2b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d)*func.dust_o1b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d))
+
+    def _w2bw2b(self, l):
+        return 1/4 * (func.dust_o2b(self.nu_i, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d) * func.dust_o2b(self.nu_j, self.beta_d[l], 1/self.T_d[l], nu0=self.nu0_d))
+
+    def _cmb(self, l):
+        return np.ones(self.Ncross)
+    
+    def _r(self, l):
+        return self.Dl_tens[l] * np.ones(self.Ncross)
+    
     def _A_w1bsw1bs(self, l):
         return (self.leff[l] / 10)**self.gamma_w1bsw1bs * self._w1bsw1bs(l)
 
@@ -799,3 +1693,56 @@ class gauss_like:
 
     def _w1_Asw1bs(self, l):
         return (self.leff[l] / 10)**self.gamma_Asw1bs * np.log(self.leff[l] / 10) * self._Asw1bs(l)
+
+    def _Azzoni(self, p):
+        cmb = p[np.arange(self.Nbins)]
+        A = p[self.Nbins + np.arange(self.Nbins)]
+        As = p[2*self.Nbins + np.arange(self.Nbins)]
+        rho = p[3*self.Nbins + np.arange(self.Nbins)]
+        beta_d = p[4*self.Nbins]
+        T_d = p[4*self.Nbins + 1]
+        beta_s = p[4*self.Nbins + 2]
+        B_bb = p[4*self.Nbins + 3]
+        y_bb = p[4*self.Nbins + 4]
+        B_tt = p[4*self.Nbins + 5]
+        y_tt = p[4*self.Nbins + 6]
+        B_bt = p[4*self.Nbins + 7]
+        y_bt = p[4*self.Nbins + 8]
+        B_bsbs = p[4*self.Nbins + 9]
+        y_bsbs = p[4*self.Nbins + 10]
+
+        self.beta_d[:] = beta_d
+        self.T_d[:] = T_d
+        self.beta_s[:] = beta_s
+
+        Cl_AA = A / self.leff / (self.leff+1) * 2*np.pi
+        Cl_AsAs = As / self.leff / (self.leff+1) * 2*np.pi
+        
+        Cl_bb = B_bb * (self.leff/10)**y_bb
+        Cl_tt = B_tt * (self.leff/10)**y_tt
+        Cl_bt = B_bt * (self.leff/10)**y_bt
+        Cl_bsbs = B_bsbs * (self.leff/10)**y_bsbs
+
+        sigma2_b = np.sum((2*self.leff+1)/(4*np.pi) * Cl_bb)
+        sigma2_t = np.sum((2*self.leff+1)/(4*np.pi) * Cl_tt)
+        sigma2_bs = np.sum((2*self.leff+1)/(4*np.pi) * Cl_bsbs)
+
+        model = np.zeros((self.Ncross, self.Nbins))
+        for l in range(self.Nbins):
+            d_o0 = A[l] * self._A(l)
+            s_o0 = As[l] * self._As(l)
+            ds_o0 = rho[l] * np.sqrt(A[l]*As[l]) * self._Asd(l)
+            
+            d_o1b = np.einsum('ij,i,j', self.wigner[l], Cl_AA, Cl_bb) * self._w1bw1b(l)
+            d_o1t = np.einsum('ij,i,j', self.wigner[l], Cl_AA, Cl_tt) * self._w1tw1t(l)
+            d_o1bt = np.einsum('ij,i,j', self.wigner[l], Cl_AA, Cl_bt) * self._w1bw1t(l)
+            s_o1bs = np.einsum('ij,i,j', self.wigner[l], Cl_AsAs, Cl_bsbs) * self._w1bsw1bs(l)
+    
+            d_o2b = Cl_AA[l] * sigma2_b * self._Aw2b(l)
+            d_o2t = Cl_AA[l] * sigma2_t * self._Aw2t(l)
+            d_o2bt = Cl_AA[l] * np.sqrt(sigma2_b*sigma2_t) * self._Aw2bt(l)
+            s_o2bs = Cl_AsAs[l] * sigma2_bs * self.f_ij(l, 'Asw2bs')
+
+            model[:, l] = cmb[l] + d_o0 + s_o0 + ds_o0 + d_o1b + d_o1t + d_o1bt + s_o1bs + d_o2b + d_o2t + d_o2bt + s_o2bs
+
+        return np.concatenate(model.T)

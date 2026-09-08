@@ -8,9 +8,18 @@ import basicfunc as func
 
 ###contains all the models to be fitted by mpfit ###
 
-def getDL_cmb(nside=64,Nlbin=10,mode='BB',cmb_e2e=False):
+def getDL_cmb(nside=64, Nlbin=10, lbin=None, mode='BB', cmb_e2e=False):
     lmax = nside*2-1
-    b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
+    
+    if lbin is None:
+        b = nmt.NmtBin.from_lmax_linear(lmax=lmax,nlb=Nlbin,is_Dell=True)
+    else:
+        ell_ini = np.concatenate((np.arange(2, lbin), np.arange(lbin, lmax+1, Nlbin)))
+        ell_end = np.concatenate((np.arange(2, lbin)+1, np.arange(lbin, lmax+1, Nlbin)+Nlbin))
+        ell_end = ell_end[ell_end <= lmax+1]
+        ell_ini = ell_ini[:len(ell_end)]
+        b = nmt.NmtBin.from_edges(ell_ini, ell_end, is_Dell=True)
+    
     l = b.get_effective_ells()
     if cmb_e2e == False:
         CLcmb_or=hp.read_cl('./power_spectra/Cls_Planck2018_r0.fits') #TT EE BB TE

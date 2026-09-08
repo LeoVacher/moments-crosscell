@@ -262,6 +262,19 @@ def dust_o1b(nu, beta, b_T, nu0=353.):
 
     return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
 
+def dust_o2b(nu, beta, b_T, nu0=353.):
+    '''second moment of dust in beta'''
+    S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * np.log(nu/nu0)**2
+
+    if np.array(nu).ndim == 2:
+        Ngrid = nu.shape[1]
+        weights = np.ones_like(nu)
+        bw = np.max(nu, axis=1) - np.min(nu, axis=1)
+        weights /= np.tile(bw, [Ngrid,1]).T
+        S_nu = np.trapezoid(S_nu * weights, nu)
+
+    return S_nu * bandpass_unit_conversion(nu, 'MJy/sr', 'uK_CMB') / unit_conversion(nu0, 'MJy/sr', 'uK_CMB')
+
 def dust_o1t(nu, beta, b_T, nu0=353.):
     '''first moment of dust in temperature'''
     S_nu = (mbb(nu, beta, b_T) / mbb(nu0, beta, b_T)) * (dmbb_bT(nu, b_T) - dmbb_bT(nu0, b_T))
